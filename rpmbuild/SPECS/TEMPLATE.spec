@@ -1,7 +1,7 @@
 Name:       FIXME (e.g. somename)
 Version:    FIXME (e.g. 1.2.3)
 Release:    FIXME (e.g. fasrc001)
-Packager:   Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
+Packager:   Harvard FAS Research Computing -- FIXME (FIRST LAST <EMAIL@harvard.edu>)
 Group:      fasrc
 
 Summary:    FIXME
