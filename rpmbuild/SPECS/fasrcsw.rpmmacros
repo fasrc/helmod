@@ -1,6 +1,27 @@
-%define _topdir        /n/sw/fasrcsw/rpmbuild
+#--- basic config
 
-%define _prefix        /n/sw/fasrcsw/apps/%{name}/%{version}
+%define fasrcsw_root  /n/sw/fasrcsw
+
+%define _topdir       %{fasrcsw_root}/rpmbuild
+
+
+#--- helpers
+
+%define defined()      %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
+
+
+#--- compiler/mpi stacks
+
+%if %{defined comp_fam} && %{defined comp_ver}
+	%if %{defined mpi_fam} && %{defined mpi_ver}
+		%define _prefix_base %{fasrcsw_root}/apps/mpi/%{comp_fam}/%{comp_ver}/%{mpi_fam}/%{mpi_ver}
+	%else
+		%define _prefix_base %{fasrcsw_root}/apps/comp/%{comp_fam}/%{comp_ver}
+	%endif
+%else
+	%define _prefix_base %{fasrcsw_root}/apps/core
+%endif
+%define _prefix  %{_prefix_base}/%{name}/%{version}/%{release}
 %define _mandir        %{_prefix}/share/man
 %define _infodir       %{_prefix}/share/info
 %define _defaultdocdir %{_prefix}/share/doc

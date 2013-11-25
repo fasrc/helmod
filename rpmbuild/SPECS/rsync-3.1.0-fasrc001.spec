@@ -13,6 +13,7 @@ Source:     %{name}-%{version}.tar.gz
 
 #---
 
+
 %include fasrcsw.rpmmacros
 
 Prefix:     %{_prefix}
