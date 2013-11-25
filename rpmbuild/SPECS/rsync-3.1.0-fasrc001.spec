@@ -9,6 +9,12 @@ License:    see COPYING file or upstream packaging
 
 #http://rsync.samba.org/ftp/rsync/rsync-3.1.0.tar.gz
 Source:     %{name}-%{version}.tar.gz
+
+
+#---
+
+%include fasrcsw.rpmmacros
+
 Prefix:     %{_prefix}
 
 

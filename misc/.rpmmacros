@@ -1,6 +1,0 @@
-%_topdir        /n/sw/fasrcsw/rpmbuild
-
-%_prefix        /n/sw/fasrcsw/apps/%{name}/%{version}
-%_mandir        %{_prefix}/share/man
-%_infodir       %{_prefix}/share/info
-%_defaultdocdir %{_prefix}/share/doc

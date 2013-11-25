@@ -1,0 +1,6 @@
+%define _topdir        /n/sw/fasrcsw/rpmbuild
+
+%define _prefix        /n/sw/fasrcsw/apps/%{name}/%{version}
+%define _mandir        %{_prefix}/share/man
+%define _infodir       %{_prefix}/share/info
+%define _defaultdocdir %{_prefix}/share/doc
