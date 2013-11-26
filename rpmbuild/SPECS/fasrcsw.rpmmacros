@@ -1,8 +1,9 @@
 #--- basic config
 
-%define fasrcsw_root  /n/sw/fasrcsw
+%define fasrcsw_root        /n/sw/fasrcsw
 
-%define _topdir       %{fasrcsw_root}/rpmbuild
+%define _topdir             %{fasrcsw_root}/rpmbuild
+
 
 
 #--- helpers
@@ -14,14 +15,25 @@
 
 %if %{defined comp_fam} && %{defined comp_ver}
 	%if %{defined mpi_fam} && %{defined mpi_ver}
-		%define _prefix_base %{fasrcsw_root}/apps/mpi/%{comp_fam}/%{comp_ver}/%{mpi_fam}/%{mpi_ver}
+		%define  hierarchy         MPI/%{comp_fam}/%{comp_ver}/%{mpi_fam}/%{mpi_ver}
+		%define  apps_base         %{fasrcsw_root}/apps/%{hierarchy}
+		%define  modulefiles_base  %{fasrcsw_root}/modulefiles/%{hierarchy}
 	%else
-		%define _prefix_base %{fasrcsw_root}/apps/comp/%{comp_fam}/%{comp_ver}
+		%define  hierarchy         Comp/%{comp_fam}/%{comp_ver}
+		%define  apps_base         %{fasrcsw_root}/apps/%{hierarchy}
+		%define  modulefiles_base  %{fasrcsw_root}/modulefiles/%{hierarchy}
 	%endif
 %else
-	%define _prefix_base %{fasrcsw_root}/apps/core
+		%define  hierarchy         Core
 %endif
-%define _prefix  %{_prefix_base}/%{name}/%{version}/%{release}
+
+%define apps_base        %{fasrcsw_root}/apps/%{hierarchy}
+
+%define modulefiles_base %{fasrcsw_root}/modulefiles/%{hierarchy}
+%define modulefile_dir   %{modulefiles_base}/%{name}/%{version}
+%define modulefile       %{modulefile_dir}/%{release}.lua
+
+%define _prefix        %{apps_base}/%{name}/%{version}/%{release}
 %define _mandir        %{_prefix}/share/man
 %define _infodir       %{_prefix}/share/info
 %define _defaultdocdir %{_prefix}/share/doc
