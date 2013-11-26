@@ -4,7 +4,10 @@ Release:    fasrc001
 Packager:   Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
 Group:      fasrc
 
-Summary:    FIXME
+#%{summary} gets changed when the debuginfo rpm gets created, so store the original for later re-use
+%define     summary_static FIXME
+Summary:    %{summary_static}
+
 License:    see COPYING file or upstream packaging
 
 #http://rsync.samba.org/ftp/rsync/rsync-3.1.0.tar.gz
@@ -42,7 +45,7 @@ cat > %{buildroot}/%{_prefix}/modulefile <<EOF
 local help_message = [[
 %{name}-%{version}-%{release}
 
-%{summary}
+%{summary_static}
 ]]
 help(help_message,"\n")
 
@@ -52,18 +55,18 @@ whatis("Category: compiler")
 whatis("Keywords: system, compiler")
 
 prepend_path("PATH",                "%{_prefix}/bin")
-#prepend_path("PATH",                "%{_prefix}/sbin")
-#prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-#prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-#prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-#prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-#prepend_path("CPATH",               "%{_prefix}/include")
-#prepend_path("FPATH",               "%{_prefix}/include")
-#prepend_path("MANPATH",             "%{_prefix}/man")
-#prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
 prepend_path("MANPATH",             "%{_prefix}/share/man")
-#prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
-#prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 
@@ -71,7 +74,6 @@ EOF
 
 %defattr(-,root,root,-)
 
-%{_prefix}/share/doc
 #%doc COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS
 %doc COPYING README INSTALL NEWS TODO
 
@@ -103,12 +105,15 @@ ln -s %{_prefix}/modulefile %{modulefile}
 %preun
 
 rm %{modulefile}
-##this would remove the entire version directory (there is no separate directory for a release, and we're only removing the release)
+##do not do this, it would remove the entire app's directory
 #rmdir %{modulefile_dir}
 
 
 %postun
 
+#(JAB doesn't understand share/doc -- if JAB adds it to %files, rpmbuild gives an an EEXIST, even though it exists)
+rmdir %{_prefix}/share/doc
+rmdir %{_prefix}/share
 rmdir %{_prefix}
 
 
