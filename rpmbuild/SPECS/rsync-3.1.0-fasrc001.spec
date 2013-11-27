@@ -83,9 +83,12 @@ for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	[ -e "$f" ] && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-##uncomment this to fail the rpmbuild at this point and see what the thing has 
-##built; this is helpful for discovering what to uncomment in the template 
-##below
+#
+# FIXME
+# consider uncommenting this on the first trial rpmbuild to see what the 
+# package actually builds, so you can choose what to include in %%files, the 
+# modulefile, etc. below
+# 
 #echo
 #echo
 #tree '%{buildroot}/%{_prefix}'
@@ -95,15 +98,16 @@ done
 # FIXME
 #
 # - uncomment any applicable prepend_path things and mirror what you do here in 
-#   the files section below
+#   the %%files section below
 #
 # - do any other customizing of the module
 #
 # - in the help message, link to website docs rather than write anything 
-#   lengthy
+#   lengthy here
 #
 # references on writing modules:
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/advanced-user-guide/writing-module-files
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
