@@ -80,8 +80,16 @@ make
 
 #(these files are nice to have; %%doc is not as prefix-friendly as I would like)
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	[ -e "$f" ] && cp -a "$f" %{buildroot}/%{_prefix}/
+	[ -e "$f" ] && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
+
+##uncomment this to fail the rpmbuild at this point and see what the thing has 
+##built; this is helpful for discovering what to uncomment in the template 
+##below
+#echo
+#echo
+#tree '%{buildroot}/%{_prefix}'
+#false
 
 # 
 # FIXME
@@ -95,21 +103,19 @@ done
 #   lengthy
 #
 # references on writing modules:
-#	http://www.tacc.utexas.edu/tacc-projects/lmod/advanced-user-guide/writing-module-files
-#	http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/advanced-user-guide/writing-module-files
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-cat > %{buildroot}/%{_prefix}/modulefile <<EOF
-local help_message = [[
+cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
+local helpstr = [[
 %{name}-%{version}-%{release}
-
 %{summary_static}
 ]]
-help(help_message,"\n")
+help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}")
-whatis("Category: compiler")
-whatis("Keywords: system, compiler")
+whatis("Version: %{version}-%{release}")
+whatis("Description: %{summary_static}")
 
 prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
@@ -161,7 +167,7 @@ EOF
 #%{_prefix}/pkgconfig
 #%{_prefix}/site-packages
 
-%{_prefix}/modulefile
+%{_prefix}/modulefile.lua
 
 
 %pre
@@ -182,7 +188,7 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}.%{release}' && mkdir -p '%{_pref
 # creating
 #
 mkdir -p %{modulefile_dir}
-ln -s %{_prefix}/modulefile %{modulefile}
+ln -s %{_prefix}/modulefile.lua %{modulefile}
 #
 
 
