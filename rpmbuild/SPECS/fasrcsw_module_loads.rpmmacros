@@ -1,0 +1,10 @@
+#--- this requires fasrcsw_defines.rpmmacros
+
+source /etc/profile.d/lmod.sh
+
+%if %{defined comp_fam} && %{defined comp_ver} && %{defined comp_rel}
+	module load %{comp_fam}/%{comp_ver}-%{comp_rel}
+	%if %{defined mpi_fam} && %{defined mpi_ver} && %{defined mpi_rel}
+		module load %{mpi_fam}/%{mpi_ver}-%{mpi_rel}
+	%endif
+%endif

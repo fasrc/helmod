@@ -1,0 +1,44 @@
+#--- basic config
+
+%define fasrcsw_root /n/sw/fasrcsw
+
+%define _topdir %{fasrcsw_root}/rpmbuild
+
+#(needed for module function to work)
+%define _buildshell /bin/bash
+
+
+#--- helpers
+
+%define defined()      %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
+
+
+#--- compiler/mpi stacks
+
+%if %{defined comp_fam} && %{defined comp_ver} && %{defined comp_rel}
+	%if %{defined mpi_fam} && %{defined mpi_ver} && %{defined mpi_rel}
+		%define  release_full      %{release_base}_%{comp_fam}_%{comp_ver}_%{comp_rel}_%{mpi_fam}_%{mpi_ver}_%{mpi_rel}
+		%define  hierarchy         MPI/%{comp_fam}/%{comp_ver}-%{comp_rel}/%{mpi_fam}/%{mpi_ver}-%{mpi_rel}
+	%else
+		%define  release_full      %{release_base}_%{comp_fam}_%{comp_ver}_%{comp_rel}
+		%define  hierarchy         Comp/%{comp_fam}/%{comp_ver}-%{comp_rel}
+	%endif
+%else
+	
+		%define  release_full      %{release_base}
+		%define  hierarchy         Core
+%endif
+
+
+#---
+
+%define apps_base        %{fasrcsw_root}/apps/%{hierarchy}
+
+%define modulefiles_base %{fasrcsw_root}/modulefiles/%{hierarchy}
+%define modulefile_dir   %{modulefiles_base}/%{name}
+%define modulefile       %{modulefile_dir}/%{version}-%{release_base}.lua
+
+%define _prefix        %{apps_base}/%{name}/%{version}-%{release_base}
+%define _mandir        %{_prefix}/share/man
+%define _infodir       %{_prefix}/share/info
+%define _defaultdocdir %{_prefix}/share/doc

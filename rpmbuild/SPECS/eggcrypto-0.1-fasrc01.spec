@@ -1,30 +1,37 @@
+#------------------- package info ----------------------------------------------
+
 #
 # FIXME
+#
 # enter the simple app name
 #
 Name: eggcrypto
 
 #
 # FIXME
+#
 # enter the app version
 #
 Version: 0.1
 
 #
 # FIXME
-# enter the app release; start with fasrc01 and increment in subsequent 
-# releases
 #
-Release: fasrc01
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
+#
+%define release_base fasrc01
 
 #
 # FIXME
-# enter your FIRST, LAST, and EMAIL
+#
+# enter your FIRST LAST <EMAIL>
 #
 Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
 
 #
 # FIXME
+#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
@@ -33,23 +40,31 @@ Summary: %{summary_static}
 
 #
 # FIXME
+#
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#http://... (personal source)
-Source:     %{name}-%{version}.tar.gz
+#http://...URL...
+Source: %{name}-%{version}.tar.gz
 
-#(these fields are required)
+#
+# there should be no need to change the following
+#
+
+#these fields are required by RPM
 Group: fasrcsw
 License: see COPYING file or upstream packaging
 
-%include fasrcsw.rpmmacros
+#this comes here since it uses Name and Version but dynamically computes Release, Prefix, etc.
+%include fasrcsw_defines.rpmmacros
 
-Prefix:     %{_prefix}
+Release: %{release_full}
+Prefix: %{_prefix}
 
 
 #
 # FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
@@ -58,26 +73,69 @@ eggcyrypto is an openssl-based cryptography libray for egg and grid computing.
 This provides a python extension module that functions as an egg plugin.
 
 
+
+#------------------- %%prep (~ tar xvf) ---------------------------------------
+
 %prep
+
+#
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# style things
+#
 
 %setup -q
 
 
+
+#------------------- %%build (~ configure && make) ----------------------------
+
 %build
+
+#
+# FIXME
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+# you can `module load' dependencies if needed -- be sure also to put them in 
+# the modulefile constructed later
+#
+
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
 
 %configure
 make
 
 
+
+#------------------- %%install (~ make install + define modulefile) -----------
+
 %install
+
+#
+# FIXME
+#
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
+#
+# TIP -- first run rmpbuild with --eval '%%define inspect yes' in order to stop 
+# after the make install step and see what to include in the modulefile, the 
+# %%files section, etc.
+#
 
 %makeinstall
 
-#(these files are nice to have; %%doc is not as prefix-friendly as I would like)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	[ -e "$f" ] && cp -a "$f" '%{buildroot}/%{_prefix}/'
+	test -e "$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined inspect}
 	set +x
 	
@@ -110,7 +168,7 @@ done
 # - uncomment any applicable prepend_path things and mirror what you do here in 
 #   the %%files section below
 #
-# - do any other customizing of the module
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -147,15 +205,20 @@ prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 EOF
 
 
+
+#------------------- %%files (what products of make install go in the rpm) ----
+
 %files
 
 %defattr(-,root,root,-)
 
 #
 # FIXME
+#
 # uncomment anything applicable here (if anything gets added to the template, 
 # add it in the %%install section above, too)
 #
+
 #%{_prefix}/COPYING
 #%{_prefix}/AUTHORS
 #%{_prefix}/README
@@ -168,8 +231,10 @@ EOF
 
 #
 # FIXME
+#
 # uncomment anything applicable here; keep this in sync with the modulefile above
 #
+
 #%{_prefix}/bin
 #%{_prefix}/sbin
 #%{_prefix}/lib
@@ -184,6 +249,10 @@ EOF
 %{_prefix}/modulefile.lua
 
 
+
+#------------------- scripts (there should be no need to change these) --------
+
+
 %pre
 #
 # everything in fasrcsw is installed in an app hierarchy in which some 
@@ -191,7 +260,7 @@ EOF
 # are shared; only do this if it looks like an app-specific prefix is indeed 
 # being used (that's the fasrcsw default)
 #
-echo '%{_prefix}' | grep -q '%{name}.%{version}.%{release}' && mkdir -p '%{_prefix}'
+echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 #
 
 %post
@@ -223,7 +292,7 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 # little protection so this does not cause problems if a non-default prefix 
 # (e.g. one shared with other packages) is used
 #
-test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}.%{release}' && rmdir '%{_prefix}'
+test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
 #
 
 
@@ -236,8 +305,13 @@ echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
 #
 
 
+
+#------------------- %%changelog ---------------------------------------------
+
 %changelog
+
 #
 # FIXME
-# if you're issuing a new fasrc### release, explain the changes
+#
+# if you're building a new fasrc## release, explain the changes
 #
