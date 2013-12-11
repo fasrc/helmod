@@ -1,6 +1,6 @@
 Name:       FIXME (e.g. somename)
 Version:    FIXME (e.g. 1.2.3)
-Release:    FIXME (e.g. fasrc001)
+Release:    FIXME (e.g. fasrc01)
 Packager:   Harvard FAS Research Computing -- FIXME (FIRST LAST <EMAIL@harvard.edu>)
 Group:      fasrc
 

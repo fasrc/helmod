@@ -12,10 +12,10 @@ Version: 3.1.0
 
 #
 # FIXME
-# enter the app release; start with fasrc001 and increment in subsequent 
+# enter the app release; start with fasrc01 and increment in subsequent 
 # releases
 #
-Release: fasrc001
+Release: fasrc01
 
 #
 # FIXME

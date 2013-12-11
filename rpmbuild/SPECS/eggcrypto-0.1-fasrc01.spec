@@ -12,10 +12,10 @@ Version: 0.1
 
 #
 # FIXME
-# enter the app release; start with fasrc001 and increment in subsequent 
+# enter the app release; start with fasrc01 and increment in subsequent 
 # releases
 #
-Release: fasrc001
+Release: fasrc01
 
 #
 # FIXME
@@ -78,16 +78,31 @@ for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	[ -e "$f" ] && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#
-# FIXME
-# consider uncommenting this on the first trial rpmbuild to see what the 
-# package actually builds, so you can choose what to include in %%files, the 
-# modulefile, etc. below
-# 
-#echo
-#echo
-#tree '%{buildroot}/%{_prefix}'
-#false
+%if %{defined inspect}
+	set +x
+	
+	echo
+	echo
+	echo "*************** fasrcsw -- STOPPING due to %%define inspect yes ****************"
+	echo 
+	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
+	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
+	echo
+	echo
+	
+	tree '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
+	echo "******************************************************************************"
+	echo
+	echo
+	
+	#make the build stop
+	false
+
+	set -x
+%endif
 
 # 
 # FIXME
