@@ -13,16 +13,13 @@ Give all shells an environment variable named `FASRCSW` which points to this loc
 
 	$ echo 'export FASRCSW=$HOME/fasrcsw' >> ~/.bashrc
 
-Source ~/.bashrc if you're continuing work in the same shell.
-This variables is only used to make the instructions below portable; it's not part of the fasrcsw framework per se.
+Source ~/.bashrc if you'll continue to work in the same shell.
+This variable is only used to make the instructions below portable; it's not part of the fasrcsw framework per se.
 
 
 # Workflow
 
 ## Prep
 
-* make sure you're logged into the build host (currently hero4502)
+* make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
-* change directory to your personal fasrcsw clone:
-
-	cd $FASRCSW
