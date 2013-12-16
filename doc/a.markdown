@@ -7,7 +7,7 @@
 
 Clone the repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
 
-	$ git clone git@gitint.rc.fas.harvard.edu:/var/lib/git/fasrcsw.git ~/fasrcsw
+	$ git clone git@github.com:/fasrc/fasrcsw.git ~/fasrcsw
 
 Give all shells an environment variable named `FASRCSW` which points to this location, e.g. with something like the following:
 
