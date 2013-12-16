@@ -2,7 +2,7 @@
 
 %define fasrcsw_root /n/sw/fasrcsw
 
-%define _topdir %{fasrcsw_root}/rpmbuild
+%define _topdir %(readlink -e $PWD/..)
 
 #(needed for module function to work)
 %define _buildshell /bin/bash
