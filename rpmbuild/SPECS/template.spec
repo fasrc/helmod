@@ -3,16 +3,16 @@
 #
 # FIXME
 #
-# enter the simple app name
+# enter the simple app name, e.g. myapp
 #
-Name: eggcrypto
+Name: FIXME
 
 #
 # FIXME
 #
-# enter the app version
+# enter the app version, e.g 0.0.1
 #
-Version: 0.1
+Version: FIXME
 
 #
 # FIXME
@@ -27,7 +27,7 @@ Version: 0.1
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
+Packager: Harvard FAS Research Computing -- FIRST LAST <EMAIL@harvard.edu>
 
 #
 # FIXME
@@ -35,7 +35,7 @@ Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static a cryptography library for the grid
+%define summary_static ...FIXME...
 Summary: %{summary_static}
 
 #
@@ -44,7 +44,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#http://...URL...
+#http://...FIXME...
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -69,8 +69,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-eggcyrypto is an openssl-based cryptography libray for egg and grid computing.
-This provides a python extension module that functions as an egg plugin.
+...FIXME...
 
 
 
@@ -193,8 +192,8 @@ whatis("Description: %{summary_static}")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 --prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("MANPATH",             "%{_prefix}/man")
@@ -238,7 +237,7 @@ EOF
 #%{_prefix}/bin
 #%{_prefix}/sbin
 #%{_prefix}/lib
-%{_prefix}/lib64
+#%{_prefix}/lib64
 #%{_prefix}/include
 #%{_prefix}/man
 #%{_prefix}/info

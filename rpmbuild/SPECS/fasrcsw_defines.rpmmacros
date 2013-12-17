@@ -1,8 +1,8 @@
 #--- basic config
 
-%define fasrcsw_root /n/sw/fasrcsw
+%define fasrcsw_root %(echo $FASRCSW_PROD)
 
-%define _topdir %(readlink -e $PWD/..)
+%define _topdir %(echo $FASRCSW_DEV/rpmbuild)
 
 #(needed for module function to work)
 %define _buildshell /bin/bash

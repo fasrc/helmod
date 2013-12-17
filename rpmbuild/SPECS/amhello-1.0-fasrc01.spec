@@ -3,16 +3,16 @@
 #
 # FIXME
 #
-# enter the simple app name
+# enter the simple app name, e.g. myapp
 #
-Name: FIXME
+Name: amhello
 
 #
 # FIXME
 #
-# enter the app version
+# enter the app version, e.g. 0.0.1
 #
-Version: 0.0.0
+Version: 1.0
 
 #
 # FIXME
@@ -27,7 +27,7 @@ Version: 0.0.0
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- FIRST LAST <EMAIL@harvard.edu>
+Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
 
 #
 # FIXME
@@ -35,7 +35,7 @@ Packager: Harvard FAS Research Computing -- FIRST LAST <EMAIL@harvard.edu>
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static ...FIXME...
+%define summary_static a demonstration package for GNU Automake
 Summary: %{summary_static}
 
 #
@@ -44,7 +44,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#http://...FIXME...
+#curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz \
+#  | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -69,7 +70,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-...FIXME...
+This is a demonstration package for GNU Automake.
+Type `info Automake' to read the Automake manual.
 
 
 
