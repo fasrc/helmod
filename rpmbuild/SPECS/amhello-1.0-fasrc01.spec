@@ -135,7 +135,7 @@ make
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -210,47 +210,13 @@ EOF
 
 
 
-#------------------- %%files (what products of make install go in the rpm) ----
+#------------------- %%files (there should be no need to change this ) --------
 
 %files
 
 %defattr(-,root,root,-)
 
-#
-# FIXME
-#
-# uncomment anything applicable here (if anything gets added to the template, 
-# add it in the %%install section above, too)
-#
-
-#%{_prefix}/COPYING
-#%{_prefix}/AUTHORS
-#%{_prefix}/README
-#%{_prefix}/INSTALL
-#%{_prefix}/ChangeLog
-#%{_prefix}/NEWS
-#%{_prefix}/THANKS
-#%{_prefix}/TODO
-#%{_prefix}/BUGS
-
-#
-# FIXME
-#
-# uncomment anything applicable here; keep this in sync with the modulefile above
-#
-
-#%{_prefix}/bin
-#%{_prefix}/sbin
-#%{_prefix}/lib
-#%{_prefix}/lib64
-#%{_prefix}/include
-#%{_prefix}/man
-#%{_prefix}/info
-#%{_prefix}/share
-#%{_prefix}/pkgconfig
-#%{_prefix}/site-packages
-
-%{_prefix}/modulefile.lua
+%{_prefix}
 
 
 
