@@ -10,7 +10,7 @@ Name: FIXME
 #
 # FIXME
 #
-# enter the app version, e.g 0.0.1
+# enter the app version, e.g. 0.0.1
 #
 Version: FIXME
 
@@ -83,6 +83,9 @@ Prefix: %{_prefix}
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
 #
+
+#(leave this here)
+%include fasrcsw_env_check.rpmmacros
 
 %setup -q
 
