@@ -125,9 +125,9 @@ make
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
 #
-# TIP -- first run rmpbuild with --eval '%%define inspect yes' in order to stop 
-# after the make install step and see what to include in the modulefile, the 
-# %%files section, etc.
+# TIP -- first run rmpbuild with --define 'inspect yes' in order to stop after 
+# the make install step and see what to include in the modulefile, the %%files 
+# section, etc.
 #
 
 %makeinstall
