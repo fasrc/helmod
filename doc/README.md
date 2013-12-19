@@ -46,7 +46,7 @@ Point it at the various locations within fasrcsw:
 
 ## Install standard compiler and MPI stacks
 
-See [this doc](Comp_MPI_install.md)
+See [this doc](Comp_MPI_install.md).
 
 
 
@@ -63,8 +63,8 @@ The basic workflow is:
 * create and partially complete a spec file, using the template as a starting point
 * do a preliminary build of the software to see what it creates, in order to know what to put in the modulefile
 * complete the spec file and build the final rpm
-* commit changes and move packages to production locations
 * install the rpm
+* commit changes and move packages to production locations
 
 A *Core* app is one that does not depend on a compiler or MPI module.
 
@@ -75,7 +75,8 @@ Get ready to build software:
 
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
-* change directory to your personal fasrcsw clone and setup the environment:
+
+`cd` to your personal fasrcsw clone and setup the environment:
 
 	source ./setup.sh
 
@@ -103,10 +104,7 @@ By whatever means necessary, get a copy of the package source archive into the l
 	wget --no-clobber http://...
 
 E.g. for `amhello`, which is a bit complicated because it's a tarball within another tarball:
-	
-	#amhello example ONLY
-	curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz \
-	  | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
+curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
 
 
 ## Create a preliminary spec file
@@ -200,11 +198,6 @@ It's also a good idea to test if it will install okay:
 	sudo cp -a ../SRPMS/"$NAME-$VERSION-$RELEASE".src.rpm "$FASRCSW_PROD"/rpmbuild/SRPMS/
 
 
-## Commit your changes to the git remote
-
-Add, commit, and push all your modifications to the fasrcsw git remote repo.
-
-
 ## Install the rpm
 
 Finall, install the rpm:
@@ -223,3 +216,8 @@ Check that it installed and the module is there:
 If you want to erase it and retry:
 	
 	sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86_64
+
+
+## Commit your changes to the git remote
+
+Add, commit, and push all your modifications to the fasrcsw git remote repo.
