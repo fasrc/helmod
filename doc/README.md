@@ -74,8 +74,9 @@ A *Core* app is one that does not depend on a compiler or MPI module.
 Get ready to build software:
 
 * make sure you're logged into the build host
-* make sure you're logged into your normal user account, _not_ root
-* `cd` to your personal fasrcsw clone and setup the environment:
+* make sure you're logged into your normal user account, *not* root
+
+`cd` to your personal fasrcsw clone and setup the environment:
 
 	source ./setup.sh
 
