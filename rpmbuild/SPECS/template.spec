@@ -84,9 +84,6 @@ Prefix: %{_prefix}
 # style things
 #
 
-#(leave this here)
-%include fasrcsw_env_check.rpmmacros
-
 %setup -q
 
 
@@ -201,6 +198,7 @@ whatis("Description: %{summary_static}")
 --prepend_path("MANPATH",             "%{_prefix}/man")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
 --prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
@@ -269,16 +267,4 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
-#
-
-
-
-#------------------- %%changelog ---------------------------------------------
-
-%changelog
-
-#
-# FIXME
-#
-# if you're building a new fasrc## release, explain the changes
 #
