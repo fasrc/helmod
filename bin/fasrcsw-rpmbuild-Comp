@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+fasrcsw-env-check
+
+for comp in "${FASRCSW_COMPS[@]}"; do
+	IFS=/ read -r comp_fam comp_verrel <<< "$comp"
+	IFS=- read -r comp_ver comp_rel    <<< "$comp_verrel"
+	
+	fasrcsw-rpmbuild-Core \
+		--define "comp_fam $comp_fam" --define "comp_ver $comp_rel" --define "comp_rel $comp_rel" \
+		"$@"
+done

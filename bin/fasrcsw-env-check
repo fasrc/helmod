@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+if [ -z "${FASRCSW_PROD:-}" ] || [ -z "${FASRCSW_DEV:-}" ]; then
+	echo "*** ERROR *** environment variables FASRCSW_PROD and/or FASRCSW_DEV are not set; see setup.sh" >&2
+	exit 1
+fi
+
+##check that we're on the build host
+#if [ -z "${FASRCSW_NO_BUILD_HOST_CHECK:-}" ] && [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST" ]; then
+#	echo "*** ERROR *** you are not logged into the build host, $FASRCSW_BUILD_HOST  (set \$FASRCSW_NO_BUILD_HOST_CHECK to something non-empty to override this)" >&2
+#	return 1
+#fi
+
+##check that we're not on PROD
+#if [ -z "${FASRCSW_NO_DEV_EQ_PROD_CHECK:-}" ] && [ "$FASRCSW_DEV" = "$FASRCSW_PROD" ]; then
+#	echo "*** ERROR *** \$FASRCSW_DEV and \$FASRCSW_PROD are the same (set \$FASRCSW_NO_DEV_EQ_PROD_CHECK to something non-empty to override this)" >&2
+#	return 1
+#fi

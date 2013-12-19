@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+fasrcsw-env-check
+
+for mpi in "${FASRCSW_MPIS[@]}"; do
+	IFS=/ read -r mpi_fam mpi_verrel <<< "$mpi"
+	IFS=- read -r mpi_ver mpi_rel    <<< "$mpi_verrel"
+	
+	fasrcsw-rpmbuild-Comp \
+		--define "mpi_fam $mpi_fam" --define "mpi_ver $mpi_rel" --define "mpi_rel $mpi_rel" \
+		"$@"
+done
