@@ -5,17 +5,17 @@
 
 As root, pick the central location for all cluster software and clone the fasrcsw repo there:
 	
-	cd /SOME/PATH/
 	git clone git@github.com:/fasrc/fasrcsw.git
 
 This top level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
+Thus, *make sure this is backed up regularly*.
 
 Change to that directory and source the setup.sh:
 	
 	cd fasrcsw
 	source ./setup.sh
 
-This makes available some scripts such as `fasrcsw-rpm` and `fasrcsw-rpmbuild` which are very thin wrappers around the default programs and just add some default options.
+This makes available some scripts such as `fasrcsw-rpm` and `fasrcsw-rpmbuild-*` which are very thin wrappers around the default programs and just add some default options.
 Use the rpm one to initialize the rpm database used exclusively for fasrcsw:
 
 	fasrcsw-rpm --initdb
@@ -35,8 +35,17 @@ In particular, set `FASRCSW_PROD` to point to the location of the production rep
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
 
+## Install lmod
 
-# How-to -- Core apps
+Install [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
+FAS RC uses the [github version](https://github.com/TACC/Lmod).
+Point it at the various locations within fasrcsw:
+
+	./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
+
+
+
+# How-to: Core apps
 
 
 ## Intro
@@ -52,10 +61,12 @@ The basic workflow is:
 * commit changes and move packages to production locations
 * install the rpm
 
-This starts by building it as a *Core* app -- one that does not depend upon compiler or MPI implementation.
+A *Core* app is one that does not depend on a compiler or MPI module.
 
 
 ## Prep
+
+Get ready to build software:
 
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
@@ -67,8 +78,14 @@ There will now be two environment variables defined that are used in the instruc
 `$FASRCSW_DEV` is the location of your personal clone, and
 `$FASRCSW_PROD` is the one, central location for your organizations's software.
 
-In order to be able to copy-n-paste commands below, set the `NAME`, `VERSION`, and `RELEASE` variables particular to the app your installing (these variables are only used by this doc, not fasrcsw).
-`NAME` and `VERSION` are whatever the app claims (the some adjustements may be required, e.g. `-` is not allowed in `VERSION`).
+In order to be able to copy-n-paste commands below, set the package variables particular to the app you're installing
+
+	NAME=...
+	VERSION=...
+	RELEASE=fasrc##
+
+These variables are only used by this doc, not fasrcsw.
+`NAME` and `VERSION` are whatever the app claims (though some adjustements may be required, e.g. `-` is not allowed in `VERSION`).
 `RELEASE` is used to track the build under the fasrcsw system.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the number used in the previous spec file for the app.
 
@@ -109,7 +126,7 @@ The result of the above will be enough of a spec file to build the sofware.
 However, you have to build it before filling in the details of the modulefile also installed by the rpm.
 The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed:
 
-	fasrcsw-rpmbuild --eval '%define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild-Core --eval '%define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
 and the output will show something like this near the end:
 
@@ -119,7 +136,7 @@ and the output will show something like this near the end:
 	exit status' is expected in this case, it's just a way to stop NOW.)
 
 
-	/n/sw/fasrcsw/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
+	/home/me/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
 	|-- README
 	|-- bin
 	|   `-- hello
@@ -141,7 +158,8 @@ and the output will show something like this near the end:
 		Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
 
 The `Bad exit status` is expected in this case.
-(The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.)
+The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
+Note that this temporary build still writes outside of fasrcsw, to the default BUILDROOT location, i.e. your homedirectory; to use another location, add `--buildroot` to your command.
 
 
 ## Finish the spec file
@@ -154,7 +172,7 @@ Some common things are already there as comments (`--` delimits a comment in lua
 
 Now the package can be fully built:
 
-	fasrcsw-rpmbuild -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild-Core -ba "$NAME-$VERSION-$RELEASE".spec
 
 Look it over with the following:
 
@@ -168,21 +186,32 @@ Make sure:
 
 It's also a good idea to test if it will install okay:
 
-	sudo rpm -ivh --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ivh --nodeps --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
 
 ## Copy the rpm to the production location
 
 	sudo cp -a ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/
+	sudo cp -a ../SRPMS/"$NAME-$VERSION-$RELEASE".src.rpm "$FASRCSW_PROD"/rpmbuild/SRPMS/
 
 
 ## Commit your changes to the git remote
 
-Add, commit, and push all your modifications to the fasrcsw repo.
+Add, commit, and push all your modifications to the fasrcsw git remote repo.
 
 
 ## Install the rpm
 
 Finall, install the rpm:
 
-	sudo fasrcsw-rpm -ivh "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ivh --nodeps "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+
+Check that it installed:
+
+	ls "$FASRCSW_PROD"/apps/Core/$NAME/$VERSION-$RELEASE/"
+	module avail
+	module spider
+
+If you want to erase it:
+	
+	sudo -E fasrcsw-rpm -ivh --nodeps "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
