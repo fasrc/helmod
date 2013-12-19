@@ -167,8 +167,7 @@ done
 # 
 # FIXME
 #
-# - uncomment any applicable prepend_path things and mirror what you do here in 
-#   the %%files section below
+# - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
 #
