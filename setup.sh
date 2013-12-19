@@ -10,7 +10,13 @@ export FASRCSW_PROD=/n/sw/fasrcsw
 
 #check that we're on the build host
 if [ -z "${FASRCSW_NO_BUILD_HOST_CHECK:-}" ] && [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST" ]; then
-	echo "*** ERROR *** you are not logged into the build host, $FASRCSW_BUILD_HOST" >&2
+	echo "*** ERROR *** you are not logged into the build host, $FASRCSW_BUILD_HOST  (set \$FASRCSW_NO_BUILD_HOST_CHECK to something non-empty to override this)" >&2
+	return 1
+fi
+
+#check that we're on the build host
+if [ -z "${FASRCSW_NO_DEV_EQ_PROD_CHECK:-}" ] && [ "$FASRCSW_DEV" = "$FASRCSW_PROD" ]; then
+	echo "*** ERROR *** \$FASRCSW_DEV and \$FASRCSW_PROD are the same (set \$FASRCSW_NO_DEV_EQ_PROD_CHECK to something non-empty to override this)" >&2
 	return 1
 fi
 
