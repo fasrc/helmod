@@ -206,12 +206,15 @@ Finall, install the rpm:
 
 	sudo -E fasrcsw-rpm -ivh --nodeps "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
-Check that it installed:
+Check that it installed and the module is there:
 
-	ls "$FASRCSW_PROD"/apps/Core/$NAME/$VERSION-$RELEASE/"
+	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE:
+	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 	module avail
-	module spider
+	module load $NAME/$VERSION-$RELEASE
+	#...test the app it self...
+	module unload $NAME/$VERSION-$RELEASE
 
-If you want to erase it:
+If you want to erase it and retry:
 	
-	sudo -E fasrcsw-rpm -ivh --nodeps "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86_64
