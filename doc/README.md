@@ -1,13 +1,37 @@
 # One-time setup
 
+## Setup the production repo clone, a.k.a. `FASRCSW_PROD`
+
+As root, pick the central location for all cluster software and clone the fasrcsw repo there:
+	
+	cd /SOME/PATH/
+	git clone git@github.com:/fasrc/fasrcsw.git
+
+This top level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
+
+Change to that directory and source the setup.sh:
+	
+	cd fasrcsw
+	source ./setup.sh
+
+This puts some scripts in the path such as `fasrcsw-rpm` and `fasrcsw-rpmbuild` which are very thin wrappers around the default programs and just add some default options, and sets some `FASRCSW_*` environment variables.
+
+Initialize the rpm database:
+
+	fasrcsw-rpm --initdb
+
+## Each contributor sets up a development repo clone, a.k.a. `FASRCSW_DEV`
+
 Clone the repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
 
 	git clone git@github.com:/fasrc/fasrcsw.git ~/fasrcsw
 
-Customize `setup.sh`, particularly `$FASRCSW_PROD`, for your environment.
+Customize `setup.sh`.
+In particular, set `FASRCSW_PROD` to point to the location of the production repo above.
 
 
-# Workflow
+
+# Workflow -- Core apps
 
 ## Intro
 
@@ -16,8 +40,8 @@ This specifically uses the automake hello-world example, `amhello-1.0.tar.gz`, d
 The basic workflow is:
 
 * get the source
-* create and partially complete a spec file, starting with a template
-* do a preliminary build of the software to see what it creates, in order to know what to put in the module file
+* create and partially complete a spec file, using the template as a starting point
+* do a preliminary build of the software to see what it creates, in order to know what to put in the modulefile
 * complete the spec file and build the final rpm
 * commit changes and move packages to production locations
 * install the rpm
@@ -28,7 +52,7 @@ This starts by building it as a *Core* app -- one that does not depend upon comp
 
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
-* `cd` to your personal fasrcsw clone and setup the environment:
+* change directory to your personal fasrcsw clone and setup the environment:
 
 	source ./setup.sh
 
@@ -75,7 +99,7 @@ The result of the above will be enough of a spec file to build the sofware.
 However, you have to build it before filling in the details of the modulefile also installed by the rpm.
 The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed:
 
-	rpmbuild --eval '%define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild --eval '%define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
 and the output will show something like this near the end:
 
@@ -85,7 +109,7 @@ and the output will show something like this near the end:
 	exit status' is expected in this case, it's just a way to stop NOW.)
 
 
-	/home/me/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
+	/n/sw/fasrcsw/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
 	|-- README
 	|-- bin
 	|   `-- hello
@@ -118,11 +142,11 @@ Some common things are already there as comments (`--` delimits a comment in lua
 
 Now the package can be fully built:
 
-	rpmbuild -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild -ba "$NAME-$VERSION-$RELEASE".spec
 
 Look it over with the following:
 
-	rpm -qilp --scripts ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE"*.x86_64.rpm
+	fasrcsw-rpm -qilp --scripts ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE"*.x86_64.rpm
 
 Make sure:
 
@@ -130,10 +154,21 @@ Make sure:
 * all files are under the an app-specific prefix under `$FASRCSW_PROD`. 
 * the modulefile symlink (second ln arg in postinstall scriptlet) is good
 
-## Install the rpm
-
-Now install the rpm, testing first if you like:
+It's also a good idea to test if it will install okay:
 
 	$ sudo rpm -ivh --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
-	$ sudo rpm -ivh        ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
+
+## Copy the rpm to the production location
+
+	$ sudo cp -a ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/
+
+## Commit your changes to the git remote:
+
+Add, commit, and push all your modifications to the fasrcsw repo.
+
+## Install the rpm
+
+Finall, install the rpm:
+
+	$ sudo fasrcsw-rpm -ivh "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
