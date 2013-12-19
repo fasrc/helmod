@@ -84,7 +84,7 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 # style things
 #
 
-%setup -q
+%setup
 
 
 

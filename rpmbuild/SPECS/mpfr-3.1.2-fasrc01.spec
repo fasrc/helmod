@@ -5,14 +5,14 @@
 #
 # enter the simple app name, e.g. myapp
 #
-Name: amhello
+Name: mpfr
 
 #
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 1.0
+Version: 3.1.2
 
 #
 # FIXME
@@ -35,7 +35,7 @@ Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static a demonstration package for GNU Automake
+%define summary_static a C library for multiple-precision floating-point computations with correct rounding
 Summary: %{summary_static}
 
 #
@@ -44,9 +44,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz \
-#  | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
-Source: %{name}-%{version}.tar.gz
+#http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -70,8 +69,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This is a demonstration package for GNU Automake.
-Type `info Automake' to read the Automake manual.
+The main goal of MPFR is to provide a library for multiple-precision floating-point computation which is both efficient and has a well-defined semantics. It copies the good ideas from the ANSI/IEEE-754 standard for double-precision floating-point arithmetic (53-bit significand).
 
 
 
@@ -106,6 +104,8 @@ Type `info Automake' to read the Automake manual.
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+module load gmp/5.1.3-fasrc01
 
 %configure
 make
@@ -189,18 +189,20 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release}")
 whatis("Description: %{summary_static}")
 
-prepend_path("PATH",                "%{_prefix}/bin")
+prereq("gmp")
+
+--prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("MANPATH",             "%{_prefix}/man")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
 --prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF

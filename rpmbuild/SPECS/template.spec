@@ -27,7 +27,7 @@ Version: FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- FIRST LAST <EMAIL@harvard.edu>
+Packager: Harvard FAS Research Computing -- FIXME FIXME <FIXME@harvard.edu>
 
 #
 # FIXME
@@ -84,7 +84,7 @@ Prefix: %{_prefix}
 # style things
 #
 
-%setup -q
+%setup
 
 
 
