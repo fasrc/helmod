@@ -1,13 +1,3 @@
-# Overview
-
-The overall approach of fasrcsw is to define a software management system where:
-
-	* packages are built and installed using **`rpm`**
-	* each app is installed under its own prefix (on shared storage)
-	* user software environments are managed with **`lmod`**
-	* entire software environments for multiple compiler and MPI stacks are easily managed
-
-
 # One-time setup
 
 Clone the repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
@@ -25,12 +15,12 @@ The following is an example of building a simple GNU autotools style software pa
 This specifically uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
 The basic workflow is:
 
-	* get the source
-	* create and partially complete a spec file, starting with a template
-	* do a preliminary build of the software to see what it creates, in order to know what to put in the module file
-	* complete the spec file and build the final rpm
-	* commit changes and move packages to production locations
-	* install the rpm
+* get the source
+* create and partially complete a spec file, starting with a template
+* do a preliminary build of the software to see what it creates, in order to know what to put in the module file
+* complete the spec file and build the final rpm
+* commit changes and move packages to production locations
+* install the rpm
 
 This starts by building it as a *Core* app -- one that does not depend upon compiler or MPI implementation.
 
@@ -136,9 +126,9 @@ Look it over with the following:
 
 Make sure:
 
-	* all the metadata looks good
-	* all files are under the an app-specific prefix under `$FASRCSW_PROD`. 
-	* the modulefile symlink (second ln arg in postinstall scriptlet) is good
+* all the metadata looks good
+* all files are under the an app-specific prefix under `$FASRCSW_PROD`. 
+* the modulefile symlink (second ln arg in postinstall scriptlet) is good
 
 ## Install the rpm
 
