@@ -1,8 +1,18 @@
 #--- basic config
 
 %define fasrcsw_root %{getenv:FASRCSW_PROD}
+%if "%{fasrcsw_root}" == ""
+	%{error:FASRCSW_PROD environment variable is not set; source setup.sh}
+	#this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
+	FASRCSW_PROD
+%endif
 
 %define _topdir %{getenv:FASRCSW_DEV}/rpmbuild
+%if "%{_topdir}" == ""
+	%{error:FASRCSW_DEV environment variable is not set; source setup.sh}
+	#this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
+	FASRCSW_DEV
+%endif
 
 #(needed for module function to work)
 %define _buildshell /bin/bash

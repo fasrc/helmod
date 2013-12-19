@@ -86,9 +86,6 @@ Type `info Automake' to read the Automake manual.
 # style things
 #
 
-#(leave this here)
-%include fasrcsw_env_check.rpmmacros
-
 %setup -q
 
 
