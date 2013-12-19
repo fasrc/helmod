@@ -1,6 +1,7 @@
 # One-time setup
 
-## Setup the production repo clone, a.k.a. `FASRCSW_PROD`
+
+## Setup the production repo clone
 
 As root, pick the central location for all cluster software and clone the fasrcsw repo there:
 	
@@ -14,13 +15,15 @@ Change to that directory and source the setup.sh:
 	cd fasrcsw
 	source ./setup.sh
 
-This puts some scripts in the path such as `fasrcsw-rpm` and `fasrcsw-rpmbuild` which are very thin wrappers around the default programs and just add some default options, and sets some `FASRCSW_*` environment variables.
-
-Initialize the rpm database:
+This makes available some scripts such as `fasrcsw-rpm` and `fasrcsw-rpmbuild` which are very thin wrappers around the default programs and just add some default options.
+Use the rpm one to initialize the rpm database used exclusively for fasrcsw:
 
 	fasrcsw-rpm --initdb
 
-## Each contributor sets up a development repo clone, a.k.a. `FASRCSW_DEV`
+This repo clone is know as `$FASRCSW_PROD`.
+
+
+## Each contributor sets up a development repo clone
 
 Clone the repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
 
@@ -29,9 +32,12 @@ Clone the repo in some personal location, preferably on network storage, e.g. so
 Customize `setup.sh`.
 In particular, set `FASRCSW_PROD` to point to the location of the production repo above.
 
+These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
 
-# Workflow -- Core apps
+
+# How-to -- Core apps
+
 
 ## Intro
 
@@ -47,6 +53,7 @@ The basic workflow is:
 * install the rpm
 
 This starts by building it as a *Core* app -- one that does not depend upon compiler or MPI implementation.
+
 
 ## Prep
 
@@ -65,6 +72,7 @@ In order to be able to copy-n-paste commands below, set the `NAME`, `VERSION`, a
 `RELEASE` is used to track the build under the fasrcsw system.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the number used in the previous spec file for the app.
 
+
 ## Get the source code
 
 By whatever means necessary, get a copy of the package source archive into the location for the sources:
@@ -77,6 +85,7 @@ E.g. for `amhello`, which is a bit complicated because it's a tarball within ano
 	#amhello example ONLY
 	curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz \
 	  | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
+
 
 ## Create a preliminary spec file
 
@@ -92,6 +101,7 @@ Now edit the spec file and address things with the word **`FIXME`** in them.
 For some things, the default will be fine.
 Eventually all need to be addressed, but for now, just complete everything up to where `modulefile.lua` is created.
 The next step will provide the necessary guidance on what to put in the modulefile.
+
 
 ## Build the software and examine its output
 
@@ -133,10 +143,12 @@ and the output will show something like this near the end:
 The `Bad exit status` is expected in this case.
 (The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.)
 
+
 ## Finish the spec file
 
 Re-open the spec file for editing and, based upon the output in the previous step, write what goes in `modulefile.lua`.
 Some common things are already there as comments (`--` delimits a comment in lua).
+
 
 ## Build the rpm
 
@@ -151,24 +163,26 @@ Look it over with the following:
 Make sure:
 
 * all the metadata looks good
-* all files are under the an app-specific prefix under `$FASRCSW_PROD`. 
+* all files are under an app-specific prefix under `$FASRCSW_PROD`. 
 * the modulefile symlink (second ln arg in postinstall scriptlet) is good
 
 It's also a good idea to test if it will install okay:
 
-	$ sudo rpm -ivh --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo rpm -ivh --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
 
 ## Copy the rpm to the production location
 
-	$ sudo cp -a ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/
+	sudo cp -a ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/
 
-## Commit your changes to the git remote:
+
+## Commit your changes to the git remote
 
 Add, commit, and push all your modifications to the fasrcsw repo.
+
 
 ## Install the rpm
 
 Finall, install the rpm:
 
-	$ sudo fasrcsw-rpm -ivh "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo fasrcsw-rpm -ivh "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
