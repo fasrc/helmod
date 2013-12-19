@@ -103,7 +103,8 @@ By whatever means necessary, get a copy of the package source archive into the l
 	cd "$FASRCSW_DEV"/rpmbuild/SOURCES
 	wget --no-clobber http://...
 
-E.g. for `amhello`, which is a bit complicated because it's a tarball within another tarball `curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz`.
+E.g. for `amhello`, which is a bit complicated because it's a tarball within another tarball:
+curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
 
 
 ## Create a preliminary spec file
