@@ -2,4 +2,4 @@
 set -e
 fasrcsw-env-check
 
-rpmbuild --dbpath "$FASRCSW_PROD"/rpmdb --buildroot "$FASRCSW_DEV"/rpmbuild/BUILDROOT "$@"
+rpmbuild --dbpath "$FASRCSW_PROD"/rpmdb "$@"

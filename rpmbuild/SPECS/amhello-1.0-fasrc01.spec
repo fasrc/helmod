@@ -189,7 +189,7 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release}")
 whatis("Description: %{summary_static}")
 
---prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
