@@ -117,7 +117,11 @@ Create a spec file for the app based upon the template:
 
 	cp -ai template.spec "$NAME-$VERSION-$RELEASE".spec
 
-Now edit the spec file and address things with the word **`FIXME`** in them.
+Now edit the spec file:
+
+	$EDITOR "$NAME-$VERSION-$RELEASE".spec
+
+and address things with the word `FIXME` in them.
 For some things, the default will be fine.
 Eventually all need to be addressed, but for now, just complete everything up to where `modulefile.lua` is created.
 The next step will provide the necessary guidance on what to put in the modulefile.
@@ -206,7 +210,7 @@ Finall, install the rpm:
 
 Check that it installed and the module is there:
 
-	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE:
+	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
 	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 	module avail
 	module load $NAME/$VERSION-$RELEASE
