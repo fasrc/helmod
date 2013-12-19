@@ -46,7 +46,7 @@ Point it at the various locations within fasrcsw:
 
 ## Install standard compiler and MPI stacks
 
-See [this doc](Comp_MPI_install.md)
+See [this doc](Comp_MPI_install.md).
 
 
 
@@ -63,8 +63,8 @@ The basic workflow is:
 * create and partially complete a spec file, using the template as a starting point
 * do a preliminary build of the software to see what it creates, in order to know what to put in the modulefile
 * complete the spec file and build the final rpm
-* commit changes and move packages to production locations
 * install the rpm
+* commit changes and move packages to production locations
 
 A *Core* app is one that does not depend on a compiler or MPI module.
 
@@ -74,8 +74,8 @@ A *Core* app is one that does not depend on a compiler or MPI module.
 Get ready to build software:
 
 * make sure you're logged into the build host
-* make sure you're logged into your normal user account, *not* root
-* change directory to your personal fasrcsw clone and setup the environment:
+* make sure you're logged into your normal user account, _not_ root
+* `cd` to your personal fasrcsw clone and setup the environment:
 
 	source ./setup.sh
 
@@ -200,11 +200,6 @@ It's also a good idea to test if it will install okay:
 	sudo cp -a ../SRPMS/"$NAME-$VERSION-$RELEASE".src.rpm "$FASRCSW_PROD"/rpmbuild/SRPMS/
 
 
-## Commit your changes to the git remote
-
-Add, commit, and push all your modifications to the fasrcsw git remote repo.
-
-
 ## Install the rpm
 
 Finall, install the rpm:
@@ -223,3 +218,8 @@ Check that it installed and the module is there:
 If you want to erase it and retry:
 	
 	sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86_64
+
+
+## Commit your changes to the git remote
+
+Add, commit, and push all your modifications to the fasrcsw git remote repo.
