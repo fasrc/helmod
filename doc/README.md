@@ -133,7 +133,7 @@ The result of the above will be enough of a spec file to build the sofware.
 However, you have to build it before filling in the details of the modulefile also installed by the rpm.
 The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed:
 
-	fasrcsw-rpmbuild-Core --eval '%define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild-Core --define 'define inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
 and the output will show something like this near the end:
 
@@ -171,7 +171,11 @@ Note that this temporary build still writes outside of fasrcsw, to the default B
 
 ## Finish the spec file
 
-Re-open the spec file for editing and, based upon the output in the previous step, write what goes in `modulefile.lua`.
+Re-open the spec file for editing:
+
+	$EDITOR "$NAME-$VERSION-$RELEASE".spec
+
+and, based upon the output in the previous step, write what goes in `modulefile.lua`.
 Some common things are already there as comments (`--` delimits a comment in lua).
 
 
@@ -191,22 +195,16 @@ Make sure:
 * all files are under an app-specific prefix under `$FASRCSW_PROD`. 
 * the modulefile symlink (second ln arg in postinstall scriptlet) is good
 
-It's also a good idea to test if it will install okay:
+Test if it will install okay:
 
 	sudo -E fasrcsw-rpm -ivh --nodeps --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
 
-## Copy the rpm to the production location
-
-	sudo cp -a ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/
-	sudo cp -a ../SRPMS/"$NAME-$VERSION-$RELEASE".src.rpm "$FASRCSW_PROD"/rpmbuild/SRPMS/
-
-
 ## Install the rpm
 
-Finall, install the rpm:
+Finally, install the rpm:
 
-	sudo -E fasrcsw-rpm -ivh --nodeps "$FASRCSW_PROD"/rpmbuild/RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ivh --nodeps ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
 
 Check that it installed and the module is there:
 
@@ -217,11 +215,15 @@ Check that it installed and the module is there:
 	#...test the app it self...
 	module unload $NAME/$VERSION-$RELEASE
 
-If you want to erase it and retry:
-	
-	sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86_64
+If you want to erase it and retry: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
 
 
-## Commit your changes to the git remote
+## Save your work
+
+Copy the rpm to the production location
+
+	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
+	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
+	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
 
 Add, commit, and push all your modifications to the fasrcsw git remote repo.
