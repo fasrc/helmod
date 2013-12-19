@@ -212,7 +212,7 @@ EOF
 
 %defattr(-,root,root,-)
 
-%{_prefix}
+%{_prefix}/*
 
 
 
