@@ -112,7 +112,7 @@ make
 
 
 
-#------------------- %%install (~ make install + define modulefile) -----------
+#------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
@@ -189,8 +189,14 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release}")
 whatis("Description: %{summary_static}")
 
-prereq("gmp")
+---- prerequisite apps (uncomment and tweak if necessary)
+if mode()=="load" then
+	if not isloaded("gmp") then
+		load("gmp/5.1.3-fasrc01")
+	end
+end
 
+---- environment changes (uncomment what's relevant)
 --prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
