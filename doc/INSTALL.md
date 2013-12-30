@@ -1,5 +1,9 @@
 # Install fasrcw
 
+<!--
+If you're setting this up for an organation other than Harvard FAS Research Computing (github fasrc), create a new canonical fasrcsw remote and adjust urls below accordingly.
+-->
+
 
 ## Setup the production repo clone
 
@@ -21,9 +25,12 @@ Use the rpm one to initialize the rpm database used exclusively for fasrcsw:
 	fasrcsw-rpm --initdb
 
 This repo clone is know as `$FASRCSW_PROD`.
+<!--
+This clone only needs to pull updates, thus an https remote is fine.
+-->
 
 
-## Each contributor sets up a development repo clone
+## Have each contributor setup a development repo clone
 
 Clone the repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
 
@@ -34,6 +41,9 @@ Customize `setup.sh`.
 In particular, set `FASRCSW_PROD` to point to the location of the production repo above.
 
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
+<!--
+These clones will need to push updates back to the remote.
+-->
 
 
 # Install lmod
@@ -47,4 +57,12 @@ Point it at the various locations within fasrcsw:
 
 # Install standard compiler and MPI stacks
 
-TODO
+## gcc
+
+### gmp
+
+### mpfr
+
+### mpc
+
+### gcc

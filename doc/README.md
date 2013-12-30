@@ -1,7 +1,7 @@
 The following are instructions for day-to-day operations with fasrcsw.
 
 * See [the main README](../README.md) for a general introduction to fasrcsw.
-* See [the INSTALL documentation](INSTALL.md) for initial installation and setup.
+* See [the INSTALL documentation](INSTALL.md) for initial installation and setup.  In particular, if you're joining an already functional environment, see [this section](INSTALL.md#have-each-contributor-setup-a-development-repo-clone) for personal initial setup.
 
 
 ---
