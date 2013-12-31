@@ -1,7 +1,8 @@
-The following are instructions for day-to-day operations with fasrcsw.
+This document has instructions for day-to-day operations with fasrcsw.
+Some other documentation of interest:
 
-* See [the main README](../README.md) for a general introduction to fasrcsw.
-* See [the INSTALL documentation](INSTALL.md) for initial installation and setup.  In particular, if you're joining an already functional environment, see [this section](INSTALL.md#have-each-contributor-setup-a-development-repo-clone) for personal initial setup.
+* [../README.md](../README.md) for a general introduction to fasrcsw
+* [INSTALL.md](INSTALL.md) for initial installation and setup
 
 
 ---
@@ -30,6 +31,7 @@ A *Core* app is one that does not depend on a compiler or MPI module.
 
 Get ready to build software:
 
+* make sure you've cloned and configured fasrcsw according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
 
