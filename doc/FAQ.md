@@ -22,7 +22,6 @@ E.g., to add an argument to the `./configure` command, you can just add it to th
 
 However, if you need to do things manually, you can replace the macros with the following as a starting point.
 Note that these are *very* stripped down versions of what the full macros actually do.
-Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add those to `./configure` and `make install` (as the macros do).
 
 Replace:
 
@@ -54,7 +53,11 @@ with:
 	cd %{_topdir}/BUILD/%{name}-%{version}
 	echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 	mkdir -p %{buildroot}
-	make prefix=%{buildroot}/%{_prefix}
+	make prefix=%{buildroot}/%{_prefix} install
+
+Note that `./configure` and `make install` use two different prefixes.
+If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any programms use rpaths).
+Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
 
 
 
