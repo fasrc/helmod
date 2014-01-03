@@ -94,7 +94,7 @@ Eventually all need to be addressed, but for now, just complete everything up to
 The next step will provide the necessary guidance on what to put in the module file.
 
 If you need to add options to the `./configure` command, you can append them to the `%configure` macro.
-If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-I-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
+If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
 
 If the app you're building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
 See [this FAQ item](FAQ.md#how-are-simple-app-dependencies-handled) for more details.
