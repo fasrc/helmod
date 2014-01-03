@@ -50,7 +50,7 @@ In order to be able to copy-n-paste commands below, set these variables particul
 	RELEASE=fasrc##
 
 These variables are only used by this doc, not fasrcsw.
-`NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions).
+`NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
 `RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
@@ -87,7 +87,7 @@ Eventually all need to be addressed, but for now, just complete everything up to
 The next step will provide the necessary guidance on what to put in the module file.
 
 If the app your building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
-See [this FAQ item](FAQ.md#how-are-app-dependencies-) for more details.
+See [this FAQ item](FAQ.md#how-are-app-dependencies-handled) for more details.
 
 
 ## Build the software and examine its output
