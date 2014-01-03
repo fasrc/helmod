@@ -23,7 +23,7 @@ E.g., to add an argument to the `./configure` command, you can just add it to th
 However, if you need to do things manually, you can replace the macros with the following as a starting point.
 Note that these are *very* stripped down versions of what the full macros actually do.
 
-Replace:
+In the `%prep` section, replace:
 
 	%setup
 
@@ -33,7 +33,7 @@ with:
 	tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.gz
 	stat %{name}-%{version}
 
-Replace:
+In the `%build` section, replace:
 
 	%configure
 	make
@@ -44,7 +44,7 @@ with:
 	./configure --prefix=%{_prefix}
 	make
 
-Replace:
+In the `%install` section, replace:
 
 	%makeinstall
 
@@ -58,6 +58,15 @@ with:
 Note that `./configure` and `make install` use two different prefixes.
 If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any programms use rpaths).
 Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
+
+
+### How do I deal with pre-built binaries?
+
+See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
+
+* The `%setup` section should just unpack the files, same as if they were sources (or, they can even be put in SOURCES pre-unpacked)
+* The `%build` section can be blank (aside from standard template code)
+* The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` to `%{buildroot}/%{_prefix}`.
 
 
 

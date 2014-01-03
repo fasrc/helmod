@@ -41,6 +41,7 @@ Get ready to build software:
 * make sure you've cloned and configured fasrcsw according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
+* make sure you're in a clean environment -- `module purge`
 
 `cd` to your personal fasrcsw clone and setup the environment:
 
@@ -108,7 +109,7 @@ The template spec has a section that, if the macro `inspect` is defined, will qu
 
 	fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
-and the output will show something like this near the end:
+and, eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly, the output will show something like this near the end:
 
 	*************** fasrcsw -- STOPPING due to %define inspect yes ****************
 
@@ -139,7 +140,6 @@ and the output will show something like this near the end:
 
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
-Note that this temporary build still writes outside of fasrcsw, to the default BUILDROOT location, i.e. your home directory; to use another location, add `--buildroot` to your command.
 
 
 ## Finish the spec file
@@ -195,9 +195,9 @@ If you want to erase it and retry: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERS
 
 Copy the rpms to the production location:
 
-	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
-	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
-	rsync -av -u {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
+	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
+	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
+	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
 
 Add, commit, and push all your modifications to the fasrcsw git remote repo with something like the following:
 	
