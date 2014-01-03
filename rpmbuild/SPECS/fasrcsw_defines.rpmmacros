@@ -48,7 +48,10 @@
 %define modulefile_dir   %{modulefiles_base}/%{name}
 %define modulefile       %{modulefile_dir}/%{version}-%{release_base}.lua
 
-%define _prefix        %{apps_base}/%{name}/%{version}-%{release_base}
-%define _mandir        %{_prefix}/share/man
-%define _infodir       %{_prefix}/share/info
-%define _defaultdocdir %{_prefix}/share/doc
+%define _prefix         %{apps_base}/%{name}/%{version}-%{release_base}
+%define _mandir         %{_prefix}/share/man
+%define _infodir        %{_prefix}/share/info
+%define _defaultdocdir  %{_prefix}/share/doc
+%define _sysconfdir     %{_prefix}/etc
+%define _localstatedir  %{_prefix}/var
+%define _sharedstatedir %{_prefix}/var/lib
