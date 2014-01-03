@@ -19,7 +19,7 @@ The basic workflow is:
 
 * get the source
 * create and partially complete a spec file, using the template as a starting point
-* do a preliminary build of the software to see what it creates, in order to know what to put in the modulefile
+* do a preliminary build of the software to see what it creates, in order to know what to put in the module file
 * complete the spec file and build the final rpm
 * install the rpm
 * commit changes and move packages to production locations
@@ -43,26 +43,27 @@ There will now be two environment variables defined that are used in the instruc
 `$FASRCSW_DEV` is the location of your personal clone, and
 `$FASRCSW_PROD` is the one, central location for your organizations's software.
 
-In order to be able to copy-n-paste commands below, set the package variables particular to the app you're installing
+In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing
 
 	NAME=...
 	VERSION=...
 	RELEASE=fasrc##
 
 These variables are only used by this doc, not fasrcsw.
-`NAME` and `VERSION` are whatever the app claims (though some adjustements may be required, e.g. `-` is not allowed in `VERSION`).
-`RELEASE` is used to track the build under the fasrcsw system.
-If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the number used in the previous spec file for the app.
+`NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions).
+`RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
+If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
 
 ## Get the source code
 
-By whatever means necessary, get a copy of the package source archive into the location for the sources:
+By whatever means necessary, get a copy of the package source archive into the location for the sources.
+E.g.:
 
 	cd "$FASRCSW_DEV"/rpmbuild/SOURCES
 	wget --no-clobber http://...
 
-E.g. for `amhello`, which is a bit complicated because it's a tarball within another tarball:
+For `amhello`, which is a bit complicated because it's a tarball within another tarball:
 curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
 
 
@@ -83,13 +84,16 @@ Now edit the spec file:
 and address things with the word `FIXME` in them.
 For some things, the default will be fine.
 Eventually all need to be addressed, but for now, just complete everything up to where `modulefile.lua` is created.
-The next step will provide the necessary guidance on what to put in the modulefile.
+The next step will provide the necessary guidance on what to put in the module file.
+
+If the app your building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
+See [this FAQ item](FAQ.md#how-are-app-dependencies-) for more details.
 
 
 ## Build the software and examine its output
 
 The result of the above will be enough of a spec file to build the sofware.
-However, you have to build it before filling in the details of the modulefile also installed by the rpm.
+However, you have to build it before filling in the details of the module file also installed by the rpm.
 The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed:
 
 	fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
@@ -125,7 +129,7 @@ and the output will show something like this near the end:
 
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
-Note that this temporary build still writes outside of fasrcsw, to the default BUILDROOT location, i.e. your homedirectory; to use another location, add `--buildroot` to your command.
+Note that this temporary build still writes outside of fasrcsw, to the default BUILDROOT location, i.e. your home directory; to use another location, add `--buildroot` to your command.
 
 
 ## Finish the spec file
@@ -152,7 +156,7 @@ Make sure:
 
 * all the metadata looks good
 * all files are under an app-specific prefix under `$FASRCSW_PROD`. 
-* the modulefile symlink (second ln arg in postinstall scriptlet) is good
+* the module file symlink (second ln arg in postinstall scriptlet) is good
 
 Test if it will install okay:
 
