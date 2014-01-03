@@ -13,7 +13,7 @@ In particular, the default module is the last version when shorted alphanumerica
 # App building
 
 
-# How do I compile manually instead of using the rpmbuild macros?
+### How do I compile manually instead of using the rpmbuild macros?
 
 The rpmbuild macros employed in the template spec file are for software packaged in the GNU-toolchain-style -- a source archive that unpacks to a directory named NAMED-VERSION and is built with `configure`/`make`/`make install` with appropriate `prefix` options.
 The macros also do a lot of extra stuff like setting default `CFLAGS`, `CXXFLAGS`, etc. too.
@@ -61,7 +61,7 @@ with:
 # Dependencies
 
 
-## How are simple app dependencies handled?
+### How are simple app dependencies handled?
 
 An app may require one or more other apps in order to function.
 The other app(s) will need to be loaded during the rpmbuild, and the module file will need to make sure these other apps are loaded for users, too.
@@ -100,7 +100,7 @@ The module file logic above has the following advantages over a simple `prereq()
   * but users can still use the existing app with newer versions of the required app
 
 
-## What if an app requires VERSION >= some value?
+### What if an app requires VERSION >= some value?
 
 There is no standard answer for this yet.
 
@@ -108,7 +108,7 @@ You could have the required app set an environment variable and have the requiri
 In this case it'd probably be better to have the environment variable note the presence of the specific required capability rather than just the version and having to apply logic using the version.
 
 
-## What if an app dependency can be satisfied by multiple alternatives?
+### What if an app dependency can be satisfied by multiple alternatives?
 
 If either app A or app B can satisfy a dependency, but A is the desired default, use something similar to the following:
 
@@ -119,13 +119,13 @@ If either app A or app B can satisfy a dependency, but A is the desired default,
 	end
 
 
-## How are app dependency hierarchies handled?
+### How are app dependency hierarchies handled?
 
 If app C requires apps A and B, and A also requires B, C should still explicitly require B, for clarity.
 Note that, in the fasrcsw style of coding prerequisites, the order of C's requiring A and B will matter if A and C choose different versions of B to load if none other is loaded.
 
 
-## How are rpm dependencies handled?
+### How are rpm dependencies handled?
 
 Not at all -- there is no coding of dependencies within the rpm packages.
 Dependecies are only tracked at the module level.
@@ -136,20 +136,20 @@ If you find an rpm you want to install and need to know what else to install, lo
 # Misc
 
 
-## Why is rpmbuild still writing to my home directory?
+### Why is rpmbuild still writing to my home directory?
 
 You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the fasrcsw clone's `%{_topdir}`.
 This is part of the design of rpmbuild -- the spec file cannot override the `%{buildroot}` or `%{_buildrootdir}` variable, and by default it points to a location within your home directory.
 You can provide `--buildroot` on the `rpmbuild` command line if you want, but be sure to use something app-specific as this location is `rm -fr`'ed during the build.
 
 
-## What about easybuild?
+### What about easybuild?
 
 From a cursory look, its support of lmod appears to be minimal.
 In particular, it does not support module hierarchies.
 
 
-## What about mock?
+### What about mock?
 
 Good question.
 The fasrcsw system does not use mock, but it's possible it could benefit from doing so.
