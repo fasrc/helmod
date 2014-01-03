@@ -98,12 +98,12 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
 # 
-# you can `module load' dependencies if needed -- be sure also to put them in 
-# the modulefile constructed later
-#
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+##prerequisite apps (uncomment and tweak if necessary)
+#module load NAME/VERSION-RELEASE
 
 %configure
 make
