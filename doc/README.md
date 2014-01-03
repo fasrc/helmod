@@ -51,7 +51,7 @@ There will now be two environment variables defined that are used in the instruc
 `$FASRCSW_DEV` is the location of your personal clone, and
 `$FASRCSW_PROD` is the one, central location for your organizations's software.
 
-In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing
+In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
 
 	NAME=...
 	VERSION=...

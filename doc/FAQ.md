@@ -2,6 +2,7 @@
 
 ### What are the naming conventions and restrictions for an app's NAME, VERSION, and RELEASE?
 
+None of the variables may contain whitespace or shell metacharacters.
 NAME and VERSION may not contain hyphens/dashes (the "-" character).
 RELEASE should be of the form `fasrc##` where `##` is a two-digit number, the first one being `fasrc01`.
 
@@ -52,7 +53,7 @@ with:
 
 	cd %{_topdir}/BUILD/%{name}-%{version}
 	echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-	mkdir -p %{buildroot}
+	mkdir -p %{buildroot}/%{_prefix}
 	make prefix=%{buildroot}/%{_prefix} install
 
 Note that `./configure` and `make install` use two different prefixes.
@@ -64,9 +65,9 @@ Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir
 
 See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
 
-* The `%setup` section should just unpack the files, same as if they were sources (or, they can even be put in SOURCES pre-unpacked)
-* The `%build` section can be blank (aside from standard template code)
-* The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` to `%{buildroot}/%{_prefix}`.
+* The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's is more efficient, but more cumbersome for sharing).
+* The `%build` section can be blank (aside from standard template code).
+* The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.
 
 
 
@@ -117,7 +118,7 @@ The module file logic above has the following advantages over a simple `prereq()
 There is no standard answer for this yet.
 
 You could have the required app set an environment variable and have the requiring app check it.
-In this case it'd probably be better to have the environment variable note the presence of the specific required capability rather than just the version and having to apply logic using the version.
+In this case it'd probably be better to have the environment variable note the presence of the specific required capability rather than just the version and having to apply string parsing and logic using the version.
 
 
 ### What if an app dependency can be satisfied by multiple alternatives?
