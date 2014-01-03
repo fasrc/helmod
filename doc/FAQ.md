@@ -1,6 +1,6 @@
 # Basics
 
-## What are the naming conventions and restrictions for an app's NAME, VERSION, and RELEASE?
+### What are the naming conventions and restrictions for an app's NAME, VERSION, and RELEASE?
 
 NAME and VERSION may not contain hyphens/dashes (the "-" character).
 RELEASE should be of the form `fasrc##` where `##` is a two-digit number, the first one being `fasrc01`.
