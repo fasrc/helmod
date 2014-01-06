@@ -220,6 +220,9 @@ prepend_path("CPATH",               "%{_prefix}/composerxe/include/intel64")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
+prepend_path("MODULEPATH", mdir)
 family("compiler")
 EOF
 
