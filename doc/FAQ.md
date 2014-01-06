@@ -61,6 +61,43 @@ If `make` is still trying to install stuff directly in `%{_prefix}`, you may hav
 Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
 
 
+
+### How do I use one spec file to handle all compiler and MPI implementations?
+
+You can use bash shell code in the rpm scriptlets and branch for each case.
+If you're building a *Comp* app, i.e. using `fasrcsw-rpmbuild-Comp`, the environment variables:
+
+* `FASRCSW_COMP_FAM`
+* `FASRCSW_COMP_VER`
+* `FASRCSW_COMP_REL`
+
+are available to use for branch tests.
+If you're building an *MPI* app, these environment variables are also available:
+
+* `FASRCSW_MPI_FAM`
+* `FASRCSW_MPI_VER`
+* `FASRCSW_MPI_REL`
+
+Note that compiler modules also set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will suffice, no branching necessary.
+
+
+### How do I build against just one compiler or MPI implementation instead of all?
+
+The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts are just simple loops over the corresponding compiler and MPI modules to build against (defined in the `FASRCSW_COMPS` and `FASRCSW_MPIS` environment variables).
+Sometimes only one of these is having issues building and you want to just attempt building that combination.
+To do so, you can call `fasrcsw-rpmbuild-Core` directly with the appropriate compiler and, if applicable, MPI options, e.g.:
+
+	fasrcsw-rpmbuild-Core \
+	  --define 'comp_fam intel' --define 'comp_ver 13.0.079' --define 'comp_rel fasrc01' \
+	  --define 'mpi_fam openmpi' --define 'mpi_ver 1.7.3' --define 'mpi_rel fasrc01' \
+	  -ba `$NAME-$VERSION-$RELEASE.spec`
+
+Note that the `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts echo out the above such commands that they run, so use those a reference.
+
+The fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific dependency.
+
+
+
 ### How do I deal with pre-built binaries?
 
 See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
@@ -68,6 +105,8 @@ See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macr
 * The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's is more efficient, but more cumbersome for sharing).
 * The `%build` section can be blank (aside from standard template code).
 * The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.
+
+(TODO: note issues about stripping and prelinking.)
 
 
 

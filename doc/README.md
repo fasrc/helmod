@@ -1,6 +1,6 @@
 fasrcsw is a software management system where:
 
-* packages are built and installed using [rpm](http://www.rpm.org/)
+* apps are built, packaged, and installed using [rpm](http://www.rpm.org/)
 * each app is installed under its own relocatable prefix (e.g. on shared storage)
 * software environments are managed with [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod)
 * it's easy to manage entire software environments for multiple compiler and MPI implementations
@@ -29,9 +29,14 @@ The basic workflow is:
 * do a preliminary build of the software to see what it creates, in order to know what to put in the module file
 * complete the spec file and build the final rpm
 * install the rpm
-* commit changes and move packages to production locations
+* commit changes and move rpms to production locations
 
-A *Core* app is one that does not depend on a compiler or MPI module.
+A major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
+Apps are therefore categorized by their dependencies:
+
+* A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
+* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
+* A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
 
 ## Prep
@@ -65,7 +70,7 @@ If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the
 
 ## Get the source code
 
-By whatever means necessary, get a copy of the package source archive into the location for the sources.
+By whatever means necessary, get a copy of the app source archive into the location for the sources.
 E.g.:
 
 	cd "$FASRCSW_DEV"/rpmbuild/SOURCES
@@ -94,22 +99,29 @@ For some things, the default will be fine.
 Eventually all need to be addressed, but for now, just complete everything up to where `modulefile.lua` is created.
 The next step will provide the necessary guidance on what to put in the module file.
 
-If you need to add options to the `./configure` command, you can append them to the `%configure` macro.
-If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
-
 If the app you're building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
 See [this FAQ item](FAQ.md#how-are-simple-app-dependencies-handled) for more details.
+
+If you need to add options to the `./configure` command, you can append them to the `%configure` macro.
+If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
+If it's different for different compilers and/or MPI implementations, see [this FAQ item](FAQ.md#how-do-i-use-one-spec-file-to-handle-all-compiler-and-MPI-implementations).
+
 
 
 ## Build the software and inspect its output
 
-The result of the above will be enough of a spec file to build the sofware.
-However, you have to build it before filling in the details of the module file also installed by the rpm.
-The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed:
+The result of the above will be enough of a spec file to build the basic software.
+However, you have to build it and examine its output in order to know what to put in the module file that the rpm also creates.
 
-	fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+There are three wrappers used to call rpmbuild, depending on the type of app you're building.
+In order to see the build outputs, the template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
+Thus, use **one of** the following commands, depending on the type of app you're building:
 
-and, eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly, the output will show something like this near the end:
+* `fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
+* `fasrcsw-rpmbuild-Comp --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
+* `fasrcsw-rpmbuild-MPI  --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
+
+Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly, the output will show something like this near the end:
 
 	*************** fasrcsw -- STOPPING due to %define inspect yes ****************
 
@@ -141,6 +153,9 @@ and, eventually, after a few iterations of running the above and tweaking the sp
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
 
+The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` loop over the corresponding modules to be built against.
+To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-MPI-implementation-instead-of-all).
+
 
 ## Finish the spec file
 
@@ -154,7 +169,7 @@ Some common things are already there as comments (`--` delimits a comment in lua
 
 ## Build the rpm
 
-Now the package can be fully built:
+Now the rpm can be fully built:
 
 	fasrcsw-rpmbuild-Core -ba "$NAME-$VERSION-$RELEASE".spec
 
