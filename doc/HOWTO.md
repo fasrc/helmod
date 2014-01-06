@@ -14,13 +14,6 @@ The basic workflow is:
 * install the rpm
 * commit changes and move rpms to production locations
 
-A major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
-Apps are therefore categorized by their dependencies:
-
-* A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
-* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
-* A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
-
 
 ## Prep
 
@@ -44,11 +37,21 @@ In order to be able to copy-n-paste commands below, set these variables particul
 	NAME=...
 	VERSION=...
 	RELEASE=fasrc##
+	TYPE=...
 
 These variables are only used by this doc, not fasrcsw.
 `NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
 `RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
+
+A major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
+Apps are therefore categorized by their dependencies:
+
+* A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
+* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
+* A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
+
+`TYPE` is used to set the type of app you're building.  It should be the string `Core`, `Comp`, or `MPI`.
 
 
 ## Get the source code
@@ -93,18 +96,16 @@ If it's different for different compilers and/or MPI implementations, see [this 
 
 ## Build the software and inspect its output
 
-The result of the above will be enough of a spec file to build the basic software.
-However, you have to build it and examine its output in order to know what to put in the module file that the rpm also creates.
+The result of the above will be enough of a spec file to basically build the software.
+However, you have to build it and examine its output in order to know what to put in the module file that the rpm is also responsible for constructing.
+The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
 
-There are three wrappers used to call rpmbuild, depending on the type of app you're building.
-In order to see the build outputs, the template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
-Thus, use **one of** the following commands, depending on the type of app you're building:
+There are also three different scripts depending on the type of app being built -- `fasrcsw-rpmbuild-Core`, `fasrcsw-rpmbuild-Comp`, and `fasrcsw-rpmbuild-MPI`.
+Putting all this together, to try building the rpm, run the following:
 
-* `fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
-* `fasrcsw-rpmbuild-Comp --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
-* `fasrcsw-rpmbuild-MPI  --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
+	fasrcsw-rpmbuild-$TYPE --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
-Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly, the output will show something like this near the end:
+Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *inspect* step, the output will show something like this near the end:
 
 	*************** fasrcsw -- STOPPING due to %define inspect yes ****************
 
@@ -136,7 +137,7 @@ Eventually, after a few iterations of running the above and tweaking the spec fi
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
 
-The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` loop over the corresponding modules to be built against.
+The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts loop over the corresponding modules to be built against.
 To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-MPI-implementation-instead-of-all).
 
 
@@ -152,32 +153,36 @@ Some common things are already there as comments (`--` delimits a comment in lua
 
 ## Build the rpm
 
-Now the rpm can be fully built:
+Now the rpm (or set of rpms) can be fully built:
 
-	fasrcsw-rpmbuild-Core -ba "$NAME-$VERSION-$RELEASE".spec
+	fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
 
-Look it over with the following:
+Once that works, double check that all worked as expected.
+For a Core app, only one rpm is built, but for Comp and MPI apps, multiple rpms are built.
+There are three helpers that print the names of the rpms that should've been built -- `fasrcsw-list-Core-rpms`, `fasrcsw-list-Comp-rpms`, and `fasrcsw-list-MPI-rpms`.
 
-	fasrcsw-rpm -qilp --scripts ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE"*.x86_64.rpm
+	fasrcsw-rpm -qilp --scripts $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
 
-Make sure:
+
+For each package make sure:
 
 * all the metadata looks good
 * all files are under an app-specific prefix under `$FASRCSW_PROD`. 
 * the module file symlink (second ln arg in postinstall scriptlet) is good
 
-Test if it will install okay:
+Test if the rpm(s) will install okay:
 
-	sudo -E fasrcsw-rpm -ivh --nodeps --test ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 
 
 ## Install the rpm
 
-Finally, install the rpm:
+Finally, install the rpm(s):
 
-	sudo -E fasrcsw-rpm -ivh --nodeps ../RPMS/x86_64/"$NAME-$VERSION-$RELEASE".x86_64.rpm
+	sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 
-Check that it installed and the module is there:
+Check that it installed and the module is there.
+For a Core app:
 
 	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
 	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
@@ -186,7 +191,7 @@ Check that it installed and the module is there:
 	#...test the app it self...
 	module unload $NAME/$VERSION-$RELEASE
 
-If you want to erase it and retry: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
+If you want to erase and retry a Core app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
 
 
 ## Save your work
