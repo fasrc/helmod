@@ -26,7 +26,9 @@ Get ready to build software:
 
 `cd` to your personal fasrcsw clone and setup the environment:
 
-	source ./setup.sh
+``` bash
+source ./setup.sh
+```
 
 There will now be two environment variables defined that are used in the instructions below --
 `$FASRCSW_DEV` is the location of your personal clone, and
@@ -34,7 +36,7 @@ There will now be two environment variables defined that are used in the instruc
 
 In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
 
-``` bash app info
+``` bash
 NAME=...
 VERSION=...
 RELEASE=fasrc##
@@ -65,8 +67,10 @@ E.g. for to test the simple *Core* case: `NAME=amhello ; VERSION=1.0 ; RELEASE=f
 By whatever means necessary, get a copy of the app source archive into the location for the sources.
 E.g.:
 
-	cd "$FASRCSW_DEV"/rpmbuild/SOURCES
-	wget --no-clobber http://...
+``` bash
+cd "$FASRCSW_DEV"/rpmbuild/SOURCES
+wget --no-clobber http://...
+```
 
 For `amhello`, which is a bit complicated because it's a tarball within another tarball: `curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz`
 
@@ -75,15 +79,21 @@ For `amhello`, which is a bit complicated because it's a tarball within another 
 
 Change to the directory of spec files:
 
-	cd "$FASRCSW_DEV"/rpmbuild/SPECS
+``` bash
+cd "$FASRCSW_DEV"/rpmbuild/SPECS
+```
 
 Create a spec file for the app based upon the template:
 
-	cp -ai template.spec "$NAME-$VERSION-$RELEASE".spec
+``` bash
+cp -ai template.spec "$NAME-$VERSION-$RELEASE".spec
+```
 
 Now edit the spec file:
 
-	$EDITOR "$NAME-$VERSION-$RELEASE".spec
+``` bash
+$EDITOR "$NAME-$VERSION-$RELEASE".spec
+```
 
 and address things with the word `FIXME` in them.
 For some things, the default will be fine.
@@ -108,36 +118,41 @@ The template spec has a section that, if the macro `inspect` is defined, will qu
 There are also three different scripts depending on the type of app being built -- `fasrcsw-rpmbuild-Core`, `fasrcsw-rpmbuild-Comp`, and `fasrcsw-rpmbuild-MPI`.
 Putting all this together, to try building the rpm, run the following:
 
-	fasrcsw-rpmbuild-$TYPE --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+``` bash
+fasrcsw-rpmbuild-$TYPE --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+```
 
 Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *inspect* step, the output will show something like this near the end:
 
-	*************** fasrcsw -- STOPPING due to %define inspect yes ****************
-
-	Look at the tree output below to decide how to finish off the spec file.  (`Bad
-	exit status' is expected in this case, it's just a way to stop NOW.)
+```
+*************** fasrcsw -- STOPPING due to %define inspect yes ****************
 
 
-	/home/me/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
-	|-- README
-	|-- bin
-	|   `-- hello
-	`-- share
-		`-- doc
-			`-- amhello
-				`-- README
-
-	4 directories, 3 files
+Look at the tree output below to decide how to finish off the spec file.  (`Bad
+exit status' is expected in this case, it's just a way to stop NOW.)
 
 
-	******************************************************************************
+/home/me/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
+|-- README
+|-- bin
+|   `-- hello
+`-- share
+	`-- doc
+		`-- amhello
+			`-- README
+
+4 directories, 3 files
 
 
-	error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
+******************************************************************************
 
 
-	RPM build errors:
-		Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
+error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
+
+
+RPM build errors:
+	Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
+```
 
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
@@ -150,7 +165,9 @@ To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against
 
 Re-open the spec file for editing:
 
-	$EDITOR "$NAME-$VERSION-$RELEASE".spec
+``` bash
+$EDITOR "$NAME-$VERSION-$RELEASE".spec
+```
 
 and, based upon the output in the previous step, write what goes in `modulefile.lua`.
 Some common things are already there as comments (`--` delimits a comment in lua).
@@ -160,13 +177,17 @@ Some common things are already there as comments (`--` delimits a comment in lua
 
 Now the rpm (or set of rpms) can be fully built:
 
-	fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
+``` bash
+fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
+```
 
 Once that works, double check that all worked as expected.
 For a Core app, only one rpm is built, but for Comp and MPI apps, multiple rpms are built.
 There are three helpers that print the names of the rpms that should've been built -- `fasrcsw-list-Core-rpms`, `fasrcsw-list-Comp-rpms`, and `fasrcsw-list-MPI-rpms`.
 
-	fasrcsw-rpm -qilp --scripts $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
+``` bash
+fasrcsw-rpm -qilp --scripts $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
+```
 
 
 For each package make sure:
@@ -177,24 +198,30 @@ For each package make sure:
 
 Test if the rpm(s) will install okay:
 
-	sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+``` bash
+sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+```
 
 
 ## Install the rpm(s)
 
 Finally, install the rpm(s):
 
-	sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+``` bash
+sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+```
 
 Check that it installed and the module is there.
 For a *Core* app:
 
+``` bash
 	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
 	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 	module avail
 	module load $NAME/$VERSION-$RELEASE
 	#...test the app itself...
 	module unload $NAME/$VERSION-$RELEASE
+```
 
 If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
 
@@ -203,19 +230,25 @@ If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$
 
 Copy the rpms to the production location:
 
-	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
-	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
-	rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
+``` bash
+rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
+rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
+rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
+```
 
 Add, commit, and push all your modifications to the fasrcsw git remote repo with something like the following:
-	
-	cd "$FASRCSW_DEV"
-	git add .
-	git commit -v .
-	git pull
-	git push
+
+``` bash
+cd "$FASRCSW_DEV"
+git add .
+git commit -v .
+git pull
+git push
+```
 
 And, as root, pull them to the production clone:
 
-	cd "$FASRCSW_PROD"
-	sudo git pull
+``` bash
+cd "$FASRCSW_PROD"
+sudo git pull
+```
