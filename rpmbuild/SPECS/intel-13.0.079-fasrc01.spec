@@ -219,6 +219,8 @@ prepend_path("CPATH",               "%{_prefix}/composerxe/include")
 prepend_path("CPATH",               "%{_prefix}/composerxe/include/intel64")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
+
+family("compiler")
 EOF
 
 
