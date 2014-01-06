@@ -1,8 +1,3 @@
-%define debug_package %{nil}
-%define __arch_install_post %{nil}
-
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -10,14 +5,14 @@
 #
 # enter the simple app name, e.g. myapp
 #
-Name: gcc
+Name: openmpi
 
 #
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 4.8.2
+Version: 1.7.3
 
 #
 # FIXME
@@ -40,7 +35,7 @@ Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static the GNU Compiler Collection
+%define summary_static an open source MPI-2 implementation
 Summary: %{summary_static}
 
 #
@@ -49,7 +44,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#https://ftp.gnu.org/gnu/gcc/gcc-4.8.2/gcc-4.8.2.tar.bz2
+#http://www.open-mpi.org/software/ompi/v1.7/downloads/openmpi-1.7.3.tar.bz2
 Source: %{name}-%{version}.tar.bz2
 
 #
@@ -74,7 +69,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-The GNU Compiler Collection includes front ends for C, C++, Objective-C, Fortran, Java, Ada, and Go, as well as libraries for these languages (libstdc++, libgcj,...). GCC was originally written as the compiler for the GNU operating system. The GNU system was developed to be 100% free software, free in the sense that it respects the user's freedom.
+The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
 
 
@@ -107,41 +102,15 @@ The GNU Compiler Collection includes front ends for C, C++, Objective-C, Fortran
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#prerequisite apps (uncomment and tweak if necessary)
-#keep these synced with the %%install section!
-module load gmp/5.1.3-fasrc01
-module load mpfr/3.1.2-fasrc01
-module load mpc/1.0.1-fasrc01
+##prerequisite apps (uncomment and tweak if necessary)
+#module load NAME/VERSION-RELEASE
 
-#this is from the default %%configure macro + make, except remove -m64, work in a separate objdir subdirectory, and use parallel make
-CFLAGS='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic'
-export CFLAGS
-CXXFLAGS='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic'
-export CXXFLAGS
-FFLAGS='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic'
-export FFLAGS
+#%%configure --enable-mpi-thread-multiple
+#make all
 
 cd %{_topdir}/BUILD/%{name}-%{version}
-mkdir objdir
-cd objdir
-../configure \
-  --build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --target=x86_64-redhat-linux-gnu \
-  --program-prefix= \
-  --prefix=%{_prefix} \
-  --exec-prefix=%{_prefix} \
-  --bindir=%{_prefix}/bin \
-  --sbindir=%{_prefix}/sbin \
-  --sysconfdir=%{_prefix}/etc \
-  --datadir=%{_prefix}/share \
-  --includedir=%{_prefix}/include \
-  --libdir=%{_prefix}/lib64 \
-  --libexecdir=%{_prefix}/libexec \
-  --localstatedir=%{_prefix}/var \
-  --sharedstatedir=%{_prefix}/var/lib \
-  --mandir=%{_prefix}/share/man \
-  --infodir=%{_prefix}/share/inf
-make %{?_smp_mflags}
-cd ..
+./configure --prefix=%{_prefix} --enable-mpi-thread-multiple --enable-static
+make all
 
 
 
@@ -160,32 +129,12 @@ cd ..
 # section, etc.
 #
 
-#keep these synced with the %%build section!
-module load gmp/5.1.3-fasrc01
-module load mpfr/3.1.2-fasrc01
-module load mpc/1.0.1-fasrc01
+#%%makeinstall
 
-#this is from the default %%makeinstall macro, except load modules and work in a separate objdir subdirectory
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}
-cd objdir
-make \
-  prefix=%{buildroot}/%{_prefix} \
-  exec_prefix=%{buildroot}/%{_prefix} \
-  bindir=%{buildroot}/%{_prefix}/bin \
-  sbindir=%{buildroot}/%{_prefix}/sbin \
-  sysconfdir=%{buildroot}/%{_prefix}/etc \
-  datadir=%{buildroot}/%{_prefix}/share \
-  includedir=%{buildroot}/%{_prefix}/include \
-  libdir=%{buildroot}/%{_prefix}/lib64 \
-  libexecdir=%{buildroot}/%{_prefix}/libexec \
-  localstatedir=%{buildroot}/%{_prefix}/var \
-  sharedstatedir=%{buildroot}/%{_prefix}/var/lib \
-  mandir=%{buildroot}/%{_prefix}/share/man \
-  infodir=%{buildroot}/%{_prefix}/share/info \
-  install
-cd ..
+mkdir -p %{buildroot}/%{_prefix}
+make prefix=%{buildroot}/%{_prefix} install
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -248,48 +197,27 @@ whatis("Version: %{version}-%{release}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("gmp") then
-		load("gmp/5.1.3-fasrc01")
-	end
-	if not isloaded("mpfr") then
-		load("mpfr/3.1.2-fasrc01")
-	end
-	if not isloaded("mpc") then
-		load("mpc/1.0.1-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-
-setenv("CC" , "gcc")
-setenv("CXX", "g++")
-setenv("FC" , "gfortran")
-setenv("F77", "gfortran")
-
-prepend_path("PATH",              "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",      "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",      "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",   "%{_prefix}/lib64/pkgconfig")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/include")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/install-tools/include")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/plugin/include")
-prepend_path("CPATH",             "%{_prefix}/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/install-tools/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/plugin/include")
-prepend_path("FPATH",             "%{_prefix}/include")
-prepend_path("MANPATH",           "%{_prefix}/share/man")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_FAM", "%{name}")
-setenv("FASRCSW_COMP_VER", "%{version}")
-setenv("FASRCSW_COMP_REL", "%{release}")
-family("Comp")
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 
