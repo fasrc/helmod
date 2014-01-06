@@ -1,3 +1,8 @@
+%define debug_package %{nil}
+%define __arch_install_post %{nil}
+
+
+
 #------------------- package info ----------------------------------------------
 
 #

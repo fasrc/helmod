@@ -1,3 +1,7 @@
+%define __os_install_post %{nil}
+
+
+
 #------------------- package info ----------------------------------------------
 
 #
@@ -45,7 +49,7 @@ Summary: %{summary_static}
 # suffix if applicable
 #
 #(not applicable)
-Source: %{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -87,6 +91,10 @@ Supports the Latest Multicore and Manycore Based Systems.
 #
 
 #%%setup
+
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
+stat %{name}-%{version}
 
 
 
@@ -130,7 +138,7 @@ Supports the Latest Multicore and Manycore Based Systems.
 #%%makeinstall
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-rsync -av %{_topdir}/SOURCES/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
