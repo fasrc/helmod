@@ -17,6 +17,9 @@
 #(needed for module function to work)
 %define _buildshell /bin/bash
 
+#(to avoid the "No build ID note found" issues from Comp/MPI version inclusion)
+%define debug_package %{nil}
+
 
 #--- helpers
 

@@ -223,7 +223,7 @@ prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/intel", "13.0.079-fasrc01")
 prepend_path("MODULEPATH", mdir)
-family("compiler")
+family("Comp")
 EOF
 
 

@@ -247,7 +247,7 @@ prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib")
 prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",      "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",      "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",   "%{_prefix}/lib64/pkgconfig
+prepend_path("PKG_CONFIG_PATH",   "%{_prefix}/lib64/pkgconfig")
 prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/include")
 prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/install-tools/include")
 prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.8.2/plugin/include")
@@ -261,7 +261,7 @@ prepend_path("MANPATH",           "%{_prefix}/share/man")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
 prepend_path("MODULEPATH", mdir)
-family("compiler")
+family("Comp")
 EOF
 
 
