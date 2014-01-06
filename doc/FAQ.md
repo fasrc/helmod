@@ -31,7 +31,7 @@ In the `%prep` section, replace:
 with:
 	
 	cd %{_topdir}/BUILD
-	tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.gz
+	tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
 	stat %{name}-%{version}
 
 In the `%build` section, replace:
