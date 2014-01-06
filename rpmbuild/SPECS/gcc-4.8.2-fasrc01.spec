@@ -259,7 +259,7 @@ prepend_path("FPATH",             "%{_prefix}/include")
 prepend_path("MANPATH",           "%{_prefix}/share/man")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/intel", "13.0.079")
+local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
 prepend_path("MODULEPATH", mdir)
 family("compiler")
 EOF
