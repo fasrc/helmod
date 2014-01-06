@@ -100,9 +100,15 @@ There are three wrappers used to call rpmbuild, depending on the type of app you
 In order to see the build outputs, the template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
 Thus, use **one of** the following commands, depending on the type of app you're building:
 
-* `fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
-* `fasrcsw-rpmbuild-Comp --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
-* `fasrcsw-rpmbuild-MPI  --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec`
+	fasrcsw-rpmbuild-Core --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+
+*or*
+
+	fasrcsw-rpmbuild-Comp --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+
+*or*
+
+	fasrcsw-rpmbuild-MPI  --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
 
 Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly, the output will show something like this near the end:
 
