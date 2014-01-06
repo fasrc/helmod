@@ -13,9 +13,36 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 	echo "fasrcsw: building an rpm"
 	echo
 
+	set +e
 	set -x
 	fasrcsw-rpmbuild-Core \
 		--define "comp_fam $comp_fam" --define "comp_ver $comp_ver" --define "comp_rel $comp_rel" \
 		"$@"
+	status=$?
 	set +x
+	if [ $status -ne 0 ]; then
+		inspect=false
+		for arg in "$@"; do
+			if [ "$arg" = 'inspect yes' ]; then
+				inspect=true
+				break
+			fi
+		done
+
+		if ! $inspect; then
+			echo "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed:" >&2
+			echo -n "    fasrcsw-rpmbuild-Core"
+
+			echo -n " '--define' 'comp_fam $comp_fam'"
+			echo -n " '--define' 'comp_ver $comp_ver'"
+			echo -n " '--define' 'comp_rel $comp_rel'"
+			for arg in "$@"; do
+				echo -n " '$arg'"
+			done
+			echo
+		fi
+		
+		exit $status
+	fi
+	set -e
 done
