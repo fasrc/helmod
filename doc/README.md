@@ -206,3 +206,8 @@ Add, commit, and push all your modifications to the fasrcsw git remote repo with
 	git commit -v .
 	git pull
 	git push
+
+And, as root, pull them to the production clone:
+
+	cd "$FASRCSW_PROD"
+	sudo git pull
