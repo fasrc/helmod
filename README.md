@@ -5,4 +5,8 @@ fasrcsw is a software management system where:
 * software environments are managed with [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod)
 * it's easy to manage entire software environments for multiple compiler and MPI implementations
 
-See the [main documentation](doc/README.md) for more information.
+See the `doc` directory for more information, specifically:
+
+* [INSTALL](INSTALL.md) for initial installation and setup
+* [HOWTO](HOWTO.md) for day-to-day usage intructions
+* [FAQ](FAQ.md) for answers to other questions and other details
