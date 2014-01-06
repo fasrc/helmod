@@ -211,6 +211,11 @@ whatis("Description: %{summary_static}")
 
 setenv("INTEL_LICENSE_FILE", "/n/sw/l_ics_2012.0.032/intel/licenses")
 
+setenv("CC" , "icc")
+setenv("CXX", "icpc")
+setenv("FC" , "ifort")
+setenv("F77", "ifort")
+
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib/intel64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib/intel64")
@@ -223,6 +228,9 @@ prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/intel", "13.0.079-fasrc01")
 prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_COMP_FAM", "%{name}")
+setenv("FASRCSW_COMP_VER", "%{version}")
+setenv("FASRCSW_COMP_REL", "%{release}")
 family("Comp")
 EOF
 

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them this way)
+fasrcsw-env-check
+
+for p in "$@"; do
+	for comp in "${FASRCSW_COMPS[@]}"; do
+		IFS=/ read -r comp_fam comp_verrel <<< "$comp"
+		IFS=- read -r comp_ver comp_rel    <<< "$comp_verrel"
+
+		for mpi in "${FASRCSW_MPIS[@]}"; do
+			IFS=/ read -r mpi_fam mpi_verrel <<< "$mpi"
+			IFS=- read -r mpi_ver mpi_rel    <<< "$mpi_verrel"
+			
+			echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_fam}_${comp_ver}_${comp_rel}_${mpi_fam}_${mpi_ver}_${mpi_rel}.x86_64.rpm"
+		done
+	done
+done

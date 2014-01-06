@@ -242,6 +242,12 @@ if mode()=="load" then
 end
 
 ---- environment changes (uncomment what's relevant)
+
+setenv("CC" , "gcc")
+setenv("CXX", "g++")
+setenv("FC" , "gfortran")
+setenv("F77", "gfortran")
+
 prepend_path("PATH",              "%{_prefix}/bin")
 prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib")
 prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib64")
@@ -261,6 +267,9 @@ prepend_path("MANPATH",           "%{_prefix}/share/man")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
 prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_COMP_FAM", "%{name}")
+setenv("FASRCSW_COMP_VER", "%{version}")
+setenv("FASRCSW_COMP_REL", "%{release}")
 family("Comp")
 EOF
 
