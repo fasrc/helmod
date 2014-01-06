@@ -11,6 +11,13 @@ In particular, the default module is the last version when shorted alphanumerica
 
 
 
+### Why is a compiler a Core app and not a Comp app?  Why is an MPI implementation a Comp app and not an MPI app?
+
+The app families used by fasrcsw and the module hierarchy describe the app's *dependencies*, not the app itself.
+An app in a certain family will get reloaded if the module representing that family is swapped.
+
+
+
 # App building
 
 
@@ -26,35 +33,47 @@ Note that these are *very* stripped down versions of what the full macros actual
 
 In the `%prep` section, replace:
 
-	%setup
+```
+%setup
+```
 
 with:
-	
-	cd %{_topdir}/BUILD
-	tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
-	stat %{name}-%{version}
+
+``` bash
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
+stat %{name}-%{version}
+```
 
 In the `%build` section, replace:
 
-	%configure
-	make
+```
+%configure
+make
+```
 
 with:
 
-	cd %{_topdir}/BUILD/%{name}-%{version}
-	./configure --prefix=%{_prefix}
-	make
+``` bash
+cd %{_topdir}/BUILD/%{name}-%{version}
+./configure --prefix=%{_prefix}
+make
+```
 
 In the `%install` section, replace:
 
-	%makeinstall
+```
+%makeinstall
+```
 
 with:
 
-	cd %{_topdir}/BUILD/%{name}-%{version}
-	echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-	mkdir -p %{buildroot}/%{_prefix}
-	make prefix=%{buildroot}/%{_prefix} install
+``` bash
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make prefix=%{buildroot}/%{_prefix} install
+```
 
 Note that `./configure` and `make install` use two different prefixes.
 If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any programms use rpaths).
@@ -87,10 +106,12 @@ The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts are just simple l
 Sometimes only one of these is having issues building and you want to just attempt building that combination.
 To do so, you can call `fasrcsw-rpmbuild-Core` directly with the appropriate compiler and, if applicable, MPI options, e.g.:
 
-	fasrcsw-rpmbuild-Core \
-	  --define 'comp_fam intel' --define 'comp_ver 13.0.079' --define 'comp_rel fasrc01' \
-	  --define 'mpi_fam openmpi' --define 'mpi_ver 1.7.3' --define 'mpi_rel fasrc01' \
-	  -ba `$NAME-$VERSION-$RELEASE.spec`
+``` bash
+fasrcsw-rpmbuild-Core \
+  --define 'comp_fam intel' --define 'comp_ver 13.0.079' --define 'comp_rel fasrc01' \
+  --define 'mpi_fam openmpi' --define 'mpi_ver 1.7.3' --define 'mpi_rel fasrc01' \
+  -ba `$NAME-$VERSION-$RELEASE.spec`
+```
 
 Note that the `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts echo out the above such commands that they run, so use those a reference.
 
@@ -121,15 +142,19 @@ The fasrcsw system uses the following conventions when an app requires another a
 
 In the spec file's `%build` section:
 
-	module load NAME/VERSION-RELEASE
+``` lua
+module load NAME/VERSION-RELEASE
+```
 
 In the module file:
 
-	if mode()=="load" then
-		if not isloaded("NAME") then
-			load("NAME/VERSION-RELEASE")
-		end
+``` lua
+if mode()=="load" then
+	if not isloaded("NAME") then
+		load("NAME/VERSION-RELEASE")
 	end
+end
+```
 
 The module file logic above has the following advantages over a simple `prereq()` or `load()`:
 
@@ -164,11 +189,13 @@ In this case it'd probably be better to have the environment variable note the p
 
 If either app A or app B can satisfy a dependency, but A is the desired default, use something similar to the following:
 
-	if mode()=="load" then
-		if not (isloaded("appA") or isloaded("appB")) then
-			load("A/VERSION-RELEASE")
-		end
+``` lua
+if mode()=="load" then
+	if not (isloaded("appA") or isloaded("appB")) then
+		load("A/VERSION-RELEASE")
 	end
+end
+```
 
 
 ### How are app dependency hierarchies handled?

@@ -3,9 +3,7 @@
 
 ## Overview
 
-The following is an example of building a simple GNU-toolchain-style software package, i.e. something that uses `configure`/`make`/`make install` with standard options.
-This specifically uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
-The basic workflow is:
+The basic workflow of fasrcsw is:
 
 * get the source
 * create and partially complete a spec file, using the template as a starting point
@@ -13,6 +11,9 @@ The basic workflow is:
 * complete the spec file and build the final rpm(s)
 * install the rpm(s)
 * commit changes and move the build outputs to production locations
+
+The default behavior and templates are designed to work with GNU-toolchain-style software packages, i.e. things that use `configure`/`make`/`make install` with standard options, with as little modification as possible.
+As an example, this document uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
 
 
 ## Prep
@@ -24,9 +25,11 @@ Get ready to build software:
 * make sure you're logged into your normal user account, *not* root
 * make sure you're in a clean environment -- `module purge`
 
-`cd` to your personal fasrcsw clone and setup the environment:
+`cd` to your personal fasrcsw clone.
+Make sure you're clone is up-to-date, and setup the environment:
 
 ``` bash
+git pull
 source ./setup.sh
 ```
 
@@ -48,14 +51,14 @@ These variables are only used by this doc, not fasrcsw.
 `RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
-A major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
-Apps are therefore categorized by their dependencies:
+Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
+Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app-why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this non-intuitive convention):
 
 * A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
 * A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
 * A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
-`TYPE` is therefore used to set the type of app you're building.  It should be the string `Core`, `Comp`, or `MPI`.
+Thefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
 The `amhello` example can be used to test all types.
 E.g. for to test the simple *Core* case: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
@@ -72,7 +75,7 @@ cd "$FASRCSW_DEV"/rpmbuild/SOURCES
 wget --no-clobber http://...
 ```
 
-For `amhello`, which is a bit complicated because it's a tarball within another tarball: `curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz`
+For `amhello`, which is a bit complicated because it's a tarball within another tarball: curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
 
 
 ## Create a preliminary spec file
@@ -215,12 +218,12 @@ Check that it installed and the module is there.
 For a *Core* app:
 
 ``` bash
-	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
-	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
-	module avail
-	module load $NAME/$VERSION-$RELEASE
-	#...test the app itself...
-	module unload $NAME/$VERSION-$RELEASE
+fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
+ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
+module avail
+module load $NAME/$VERSION-$RELEASE
+#...test the app itself...
+module unload $NAME/$VERSION-$RELEASE
 ```
 
 If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
