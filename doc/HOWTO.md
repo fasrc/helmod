@@ -10,9 +10,9 @@ The basic workflow is:
 * get the source
 * create and partially complete a spec file, using the template as a starting point
 * do a preliminary build of the software to see what it creates, in order to know what to put in the module file
-* complete the spec file and build the final rpm
-* install the rpm
-* commit changes and move rpms to production locations
+* complete the spec file and build the final rpm(s)
+* install the rpm(s)
+* commit changes and move the build outputs to production locations
 
 
 ## Prep
@@ -34,10 +34,12 @@ There will now be two environment variables defined that are used in the instruc
 
 In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
 
+``` bash
 	NAME=...
 	VERSION=...
 	RELEASE=fasrc##
 	TYPE=...
+```
 
 These variables are only used by this doc, not fasrcsw.
 `NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
@@ -51,7 +53,11 @@ Apps are therefore categorized by their dependencies:
 * A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
 * A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
-`TYPE` is used to set the type of app you're building.  It should be the string `Core`, `Comp`, or `MPI`.
+`TYPE` is therefore used to set the type of app you're building.  It should be the string `Core`, `Comp`, or `MPI`.
+
+The `amhello` example can be used to test all types.
+E.g. for to test the simple *Core* case: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
+
 
 
 ## Get the source code
@@ -62,8 +68,7 @@ E.g.:
 	cd "$FASRCSW_DEV"/rpmbuild/SOURCES
 	wget --no-clobber http://...
 
-For `amhello`, which is a bit complicated because it's a tarball within another tarball:
-curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
+For `amhello`, which is a bit complicated because it's a tarball within another tarball: `curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz`
 
 
 ## Create a preliminary spec file
@@ -94,7 +99,7 @@ If it's different for different compilers and/or MPI implementations, see [this 
 
 
 
-## Build the software and inspect its output
+## Do a trial build and inspect its output
 
 The result of the above will be enough of a spec file to basically build the software.
 However, you have to build it and examine its output in order to know what to put in the module file that the rpm is also responsible for constructing.
@@ -151,7 +156,7 @@ and, based upon the output in the previous step, write what goes in `modulefile.
 Some common things are already there as comments (`--` delimits a comment in lua).
 
 
-## Build the rpm
+## Build the rpm(s)
 
 Now the rpm (or set of rpms) can be fully built:
 
@@ -175,23 +180,23 @@ Test if the rpm(s) will install okay:
 	sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 
 
-## Install the rpm
+## Install the rpm(s)
 
 Finally, install the rpm(s):
 
 	sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 
 Check that it installed and the module is there.
-For a Core app:
+For a *Core* app:
 
 	fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
 	ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 	module avail
 	module load $NAME/$VERSION-$RELEASE
-	#...test the app it self...
+	#...test the app itself...
 	module unload $NAME/$VERSION-$RELEASE
 
-If you want to erase and retry a Core app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
+If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
 
 
 ## Save your work
