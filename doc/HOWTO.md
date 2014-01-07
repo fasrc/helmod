@@ -16,7 +16,7 @@ The default behavior and templates are designed to work with GNU-toolchain-style
 As an example, this document uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
 
 
-## Prep
+## Prepare
 
 Get ready to build software:
 
@@ -55,13 +55,13 @@ Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software enviro
 Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app--why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
 
 * A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
-* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
+* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI implementation apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
 * A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
-Therefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
+Set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
-E.g. to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
-However, if multiple admins are trying this taste case at the same time, you should make an exception and set `RELEASE` to `$USER` so people are not clobbering each other.
+For example, to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
+However, if multiple admins are trying this test case at the same time, you should make an exception and set `RELEASE` to `$USER` so people are not clobbering each other.
 The `amhello` example can be used to test all app types, even though the dependencies are not real.
 
 
@@ -69,7 +69,7 @@ The `amhello` example can be used to test all app types, even though the depende
 ## Get the source code
 
 By whatever means necessary, get a copy of the app source archive into the location for the sources.
-E.g.:
+For example:
 
 ``` bash
 cd "$FASRCSW_DEV"/rpmbuild/SOURCES
@@ -152,10 +152,6 @@ exit status' is expected in this case, it's just a way to stop NOW.)
 
 
 error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
-
-
-RPM build errors:
-	Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
 ```
 
 The `Bad exit status` is expected in this case.
@@ -214,11 +210,11 @@ Finally, install the rpm(s):
 sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 ```
 
-Check that it installed and the module is there.
+Check that the rpm(s) installed and the module(s) is/are there.
 For a *Core* app:
 
 ``` bash
-fasrcsw-rpm -qa | "$NAME-$VERSION-$RELEASE"
+fasrcsw-rpm -qa | grep "$NAME-$VERSION-$RELEASE"
 ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 module avail
 module load $NAME/$VERSION-$RELEASE
