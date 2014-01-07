@@ -1,7 +1,3 @@
-%define __arch_install_post %{nil}
-
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -9,14 +5,14 @@
 #
 # enter the simple app name, e.g. myapp
 #
-Name: mvapich2
+Name: openmpi
 
 #
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 2.0b
+Version: 1.6.5
 
 #
 # FIXME
@@ -39,7 +35,7 @@ Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+%define summary_static an open source MPI-2 implementation
 Summary: %{summary_static}
 
 #
@@ -48,8 +44,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#http://mvapich.cse.ohio-state.edu/download/mvapich2/mv2//mvapich2-2.0b.tgz
-Source: %{name}-%{version}.tgz
+#http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.5.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -73,7 +69,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
 
 
@@ -109,8 +105,12 @@ MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-%configure --enable-fc --enable-f77 --enable-cxx --with-device=ch3:nemesis:ib --with-slurm-include=/usr/include/slurm --with-slurm-lib=/usr/lib64/slurm --with-pmi=slurm --with-pm=no
-make
+#%%configure --enable-mpi-thread-multiple
+#make all
+
+cd %{_topdir}/BUILD/%{name}-%{version}
+./configure --prefix=%{_prefix} --enable-mpi-thread-multiple --enable-static
+make all
 
 
 
@@ -129,10 +129,12 @@ make
 # section, etc.
 #
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%%makeinstall
 
-%makeinstall
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make prefix=%{buildroot}/%{_prefix} install
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -202,12 +204,20 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

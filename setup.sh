@@ -7,7 +7,7 @@ export FASRCSW_PROD=/n/sw/fasrcsw
 #update these as versions increase.
 #this assumes each FASRCSW_MPIS has been built with each FASRCSW_COMPS
 export FASRCSW_COMPS=(
-	gcc/4.8.1-fasrc01
+	gcc/4.8.2-fasrc01
 	intel/13.0.079-fasrc01
 )
 export FASRCSW_MPIS=(
