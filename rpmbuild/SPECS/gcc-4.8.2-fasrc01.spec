@@ -287,11 +287,11 @@ prepend_path("FPATH",             "%{_prefix}/include")
 prepend_path("MANPATH",           "%{_prefix}/share/man")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
+local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release}")
 prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_NAME", "%{name}")
-setenv("FASRCSW_COMP_RELEASESION", "%{version}")
-setenv("FASRCSW_COMP_REL", "%{release}")
+setenv("FASRCSW_COMP_NAME"   , "%{name}")
+setenv("FASRCSW_COMP_VERSION", "%{version}")
+setenv("FASRCSW_COMP_RELEASE", "%{release}")
 family("Comp")
 EOF
 

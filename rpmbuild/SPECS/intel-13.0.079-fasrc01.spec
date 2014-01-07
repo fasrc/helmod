@@ -229,11 +229,11 @@ prepend_path("FPATH",               "%{_prefix}/composerxe/include")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/intel", "13.0.079-fasrc01")
+local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release}")
 prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_NAME", "%{name}")
-setenv("FASRCSW_COMP_RELEASESION", "%{version}")
-setenv("FASRCSW_COMP_REL", "%{release}")
+setenv("FASRCSW_COMP_NAME"   , "%{name}")
+setenv("FASRCSW_COMP_VERSION", "%{version}")
+setenv("FASRCSW_COMP_RELEASE", "%{release}")
 family("Comp")
 EOF
 
