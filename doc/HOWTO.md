@@ -152,10 +152,6 @@ exit status' is expected in this case, it's just a way to stop NOW.)
 
 
 error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
-
-
-RPM build errors:
-	Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
 ```
 
 The `Bad exit status` is expected in this case.
