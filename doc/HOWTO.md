@@ -218,7 +218,7 @@ Check that it installed and the module is there.
 For a *Core* app:
 
 ``` bash
-fasrcsw-rpm -q "$NAME-$VERSION-$RELEASE"
+fasrcsw-rpm -qa | "$NAME-$VERSION-$RELEASE"
 ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 module avail
 module load $NAME/$VERSION-$RELEASE
@@ -226,7 +226,7 @@ module load $NAME/$VERSION-$RELEASE
 module unload $NAME/$VERSION-$RELEASE
 ```
 
-If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$NAME-$VERSION-$RELEASE".x86\_64
+If you want to erase and retry the rpm(s): sudo -E fasrcsw-rpm -ev --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE" | xargs -I% basename % .rpm)
 
 
 ## Save your work
