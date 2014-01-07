@@ -23,13 +23,13 @@ Get ready to build software:
 * make sure you've cloned and configured fasrcsw according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account, *not* root
-* make sure you're in a clean environment -- `module purge`
 
 `cd` to your personal fasrcsw clone.
-Make sure you're clone is up-to-date, and setup the environment:
+Make sure your clone is up-to-date and your environment is pristine, and setup the environment:
 
 ``` bash
 git pull
+module purge
 source ./setup.sh
 ```
 
@@ -42,7 +42,7 @@ In order to be able to copy-n-paste commands below, set these variables particul
 ``` bash
 NAME=...
 VERSION=...
-RELEASE=fasrc##
+RELEASE=...
 TYPE=...
 ```
 
@@ -60,8 +60,9 @@ Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.
 
 Thefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
-The `amhello` example can be used to test all types.
-E.g. for to test the simple *Core* case: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
+E.g. to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
+However, if multiple admins are trying this taste case at the same time, you should make an exception and set RELEASE to $USER so people are not clobbering each other.
+The `amhello` example can be used to test all app types, even though the dependencies are not real.
 
 
 

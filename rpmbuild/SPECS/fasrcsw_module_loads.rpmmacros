@@ -2,9 +2,9 @@
 
 source /etc/profile.d/lmod.sh
 
-%if %{defined comp_fam} && %{defined comp_ver} && %{defined comp_rel}
-	module load %{comp_fam}/%{comp_ver}-%{comp_rel}
-	%if %{defined mpi_fam} && %{defined mpi_ver} && %{defined mpi_rel}
-		module load %{mpi_fam}/%{mpi_ver}-%{mpi_rel}
+%if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
+	module load %{comp_name}/%{comp_version}-%{comp_release}
+	%if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
+		module load %{mpi_name}/%{mpi_version}-%{mpi_release}
 	%endif
 %endif
