@@ -210,7 +210,7 @@ Finally, install the rpm(s):
 sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 ```
 
-Check that it installed and the module is there.
+Check that the rpm(s) installed and the module(s) is/are there.
 For a *Core* app:
 
 ``` bash
