@@ -2,19 +2,23 @@
 
 ### What are the naming conventions and restrictions for an app's NAME, VERSION, and RELEASE?
 
-None of the variables may contain whitespace or shell metacharacters.
+None of these variables may contain whitespace or shell metacharacters.
 NAME and VERSION may not contain hyphens/dashes (the "-" character).
 RELEASE should be of the form `fasrc##` where `##` is a two-digit number, the first one being `fasrc01`.
 
-It's very highly desirable that the set of NAME-VERSION-RELEASEs for an app, when sorted alphanumerically, is chronological.
+It's very highly desirable that the set of NAME-VERSION-RELEASEs for an app is chronological when sorted alphanumerically.
 In particular, the default module is the last version when shorted alphanumerically and should be the most recent.
 
 
 
 ### Why is a compiler a Core app and not a Comp app?  Why is an MPI implementation a Comp app and not an MPI app?
 
-The app families used by fasrcsw and the module hierarchy describe the app's *dependencies*, not the app itself.
-An app in a certain family will get reloaded if the module representing that family is swapped.
+The app classifications used by fasrcsw and the module hierarchy describe the app's *dependencies*, not the app itself.
+They mainly pertain to the layout in the filesystem.
+
+An app *family* is something a bit different.
+That's used by lmod to ensure only one instance of a family is loaded at a time, and proper swapping of dependencies happens when a family instance is swapped.
+An compiler is part of the Comp family, and an MPI app is a part of the MPI family.
 
 
 
@@ -23,10 +27,10 @@ An app in a certain family will get reloaded if the module representing that fam
 
 ### How do I compile manually instead of using the rpmbuild macros?
 
-The rpmbuild macros employed in the template spec file are for software packaged in the GNU-toolchain-style -- a source archive that unpacks to a directory named NAMED-VERSION and is built with `configure`/`make`/`make install` with appropriate `prefix` options.
+The rpmbuild macros employed in the template spec file are for software packaged in the GNU-toolchain-style -- a source archive that unpacks to a directory named NAME-VERSION and is built with `configure`/`make`/`make install` with appropriate *prefix* options.
 The macros also do a lot of extra stuff like setting default `CFLAGS`, `CXXFLAGS`, etc. too.
 The macros have their own options and can often be tweaked to work.
-E.g., to add an argument to the `./configure` command, you can just add it to the `%configure` macro.
+For example, to add an argument to the `./configure` command, you can just append it to the `%configure` macro line.
 
 However, if you need to do things manually, you can replace the macros with the following as a starting point.
 Note that these are *very* stripped down versions of what the full macros actually do.
@@ -76,14 +80,18 @@ make prefix=%{buildroot}/%{_prefix} install
 ```
 
 Note that `./configure` and `make install` use two different prefixes.
-If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any apps use rpaths).
-Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
+If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any apps use rpaths, and you'll probably have to set `%define __arch_install_post %{nil}` to avoid rpm complaining about it).
+Note also that `prefix` alone usually does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
+
+Note that rpmbuild has the shell echo all the commands it runs, so to see exactly what a macro does, use it and watch the output.
 
 
 
 ### How do I use one spec file to handle all compiler and MPI implementations?
 
-You can use bash shell code in the rpm scriptlets and branch for each case.
+The compiler modules set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will often suffice.
+
+For more complicated situations, you can use bash shell code in the rpm scriptlets and branch for each case.
 If you're building a *Comp* app, i.e. using `fasrcsw-rpmbuild-Comp`, the environment variables:
 
 * `FASRCSW_COMP_NAME`
@@ -97,7 +105,6 @@ If you're building an *MPI* app, these environment variables are also available:
 * `FASRCSW_MPI_VERSION`
 * `FASRCSW_MPI_RELEASE`
 
-Note that compiler modules also set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will suffice, no branching necessary.
 
 
 ### How do I build against just one compiler or MPI implementation instead of all?
@@ -115,17 +122,17 @@ fasrcsw-rpmbuild-Core \
 
 Note that the `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts echo out the above such commands that they run, so use those a reference.
 
-The fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific dependency.
+Since the fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific dependency.
 
 
-### How do I the default sets of compiler and MPI implementations used to build apps?
+### How do I configure the default sets of compiler and MPI implementations used to build apps?
 
 The bash arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup.sh` define these.
 
 
-### How do I deal with pre-built binaries?
+### How do I package pre-built binaries?
 
-See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
+See [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
 
 * The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's is more efficient, but more cumbersome for sharing).
 * The `%build` section can be blank (aside from standard template code).
@@ -186,7 +193,7 @@ The module file logic above has the following advantages over a simple `prereq()
 There is no standard answer for this yet.
 
 You could have the required app set an environment variable and have the requiring app check it.
-In this case it'd probably be better to have the environment variable note the presence of the specific required capability rather than just the version and having to apply string parsing and logic using the version.
+In this case it'd probably be better to have the environment variable note the presence of the specific required capability rather than just the version and having to apply string parsing and logic using that version.
 
 
 ### What if an app dependency can be satisfied by multiple alternatives?
@@ -195,7 +202,7 @@ If either app A or app B can satisfy a dependency, but A is the desired default,
 
 ``` lua
 if mode()=="load" then
-	if not (isloaded("appA") or isloaded("appB")) then
+	if not (isloaded("A") or isloaded("B")) then
 		load("A/VERSION-RELEASE")
 	end
 end
@@ -216,7 +223,7 @@ If you find an rpm you want to install and need to know what else to install, lo
 
 
 
-# Misc
+# Miscellaneous
 
 
 ### Why is rpmbuild still writing to my home directory?
