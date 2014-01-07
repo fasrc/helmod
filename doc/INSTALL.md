@@ -1,6 +1,7 @@
 # Overview
 
 The fasrcsw system is designed to work on a CentOS 6 cluster.
+
 If you're setting this up for an organization other than Harvard FAS Research Computing (@fasrc on github), create a new canonical fasrcsw master remote and adjust urls below accordingly.
 
 
@@ -69,7 +70,7 @@ FAS RC uses the [github version](https://github.com/TACC/Lmod) of the source cod
 lmod requires `lua` 5.1 or 5.2, plus `lua-filesystem`, `lua-posix`, and `lua-devel`.
 
 
-## Hack around lmod's ingorning of --prefix
+## Hack around lmod's ignoring of --prefix
 
 During the installation, lmod will try to write files to the main filesystem.
 Allow this temporarily:

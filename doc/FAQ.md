@@ -76,7 +76,7 @@ make prefix=%{buildroot}/%{_prefix} install
 ```
 
 Note that `./configure` and `make install` use two different prefixes.
-If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any programms use rpaths).
+If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any apps use rpaths).
 Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
 
 
@@ -211,7 +211,7 @@ Note that, in the fasrcsw style of coding prerequisites, the order of C's requir
 ### How are rpm dependencies handled?
 
 Not at all -- there is no coding of dependencies within the rpm packages.
-Dependecies are only tracked at the module level.
+Dependencies are only tracked at the module level.
 If you find an rpm you want to install and need to know what else to install, look at what the module file (as written by the spec) says it requires.
 
 
@@ -229,7 +229,7 @@ You can provide `--buildroot` on the `rpmbuild` command line if you want, but be
 
 No.
 Although all the rpms created by fasrcsw are relocatable and therefore can be installed in non-default locations by using `rpm --prefix ...`, each app owns all the files within its prefix.
-Thus each app would be competing for owership of `bin`, `lib`, etc.
+Thus each app would be competing for ownership of `bin`, `lib`, etc.
 
 However, it's not to hard to update a spec file to avoid this.
 In the `%files` section, instead of using just `%{_prefix}/*`, use:

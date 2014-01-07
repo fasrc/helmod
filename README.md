@@ -8,5 +8,5 @@ fasrcsw is a software management system where:
 see the `doc` directory for more information, specifically:
 
 * [INSTALL](doc/INSTALL.md) for initial installation and setup
-* [HOWTO](doc/HOWTO.md) for day-to-day usage intructions
+* [HOWTO](doc/HOWTO.md) for day-to-day usage instructions
 * [FAQ](doc/FAQ.md) for answers to common questions and other details

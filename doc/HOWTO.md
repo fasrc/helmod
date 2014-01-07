@@ -35,7 +35,7 @@ source ./setup.sh
 
 There will now be two environment variables defined that are used in the instructions below --
 `$FASRCSW_DEV` is the location of your personal clone, and
-`$FASRCSW_PROD` is the one, central location for your organizations's software.
+`$FASRCSW_PROD` is the one, central location for your organization's software.
 
 In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
 
@@ -47,7 +47,7 @@ TYPE=...
 ```
 
 These variables are only used by this doc, not fasrcsw.
-`NAME` and `VERSION` are whatever the app claims, though some adjustements may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
+`NAME` and `VERSION` are whatever the app claims, though some adjustments may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
 `RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
@@ -58,7 +58,7 @@ Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.
 * A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
 * A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
-Thefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
+Therefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
 E.g. to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
 However, if multiple admins are trying this taste case at the same time, you should make an exception and set RELEASE to $USER so people are not clobbering each other.
