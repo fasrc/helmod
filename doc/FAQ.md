@@ -86,16 +86,16 @@ Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir
 You can use bash shell code in the rpm scriptlets and branch for each case.
 If you're building a *Comp* app, i.e. using `fasrcsw-rpmbuild-Comp`, the environment variables:
 
-* `FASRCSW_COMP_FAM`
-* `FASRCSW_COMP_VER`
-* `FASRCSW_COMP_REL`
+* `FASRCSW_COMP_NAME`
+* `FASRCSW_COMP_VERSION`
+* `FASRCSW_COMP_RELEASE`
 
 are available to use for branch tests.
 If you're building an *MPI* app, these environment variables are also available:
 
-* `FASRCSW_MPI_FAM`
-* `FASRCSW_MPI_VER`
-* `FASRCSW_MPI_REL`
+* `FASRCSW_MPI_NAME`
+* `FASRCSW_MPI_VERSION`
+* `FASRCSW_MPI_RELEASE`
 
 Note that compiler modules also set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will suffice, no branching necessary.
 
