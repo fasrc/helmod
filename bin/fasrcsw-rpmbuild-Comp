@@ -22,12 +22,14 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 	set +x
 	if [ $status -ne 0 ]; then
 		inspect=false
-		for arg in "$@"; do
-			if [ "$arg" = 'inspect yes' ]; then
-				inspect=true
-				break
-			fi
-		done
+		
+		##it's not great seeing this for an 'inspect' build, but there is no good way to tell if the failure was from that or earlier, so skip this
+		#for arg in "$@"; do
+		#	if [ "$arg" = 'inspect yes' ]; then
+		#		inspect=true
+		#		break
+		#	fi
+		#done
 
 		if ! $inspect; then
 			echo "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed:" >&2
