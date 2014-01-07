@@ -64,15 +64,8 @@ Point it at the various locations within fasrcsw:
 ./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
 ```
 
+...TODO...
 
 # Install standard compiler and MPI stacks
 
-## gcc
-
-### gmp
-
-### mpfr
-
-### mpc
-
-### gcc
+...TODO...
