@@ -22,7 +22,13 @@ Aside from initial configuration, this clone only needs to pull updates, so chan
 This top level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
 Thus, *make sure this is backed up regularly*.
 
-Change to the fasrcsw director, open `setup.sh`, and set `FASRCSW_PROD` the the absolute path of this fasrcsw clone you just made.
+`cd` to the fasrcsw director, edit the configuration:
+
+``` bash
+$EDITOR setup.sh
+```
+
+and set `FASRCSW_PROD` the the absolute path of this fasrcsw clone you just made.
 Push these changes back to the remote.
 
 Source the setup.sh:
@@ -52,8 +58,8 @@ cd fasrcsw
 
 These clones will need to regularly push updates back to the remote.
 
-Customize `setup.sh`.
-In particular, set `FASRCSW_PROD` to point to the location of the production repo above.
+Customize `setup.sh` if necessary.
+In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
 
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
@@ -70,20 +76,23 @@ FAS RC uses the [github version](https://github.com/TACC/Lmod) of the source cod
 lmod requires `lua` 5.1 or 5.2, plus `lua-filesystem`, `lua-posix`, and `lua-devel`.
 
 
-## Hack around lmod's ignoring of --prefix
+<!--
+## Hack around lmod's ignoring of prefix for some files
 
 During the installation, lmod will try to write files to the main filesystem.
 Allow this temporarily:
 
 ``` bash
-	sudo chgrp $(id -gn) /usr/share/zsh/site-functions
-	sudo chmod g+w /usr/share/zsh/site-functions
+sudo chgrp $(id -gn) /usr/share/zsh/site-functions
+sudo chmod g+w /usr/share/zsh/site-functions
 ```
+-->
 
 Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the production `apps` dir.
 
 
-Get the source code, configure it to use the various locations within fasrcsw, and build it:
+Get the source code, configure it to use the various locations within fasrcsw, and build it.
+Since this writes to $FASRCSW_PROD, run as root:
 
 ``` bash
 ./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
@@ -91,6 +100,11 @@ make pre-install
 make install
 ```
 
+Note that this also installs some files in `/usr/share/zsh`!.
+Once done setting up lmod, you may want to remove them.
+
+
+<!--
 ## Undo the hack above
 
 Set that directory back to the way it was:
@@ -99,6 +113,8 @@ Set that directory back to the way it was:
 sudo chgrp root /usr/share/zsh/site-functions
 sudo chmod g-w /usr/share/zsh/site-functions
 ```
+-->
+
 
 ## Distribute configuration to all cluster nodes
 
