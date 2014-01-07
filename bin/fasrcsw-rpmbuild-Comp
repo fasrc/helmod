@@ -48,3 +48,5 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 	fi
 	set -e
 done
+
+echo fasrcsw-rpmbuild-Comp SUCCESS

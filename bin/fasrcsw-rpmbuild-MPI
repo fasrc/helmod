@@ -12,3 +12,5 @@ for mpi in "${FASRCSW_MPIS[@]}"; do
 		--define "mpi_name $mpi_name" --define "mpi_version $mpi_version" --define "mpi_release $mpi_release" \
 		"$@"
 done
+
+echo fasrcsw-rpmbuild-MPI SUCCESS
