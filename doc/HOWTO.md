@@ -52,7 +52,7 @@ These variables are only used by this doc, not fasrcsw.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
 Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
-Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app-why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this non-intuitive convention):
+Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app-why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
 
 * A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
 * A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.

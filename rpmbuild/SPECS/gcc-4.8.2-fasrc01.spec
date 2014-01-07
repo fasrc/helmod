@@ -160,6 +160,9 @@ cd ..
 # section, etc.
 #
 
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
 #keep these synced with the %%build section!
 module load gmp/5.1.3-fasrc01
 module load mpfr/3.1.2-fasrc01
@@ -222,7 +225,7 @@ done
 %endif
 
 # 
-# FIXME
+# FIXME (but the above is enough for an "inspect" trial build)
 #
 # - uncomment any applicable prepend_path things
 #
