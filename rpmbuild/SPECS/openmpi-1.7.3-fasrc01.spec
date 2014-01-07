@@ -129,6 +129,9 @@ make all
 # section, etc.
 #
 
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
 #%%makeinstall
 
 cd %{_topdir}/BUILD/%{name}-%{version}
@@ -171,7 +174,7 @@ done
 %endif
 
 # 
-# FIXME
+# FIXME (but the above is enough for an "inspect" trial build)
 #
 # - uncomment any applicable prepend_path things
 #

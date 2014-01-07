@@ -39,7 +39,7 @@ In the `%prep` section, replace:
 
 with:
 
-``` bash
+``` spec
 cd %{_topdir}/BUILD
 tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
 stat %{name}-%{version}
@@ -47,14 +47,14 @@ stat %{name}-%{version}
 
 In the `%build` section, replace:
 
-```
+``` spec
 %configure
 make
 ```
 
 with:
 
-``` bash
+``` spec
 cd %{_topdir}/BUILD/%{name}-%{version}
 ./configure --prefix=%{_prefix}
 make
@@ -62,13 +62,13 @@ make
 
 In the `%install` section, replace:
 
-```
+``` spec
 %makeinstall
 ```
 
 with:
 
-``` bash
+``` spec
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
@@ -86,16 +86,16 @@ Note also that `prefix` alone often does not cover `sysconfdir`, `sharedstatedir
 You can use bash shell code in the rpm scriptlets and branch for each case.
 If you're building a *Comp* app, i.e. using `fasrcsw-rpmbuild-Comp`, the environment variables:
 
-* `FASRCSW_COMP_FAM`
-* `FASRCSW_COMP_VER`
-* `FASRCSW_COMP_REL`
+* `FASRCSW_COMP_NAME`
+* `FASRCSW_COMP_VERSION`
+* `FASRCSW_COMP_RELEASE`
 
 are available to use for branch tests.
 If you're building an *MPI* app, these environment variables are also available:
 
-* `FASRCSW_MPI_FAM`
-* `FASRCSW_MPI_VER`
-* `FASRCSW_MPI_REL`
+* `FASRCSW_MPI_NAME`
+* `FASRCSW_MPI_VERSION`
+* `FASRCSW_MPI_RELEASE`
 
 Note that compiler modules also set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will suffice, no branching necessary.
 
@@ -118,6 +118,10 @@ Note that the `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts echo ou
 The fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific dependency.
 
 
+### How do I the default sets of compiler and MPI implementations used to build apps?
+
+The bash arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup.sh` define these.
+
 
 ### How do I deal with pre-built binaries?
 
@@ -127,7 +131,7 @@ See [this FAQ item](how-do-i-compile-manually-instead-of-using-the-rpmbuild-macr
 * The `%build` section can be blank (aside from standard template code).
 * The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.
 
-(TODO: note issues about stripping and prelinking.)
+Note that rpmbuild does a lot of stripping and prelinking by default, and this often causes problems with pre-built binaries.
 
 
 
@@ -220,6 +224,23 @@ If you find an rpm you want to install and need to know what else to install, lo
 You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the fasrcsw clone's `%{_topdir}`.
 This is part of the design of rpmbuild -- the spec file cannot override the `%{buildroot}` or `%{_buildrootdir}` variable, and by default it points to a location within your home directory.
 You can provide `--buildroot` on the `rpmbuild` command line if you want, but be sure to use something app-specific as this location is `rm -fr`'ed during the build.
+
+### Can I install the apps under a common prefix?
+
+No.
+Although all the rpms created by fasrcsw are relocatable and therefore can be installed in non-default locations by using `rpm --prefix ...`, each app owns all the files within its prefix.
+Thus each app would be competing for owership of `bin`, `lib`, etc.
+
+However, it's not to hard to update a spec file to avoid this.
+In the `%files` section, instead of using just `%{_prefix}/*`, use:
+
+``` spec
+%{_prefix}/bin/*
+%{_prefix}/lib/*
+...
+```
+
+And, earlier in the `%install` section, take out the for-loop that copies `COPYING`, `README`, etc. to the root of the prefix (or otherwise allow rpm to ignore these files that will not be part of the final package).
 
 
 ### What about easybuild?

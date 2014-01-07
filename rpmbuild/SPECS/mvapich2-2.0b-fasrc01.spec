@@ -169,7 +169,7 @@ done
 %endif
 
 # 
-# FIXME
+# FIXME (but the above is enough for an "inspect" trial build)
 #
 # - uncomment any applicable prepend_path things
 #

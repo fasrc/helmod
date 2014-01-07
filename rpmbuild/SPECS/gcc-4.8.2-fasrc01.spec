@@ -155,6 +155,9 @@ cd ..
 # section, etc.
 #
 
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
 #keep these synced with the %%build section!
 module load gmp/5.1.3-fasrc01
 module load mpfr/3.1.2-fasrc01
@@ -217,7 +220,7 @@ done
 %endif
 
 # 
-# FIXME
+# FIXME (but the above is enough for an "inspect" trial build)
 #
 # - uncomment any applicable prepend_path things
 #
@@ -281,8 +284,8 @@ prepend_path("MANPATH",           "%{_prefix}/share/man")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/gcc", "4.8.2-fasrc01")
 prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_FAM", "%{name}")
-setenv("FASRCSW_COMP_VER", "%{version}")
+setenv("FASRCSW_COMP_NAME", "%{name}")
+setenv("FASRCSW_COMP_RELEASESION", "%{version}")
 setenv("FASRCSW_COMP_REL", "%{release}")
 family("Comp")
 EOF

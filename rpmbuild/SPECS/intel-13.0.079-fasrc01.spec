@@ -135,6 +135,9 @@ stat %{name}-%{version}
 # section, etc.
 #
 
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
 #%%makeinstall
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
@@ -175,7 +178,7 @@ done
 %endif
 
 # 
-# FIXME
+# FIXME (but the above is enough for an "inspect" trial build)
 #
 # - uncomment any applicable prepend_path things
 #
@@ -228,8 +231,8 @@ prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/intel", "13.0.079-fasrc01")
 prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_FAM", "%{name}")
-setenv("FASRCSW_COMP_VER", "%{version}")
+setenv("FASRCSW_COMP_NAME", "%{name}")
+setenv("FASRCSW_COMP_RELEASESION", "%{version}")
 setenv("FASRCSW_COMP_REL", "%{release}")
 family("Comp")
 EOF
