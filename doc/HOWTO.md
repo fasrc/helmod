@@ -218,7 +218,7 @@ Check that it installed and the module is there.
 For a *Core* app:
 
 ``` bash
-fasrcsw-rpm -qa | "$NAME-$VERSION-$RELEASE"
+fasrcsw-rpm -qa | grep "$NAME-$VERSION-$RELEASE"
 ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 module avail
 module load $NAME/$VERSION-$RELEASE
