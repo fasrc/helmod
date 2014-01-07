@@ -88,11 +88,14 @@ sudo chmod g+w /usr/share/zsh/site-functions
 ```
 -->
 
+
+## Build and install it
+
 Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the production `apps` dir.
 
 
 Get the source code, configure it to use the various locations within fasrcsw, and build it.
-Since this writes to $FASRCSW_PROD, run as root:
+Since this writes to `$FASRCSW_PROD`, run as root:
 
 ``` bash
 ./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
@@ -100,7 +103,7 @@ make pre-install
 make install
 ```
 
-Note that this also installs some files in `/usr/share/zsh`!.
+*Note that this also installs some files in `/usr/share/zsh`!*.
 Once done setting up lmod, you may want to remove them.
 
 
