@@ -6,14 +6,14 @@ fasrcsw-env-check
 
 for p in "$@"; do
 	for comp in "${FASRCSW_COMPS[@]}"; do
-		IFS=/ read -r comp_fam comp_verrel <<< "$comp"
-		IFS=- read -r comp_ver comp_rel    <<< "$comp_verrel"
+		IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
+		IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
 
 		for mpi in "${FASRCSW_MPIS[@]}"; do
-			IFS=/ read -r mpi_fam mpi_verrel <<< "$mpi"
-			IFS=- read -r mpi_ver mpi_rel    <<< "$mpi_verrel"
+			IFS=/ read -r mpi_name mpi_versionrelease <<< "$mpi"
+			IFS=- read -r mpi_version mpi_release     <<< "$mpi_versionrelease"
 			
-			echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_fam}_${comp_ver}_${comp_rel}_${mpi_fam}_${mpi_ver}_${mpi_rel}.x86_64.rpm"
+			echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_name}_${comp_version}_${comp_release}_${mpi_name}_${mpi_version}_${mpi_release}.x86_64.rpm"
 		done
 	done
 done

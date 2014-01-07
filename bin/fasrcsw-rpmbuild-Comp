@@ -5,8 +5,8 @@ source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them th
 fasrcsw-env-check
 
 for comp in "${FASRCSW_COMPS[@]}"; do
-	IFS=/ read -r comp_fam comp_verrel <<< "$comp"
-	IFS=- read -r comp_ver comp_rel    <<< "$comp_verrel"
+	IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
+	IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
 	
 	echo
 	echo
@@ -16,7 +16,7 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 	set +e
 	set -x
 	fasrcsw-rpmbuild-Core \
-		--define "comp_fam $comp_fam" --define "comp_ver $comp_ver" --define "comp_rel $comp_rel" \
+		--define "comp_name $comp_name" --define "comp_version $comp_version" --define "comp_release $comp_release" \
 		"$@"
 	status=$?
 	set +x
@@ -33,9 +33,9 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 			echo "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed:" >&2
 			echo -n "    fasrcsw-rpmbuild-Core"
 
-			echo -n " '--define' 'comp_fam $comp_fam'"
-			echo -n " '--define' 'comp_ver $comp_ver'"
-			echo -n " '--define' 'comp_rel $comp_rel'"
+			echo -n " '--define' 'comp_name $comp_name'"
+			echo -n " '--define' 'comp_version $comp_version'"
+			echo -n " '--define' 'comp_release $comp_release'"
 			for arg in "$@"; do
 				echo -n " '$arg'"
 			done

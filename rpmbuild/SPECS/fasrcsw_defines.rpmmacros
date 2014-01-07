@@ -28,13 +28,13 @@
 
 #--- compiler/mpi stacks
 
-%if %{defined comp_fam} && %{defined comp_ver} && %{defined comp_rel}
-	%if %{defined mpi_fam} && %{defined mpi_ver} && %{defined mpi_rel}
-		%define  release_full      %{release_base}_%{comp_fam}_%{comp_ver}_%{comp_rel}_%{mpi_fam}_%{mpi_ver}_%{mpi_rel}
-		%define  hierarchy         MPI/%{comp_fam}/%{comp_ver}-%{comp_rel}/%{mpi_fam}/%{mpi_ver}-%{mpi_rel}
+%if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
+	%if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
+		%define  release_full      %{release_base}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
+		%define  hierarchy         MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}
 	%else
-		%define  release_full      %{release_base}_%{comp_fam}_%{comp_ver}_%{comp_rel}
-		%define  hierarchy         Comp/%{comp_fam}/%{comp_ver}-%{comp_rel}
+		%define  release_full      %{release_base}_%{comp_name}_%{comp_version}_%{comp_release}
+		%define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
 	%endif
 %else
 	

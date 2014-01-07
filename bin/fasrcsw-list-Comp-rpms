@@ -6,9 +6,9 @@ fasrcsw-env-check
 
 for p in "$@"; do
 	for comp in "${FASRCSW_COMPS[@]}"; do
-		IFS=/ read -r comp_fam comp_verrel <<< "$comp"
-		IFS=- read -r comp_ver comp_rel    <<< "$comp_verrel"
+		IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
+		IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
 
-		echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_fam}_${comp_ver}_${comp_rel}.x86_64.rpm"
+		echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_name}_${comp_version}_${comp_release}.x86_64.rpm"
 	done
 done

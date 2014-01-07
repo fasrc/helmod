@@ -108,8 +108,8 @@ To do so, you can call `fasrcsw-rpmbuild-Core` directly with the appropriate com
 
 ``` bash
 fasrcsw-rpmbuild-Core \
-  --define 'comp_fam intel' --define 'comp_ver 13.0.079' --define 'comp_rel fasrc01' \
-  --define 'mpi_fam openmpi' --define 'mpi_ver 1.7.3' --define 'mpi_rel fasrc01' \
+  --define 'comp_name intel' --define 'comp_version 13.0.079' --define 'comp_release fasrc01' \
+  --define 'mpi_name openmpi' --define 'mpi_version 1.7.3' --define 'mpi_release fasrc01' \
   -ba `$NAME-$VERSION-$RELEASE.spec`
 ```
 
