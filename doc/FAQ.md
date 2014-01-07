@@ -39,7 +39,7 @@ In the `%prep` section, replace:
 
 with:
 
-``` spec
+``` bash
 cd %{_topdir}/BUILD
 tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
 stat %{name}-%{version}
@@ -54,7 +54,7 @@ make
 
 with:
 
-``` spec
+``` bash
 cd %{_topdir}/BUILD/%{name}-%{version}
 ./configure --prefix=%{_prefix}
 make
@@ -68,7 +68,7 @@ In the `%install` section, replace:
 
 with:
 
-``` spec
+``` bash
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}

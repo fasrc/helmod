@@ -103,8 +103,13 @@ make pre-install
 make install
 ```
 
-*Note that this also installs some files in `/usr/share/zsh`!*.
-Once done setting up lmod, you may want to remove them.
+*Note that this also installs some files in `/usr/share/zsh/site-functions`!*.
+Once done setting up lmod, you may want to remove the following:
+
+```
+/usr/share/zsh/site-functions/_ml
+/usr/share/zsh/site-functions/_module
+```
 
 
 <!--
@@ -121,7 +126,7 @@ sudo chmod g-w /usr/share/zsh/site-functions
 
 ## Distribute configuration to all cluster nodes
 
-By whatever means your cluster uses (e.g. puppet), distribute lmod's supporting files:
+By whatever means your cluster uses (e.g. puppet), distribute lmod's configuration files to all cluster nodes:
 
 ``` bash
 FROM lmod BUILD                               ON ALL HOSTS
@@ -133,7 +138,7 @@ FROM lmod BUILD                               ON ALL HOSTS
 "$FASRCSW_PROD"/apps/lmod/lmod/init/cshrc    /etc/profile.d/lmod.csh
 ```
 
-We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively (where `...` is `$FASRCSW_PROD`):
+We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively (where `...` is `$FASRCSW_PROD`), to un-clutter the module namespace:
 
 ``` bash
 #export MODULEPATH=$(.../apps/lmod/lmod/libexec/addto --append MODULEPATH .../apps/lmod/lmod/modulefiles/Core)

@@ -3,7 +3,7 @@
 
 ## Overview
 
-The basic workflow of fasrcsw is:
+The basic workflow to build an app using fasrcsw is:
 
 * get the source
 * create and partially complete a spec file, using the template as a starting point
@@ -35,7 +35,7 @@ source ./setup.sh
 
 There will now be two environment variables defined that are used in the instructions below --
 `$FASRCSW_DEV` is the location of your personal clone, and
-`$FASRCSW_PROD` is the one, central location for your organization's software.
+`$FASRCSW_PROD` is the production one, the central location for your organization's software.
 
 In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
 
@@ -52,7 +52,7 @@ These variables are only used by this doc, not fasrcsw.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
 Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
-Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app-why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
+Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app--why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
 
 * A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
 * A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
@@ -61,7 +61,7 @@ Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.
 Therefore, set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
 E.g. to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
-However, if multiple admins are trying this taste case at the same time, you should make an exception and set RELEASE to $USER so people are not clobbering each other.
+However, if multiple admins are trying this taste case at the same time, you should make an exception and set `RELEASE` to `$USER` so people are not clobbering each other.
 The `amhello` example can be used to test all app types, even though the dependencies are not real.
 
 
@@ -109,7 +109,7 @@ See [this FAQ item](FAQ.md#how-are-simple-app-dependencies-handled) for more det
 
 If you need to add options to the `./configure` command, you can append them to the `%configure` macro.
 If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
-If it's different for different compilers and/or MPI implementations, see [this FAQ item](FAQ.md#how-do-i-use-one-spec-file-to-handle-all-compiler-and-MPI-implementations).
+If it's different for different compilers and/or MPI implementations, see [this FAQ item](FAQ.md#how-do-i-use-one-spec-file-to-handle-all-compiler-and-mpi-implementations).
 
 
 
@@ -162,7 +162,7 @@ The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
 
 The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts loop over the corresponding modules to be built against.
-To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-MPI-implementation-instead-of-all).
+To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-mpi-implementation-instead-of-all).
 
 
 ## Finish the spec file
@@ -185,20 +185,19 @@ Now the rpm (or set of rpms) can be fully built:
 fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
 ```
 
-Once that works, double check that all worked as expected.
+Once that runs successfully, double check that all worked as expected.
 For a Core app, only one rpm is built, but for Comp and MPI apps, multiple rpms are built.
 There are three helpers that print the names of the rpms that should've been built -- `fasrcsw-list-Core-rpms`, `fasrcsw-list-Comp-rpms`, and `fasrcsw-list-MPI-rpms`.
 
 ``` bash
-fasrcsw-rpm -qilp --scripts $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
+fasrcsw-rpm -qilp $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
 ```
 
-
+(Add  --scripts to also see how the module file symlink is created in the `%postinstall`.)
 For each package make sure:
 
 * all the metadata looks good
-* all files are under an app-specific prefix under `$FASRCSW_PROD`. 
-* the module file symlink (second ln arg in postinstall scriptlet) is good
+* the `Relocations` and all files are under an app-specific prefix under `$FASRCSW_PROD`. 
 
 Test if the rpm(s) will install okay:
 
@@ -235,9 +234,9 @@ If you want to erase and retry a *Core* app: sudo -E fasrcsw-rpm -ev --nodeps "$
 Copy the rpms to the production location:
 
 ``` bash
-rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
-rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
-rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
+sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
+sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
+sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
 ```
 
 Add, commit, and push all your modifications to the fasrcsw git remote repo with something like the following:
