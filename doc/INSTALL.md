@@ -1,7 +1,7 @@
 # Overview
 
 The fasrcsw system is designed to work on a CentOS 6 cluster.
-If you're setting this up for an organization other than Harvard FAS Research Computing (github fasrc), create a new canonical fasrcsw master remote and adjust urls below accordingly.
+If you're setting this up for an organization other than Harvard FAS Research Computing (@fasrc on github), create a new canonical fasrcsw master remote and adjust urls below accordingly.
 
 
 
@@ -42,7 +42,7 @@ This repo clone is the one and only `$FASRCSW_PROD`.
 
 ## Have each contributor setup a development repo clone
 
-Each contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in your home directory:
+Each contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
 
 ``` bash
 git clone git@github.com:/fasrc/fasrcsw.git
@@ -61,7 +61,7 @@ These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 # Install lmod
 
 The fasrcsw system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
-FAS RC uses the [github version](https://github.com/TACC/Lmod) of the source code (the sourceforge did not build).
+FAS RC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
 
 
 ## Prerequisites
@@ -79,7 +79,7 @@ Allow this temporarily:
 	sudo chmod g+w /usr/share/zsh/site-functions
 ```
 
-Source an configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the production `apps` dir.
+Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the production `apps` dir.
 
 
 Get the source code, configure it to use the various locations within fasrcsw, and build it:
@@ -92,7 +92,7 @@ make install
 
 ## Undo the hack above
 
-Set this directory back to the way it was:
+Set that directory back to the way it was:
 
 ``` bash
 sudo chgrp root /usr/share/zsh/site-functions
