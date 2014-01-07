@@ -23,26 +23,27 @@ for comp in "${FASRCSW_COMPS[@]}"; do
 	if [ $status -ne 0 ]; then
 		inspect=false
 		
-		##it's not great seeing this for an 'inspect' build, but there is no good way to tell if the failure was from that or earlier, so skip this
-		#for arg in "$@"; do
-		#	if [ "$arg" = 'inspect yes' ]; then
-		#		inspect=true
-		#		break
-		#	fi
-		#done
+		for arg in "$@"; do
+			if [ "$arg" = 'inspect yes' ]; then
+				inspect=true
+				break
+			fi
+		done
 
-		if ! $inspect; then
-			echo "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed:" >&2
-			echo -n "    fasrcsw-rpmbuild-Core"
-
-			echo -n " '--define' 'comp_name $comp_name'"
-			echo -n " '--define' 'comp_version $comp_version'"
-			echo -n " '--define' 'comp_release $comp_release'"
-			for arg in "$@"; do
-				echo -n " '$arg'"
-			done
-			echo
+		echo -n "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed" >&2
+		if $inspect; then
+			echo -n " (but 'inspect' was used, so this might be expected)" >&2
 		fi
+		echo ":" >&2
+		echo -n "    fasrcsw-rpmbuild-Core" >&2
+
+		echo -n " '--define' 'comp_name $comp_name'" >&2
+		echo -n " '--define' 'comp_version $comp_version'" >&2
+		echo -n " '--define' 'comp_release $comp_release'" >&2
+		for arg in "$@"; do
+			echo -n " '$arg'" >&2
+		done
+		echo >&2
 		
 		exit $status
 	fi
