@@ -17,8 +17,8 @@ The app classifications used by fasrcsw and the module hierarchy describe the ap
 They mainly pertain to the layout in the filesystem.
 
 An app *family* is something a bit different.
-That's used by lmod to ensure only one instance of a family is loaded at a time, and proper swapping of dependencies happens when a family instance is swapped.
-An compiler is part of the Comp family, and an MPI app is a part of the MPI family.
+That's used by lmod to ensure only one instance of a family is loaded at a time and that proper swapping of dependencies happens when a family instance is swapped.
+A compiler *is* part of the Comp *family*, and an MPI app *is* a part of the MPI *family*.
 
 
 
@@ -29,6 +29,7 @@ An compiler is part of the Comp family, and an MPI app is a part of the MPI fami
 
 The rpmbuild macros employed in the template spec file are for software packaged in the GNU-toolchain-style -- a source archive that unpacks to a directory named NAME-VERSION and is built with `configure`/`make`/`make install` with appropriate *prefix* options.
 The macros also do a lot of extra stuff like setting default `CFLAGS`, `CXXFLAGS`, etc. too.
+
 The macros have their own options and can often be tweaked to work.
 For example, to add an argument to the `./configure` command, you can just append it to the `%configure` macro line.
 
@@ -109,7 +110,7 @@ If you're building an *MPI* app, these environment variables are also available:
 
 ### How do I build against just one compiler or MPI implementation instead of all?
 
-The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts are just simple loops over the corresponding compiler and MPI modules to build against (defined in the `FASRCSW_COMPS` and `FASRCSW_MPIS` environment variables).
+The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts are just simple loops to build against all the standard compiler and MPI apps.
 Sometimes only one of these is having issues building and you want to just attempt building that combination.
 To do so, you can call `fasrcsw-rpmbuild-Core` directly with the appropriate compiler and, if applicable, MPI options, e.g.:
 
@@ -122,23 +123,25 @@ fasrcsw-rpmbuild-Core \
 
 Note that the `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts echo out the above such commands that they run, so use those a reference.
 
-Since the fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific dependency.
+Since the fasrcsw system is designed to build apps against *all* relevant combinations, so be sure to run the main `fasrcsw-rpmbuild-Comp` or `fasrcsw-rpmbuild-MPI` script after you've solved the issue with the specific combination.
 
 
 ### How do I configure the default sets of compiler and MPI implementations used to build apps?
 
-The bash arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup.sh` define these.
+The arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup.sh` define these.
+Note that since these are arrays, a simple `echo $FASRCSW_COMPS` is misleading (it only prints the first), and, like all bash arrays, they cannot be exported to subshells.
 
 
 ### How do I package pre-built binaries?
 
 See [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
 
-* The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's is more efficient, but more cumbersome for sharing).
+* The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's more efficient, but also more cumbersome for sharing).
 * The `%build` section can be blank (aside from standard template code).
 * The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.
 
 Note that rpmbuild does a lot of stripping and prelinking by default, and this often causes problems with pre-built binaries.
+See `%define __os_install_post %{nil}` for skipping those steps.
 
 
 

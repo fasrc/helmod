@@ -19,10 +19,10 @@ cd fasrcsw
 
 Aside from initial configuration, this clone only needs to pull updates, so changing to an https remote later is fine.
 
-This top level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
+This top-level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
 Thus, *make sure this is backed up regularly*.
 
-`cd` to the fasrcsw director, edit the configuration:
+Edit the configuration:
 
 ``` bash
 $EDITOR setup.sh
@@ -155,7 +155,7 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 You'll have to build the standard compiler and MPI apps that all the other packages are built against.
 Spec files are provided in `rpmbuild/SPECS`, but many of these require hacks that are not yet documented.
 
-Once you've settled upon the default sets of compiler and MPI implementations to build software against, set the `FASRCSW_COMPS` and `FASRCSW_MPIS` arrays in `setup.sh` and push these back to the master remote.
+Once you've settled upon the sets of compiler and MPI implementations against which to build software by default, set the `FASRCSW_COMPS` and `FASRCSW_MPIS` arrays in `setup.sh` and push these back to the master remote.
 
 
 

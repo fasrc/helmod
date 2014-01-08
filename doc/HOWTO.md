@@ -235,7 +235,7 @@ sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
 sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
 ```
 
-Add, commit, and push all your modifications to the fasrcsw git remote repo with something like the following:
+Add, commit, and push all your modifications to the fasrcsw git remote with something like the following:
 
 ``` bash
 cd "$FASRCSW_DEV"
