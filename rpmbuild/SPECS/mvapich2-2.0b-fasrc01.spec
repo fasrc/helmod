@@ -210,7 +210,7 @@ prepend_path("FPATH",               "%{_prefix}/include")
 prepend_path("MANPATH",             "%{_prefix}/share/man")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release}")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release}")
 prepend_path("MODULEPATH", mdir)
 setenv("FASRCSW_MPI_NAME"   , "%{name}")
 setenv("FASRCSW_MPI_VERSION", "%{version}")
