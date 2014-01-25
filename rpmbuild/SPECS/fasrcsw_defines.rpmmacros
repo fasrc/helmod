@@ -30,15 +30,15 @@
 
 %if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
 	%if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
-		%define  release_full      %{release_base}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
+		%define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
 		%define  hierarchy         MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}
 	%else
-		%define  release_full      %{release_base}_%{comp_name}_%{comp_version}_%{comp_release}
+		%define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}
 		%define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
 	%endif
 %else
 	
-		%define  release_full      %{release_base}
+		%define  release_full      %{release_short}
 		%define  hierarchy         Core
 %endif
 
@@ -49,9 +49,9 @@
 
 %define modulefiles_base %{fasrcsw_root}/modulefiles/%{hierarchy}
 %define modulefile_dir   %{modulefiles_base}/%{name}
-%define modulefile       %{modulefile_dir}/%{version}-%{release_base}.lua
+%define modulefile       %{modulefile_dir}/%{version}-%{release_short}.lua
 
-%define _prefix         %{apps_base}/%{name}/%{version}-%{release_base}
+%define _prefix         %{apps_base}/%{name}/%{version}-%{release_short}
 %define _mandir         %{_prefix}/share/man
 %define _infodir        %{_prefix}/share/info
 %define _defaultdocdir  %{_prefix}/share/doc
