@@ -20,7 +20,7 @@ Version: 1.6.5
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_base fasrc01
+%define release_short fasrc01
 
 #
 # FIXME
@@ -190,13 +190,13 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_base}
+%{name}-%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release_base}")
+whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
@@ -216,11 +216,11 @@ prepend_path("MANPATH",             "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib/pkgconfig")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_base}")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
 prepend_path("MODULEPATH", mdir)
 setenv("FASRCSW_MPI_NAME"   , "%{name}")
 setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_base}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
 family("MPI")
 EOF
 

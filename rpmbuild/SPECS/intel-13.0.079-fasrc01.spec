@@ -24,7 +24,7 @@ Version: 13.0.079
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_base fasrc01
+%define release_short fasrc01
 
 #
 # FIXME
@@ -194,13 +194,13 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_base}
+%{name}-%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release_base}")
+whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
@@ -229,11 +229,11 @@ prepend_path("FPATH",               "%{_prefix}/composerxe/include")
 prepend_path("FPATH",               "%{_prefix}/composerxe/include/intel64")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_base}")
+local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
 prepend_path("MODULEPATH", mdir)
 setenv("FASRCSW_COMP_NAME"   , "%{name}")
 setenv("FASRCSW_COMP_VERSION", "%{version}")
-setenv("FASRCSW_COMP_RELEASE", "%{release_base}")
+setenv("FASRCSW_COMP_RELEASE", "%{release_short}")
 family("Comp")
 EOF
 

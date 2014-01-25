@@ -19,7 +19,7 @@ Version: 0.2.08
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_base fasrc01
+%define release_short fasrc01
 
 #
 # FIXME
@@ -195,13 +195,13 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_base}
+%{name}-%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release_base}")
+whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
