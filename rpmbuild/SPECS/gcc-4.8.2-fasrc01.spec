@@ -236,13 +236,13 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release}
+%{name}-%{version}-%{release_base}
 %{summary_static}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release}")
+whatis("Version: %{version}-%{release_base}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
@@ -282,11 +282,11 @@ prepend_path("FPATH",             "%{_prefix}/include")
 prepend_path("MANPATH",           "%{_prefix}/share/man")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release}")
+local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_base}")
 prepend_path("MODULEPATH", mdir)
 setenv("FASRCSW_COMP_NAME"   , "%{name}")
 setenv("FASRCSW_COMP_VERSION", "%{version}")
-setenv("FASRCSW_COMP_RELEASE", "%{release}")
+setenv("FASRCSW_COMP_RELEASE", "%{release_base}")
 family("Comp")
 EOF
 

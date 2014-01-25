@@ -190,13 +190,13 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release}
+%{name}-%{version}-%{release_base}
 %{summary_static}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release}")
+whatis("Version: %{version}-%{release_base}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
@@ -216,11 +216,11 @@ prepend_path("MANPATH",             "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib/pkgconfig")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release}")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_base}")
 prepend_path("MODULEPATH", mdir)
 setenv("FASRCSW_MPI_NAME"   , "%{name}")
 setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_base}")
 family("MPI")
 EOF
 
