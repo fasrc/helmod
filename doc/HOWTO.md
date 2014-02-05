@@ -204,7 +204,7 @@ For each package make sure:
 Test if the rpm(s) will install okay:
 
 ``` bash
-sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+sudo -E fasrcsw-rpm -ivh --nodeps --oldpackage --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 ```
 
 
@@ -213,7 +213,7 @@ sudo -E fasrcsw-rpm -ivh --nodeps --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSI
 Finally, install the rpm(s):
 
 ``` bash
-sudo -E fasrcsw-rpm -ivh --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+sudo -E fasrcsw-rpm -ivh --nodeps --oldpackage $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
 ```
 
 Check that the rpm(s) installed and the module(s) is/are there.
