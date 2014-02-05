@@ -130,7 +130,7 @@ make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-%makeinstall
+%make_install
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -153,6 +153,14 @@ done
 	echo
 	
 	tree '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
 
 	echo
 	echo

@@ -1,4 +1,6 @@
 0.0.2 (future)
+    * use the much better %make_install rather than %makeinstall
+
     * modulefile suggestions in actual lua code are now part of the output when 
       using --define 'inspect yes'
 

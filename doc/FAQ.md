@@ -68,7 +68,7 @@ make
 In the `%install` section, replace:
 
 ``` spec
-%makeinstall
+%make_install
 ```
 
 with:
@@ -77,7 +77,7 @@ with:
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make prefix=%{buildroot}/%{_prefix} install
+make install DESTDIR=%{buildroot}
 ```
 
 Note that `./configure` and `make install` use two different prefixes.
