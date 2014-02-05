@@ -17,6 +17,9 @@
 #(needed for module function to work)
 %define _buildshell /bin/bash
 
+#(to avoid stripping binaries, byte-compiling python (because the version will be wrong), etc.
+%define __os_install_post %{nil}
+
 #(to avoid the "No build ID note found" issues from Comp/MPI version inclusion)
 %define debug_package %{nil}
 
