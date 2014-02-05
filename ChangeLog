@@ -1,9 +1,14 @@
 0.0.2 (future)
-    * bug fix: MPI family modules were not adding the correct dirs to the
-      MOULDEPATH
+    * modulefile suggestions in actual lua code are now part of the output when 
+      using --define 'inspect yes'
+
+    * don't do any __os_install_post -- stripping, byte-compiling, etc.
 	
     * bug fix: module files should be using the short release not the full rpm 
       one
+    
+	* bug fix: MPI family modules were not adding the correct dirs to the
+      MOULDEPATH
 
 0.0.1 (2014-01-08)
     initial release for testing

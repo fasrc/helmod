@@ -148,6 +148,12 @@ exit status' is expected in this case, it's just a way to stop NOW.)
 4 directories, 3 files
 
 
+Some suggestions of what to use in the modulefile:
+
+
+prepend_path("PATH",               "%{_prefix}/bin")
+
+
 ******************************************************************************
 
 
