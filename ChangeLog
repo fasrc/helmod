@@ -8,8 +8,8 @@
 	
     * bug fix: module files should be using the short release not the full rpm 
       one
-    
-	* bug fix: MPI family modules were not adding the correct dirs to the
+
+    * bug fix: MPI family modules were not adding the correct dirs to the
       MOULDEPATH
 
 0.0.1 (2014-01-08)
