@@ -106,13 +106,12 @@ is an abstraction of the DEFLATE compression algorithm used in their gzip file c
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-##configure
-##make
+#%%configure
+#make
 
 cd %{_topdir}/BUILD/%{name}-%{version}
 ./configure --prefix=%{_prefix}
 make
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -132,12 +131,7 @@ make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##makeinstall
-
-cd %{_topdir}/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make prefix=%{buildroot}/%{_prefix} install
+%make_install
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
