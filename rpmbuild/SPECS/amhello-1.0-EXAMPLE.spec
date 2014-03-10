@@ -20,7 +20,7 @@ Version: 1.0
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short fasrc01
+%define release_short EXAMPLE
 
 #
 # FIXME
@@ -209,18 +209,18 @@ whatis("Description: %{summary_static}")
 
 ---- environment changes (uncomment what's relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
