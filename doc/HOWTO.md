@@ -224,7 +224,7 @@ fasrcsw-rpm -qa | grep "$NAME-$VERSION-$RELEASE"
 ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 module avail
 module load $NAME/$VERSION-$RELEASE
-#...test the app itself...
+#...test the app itself (for amhello, run `hello')...
 module unload $NAME/$VERSION-$RELEASE
 ```
 
@@ -232,6 +232,9 @@ If you want to erase and retry the rpm(s): sudo -E fasrcsw-rpm -ev --nodeps $(fa
 
 
 ## Save your work
+
+If you're just trying things out with `amhello`, erase the rpm(s) and remove your spec file.
+Otherwise, for production apps:
 
 Copy the rpms to the production location:
 
