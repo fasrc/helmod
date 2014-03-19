@@ -37,16 +37,15 @@ There will now be two environment variables defined that are used in the instruc
 `$FASRCSW_DEV` is the location of your personal clone, and
 `$FASRCSW_PROD` is the production one, the central location for your organization's software.
 
-In order to be able to copy-n-paste commands below, set these variables particular to the app you're installing:
+Set these variables particular to the app you're installing:
 
 ``` bash
-NAME=...
-VERSION=...
-RELEASE=...
-TYPE=...
+export NAME=...
+export VERSION=...
+export RELEASE=...
+export TYPE=...
 ```
 
-These variables are only used by this doc, not fasrcsw.
 `NAME` and `VERSION` are whatever the app claims, though some adjustments may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
 `RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
 If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
@@ -60,8 +59,8 @@ Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.
 
 Set `TYPE` to the string `Core`, `Comp`, or `MPI`.
 
-For example, to test the simple *Core* case with `amhello`: `NAME=amhello ; VERSION=1.0 ; RELEASE=fasrc01 ; TYPE=Core`.
-However, if multiple admins are trying this test case at the same time, you should make an exception and set `RELEASE` to `$USER` so people are not clobbering each other.
+For example, to test the simple *Core* case with `amhello`: `export NAME=amhello ; export VERSION=1.0 ; export RELEASE=$USER ; export TYPE=Core`.
+Note that this breaks convention and uses `$USER` for the `RELEASE` instead of `fasrc01` -- this is to avoid people clobbering each other during a demo.
 The `amhello` example can be used to test all app types, even though the dependencies are not real.
 
 
@@ -233,7 +232,7 @@ If you want to erase and retry the rpm(s), see [this FAQ item](FAQ.md#how-do-i-r
 
 ## Save your work
 
-If you're just trying things out with `amhello`, erase the rpm(s) and remove your spec file.
+If you're just trying things out with `amhello`, [erase the rpm(s)](FAQ.md#how-do-i-remove-apps) and remove your spec file.
 Otherwise, for production apps:
 
 Copy the rpms to the production location:

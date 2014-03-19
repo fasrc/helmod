@@ -18,6 +18,9 @@ export FASRCSW_MPIS=(
 #the build host
 export FASRCSW_BUILD_HOST=hero4502
 
+#rpm packager credits
+export FASRCSW_AUTHOR="$(getent passwd $USER | cut -d: -f5), Harvard FAS Research Computing <rchelp@fas.harvard.edu>"
+
 
 #--- environment setup
 

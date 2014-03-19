@@ -3,12 +3,12 @@
 #
 # enter the simple app name, e.g. myapp
 #
-Name: FIXME
+Name: %{getenv:NAME}
 
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: FIXME
+Version: %{getenv:VERSION}
 
 #
 # enter the release; start with fasrc01 (or some other convention for your 
@@ -18,12 +18,12 @@ Version: FIXME
 # and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- FIXME FIXME <FIXME@harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
