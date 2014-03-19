@@ -120,10 +120,6 @@ make
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
 #
-# TIP -- first run rmpbuild with --define 'inspect yes' in order to stop after 
-# the make install step and see what to include in the modulefile, the %%files 
-# section, etc.
-#
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
@@ -138,12 +134,12 @@ done
 
 #this is the part that allows for inspecting the build output without fully creating the rpm
 #there should be no need to change this
-%if %{defined inspect}
+%if %{defined trial}
 	set +x
 	
 	echo
 	echo
-	echo "*************** fasrcsw -- STOPPING due to %%define inspect yes ****************"
+	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
 	echo 
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
@@ -173,7 +169,7 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for an "inspect" trial build)
+# FIXME (but the above is enough for a "trial" build)
 #
 # - uncomment any applicable prepend_path things
 #

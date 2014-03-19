@@ -116,19 +116,19 @@ If it's different for different compilers and/or MPI implementations, see [this 
 
 The result of the above will be enough of a spec file to basically build the software.
 However, you have to build it and examine its output in order to know what to put in the module file that the rpm is also responsible for constructing.
-The template spec has a section that, if the macro `inspect` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
+The template spec has a section that, if the macro `trial` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
 
 There are also three different scripts depending on the type of app being built -- `fasrcsw-rpmbuild-Core`, `fasrcsw-rpmbuild-Comp`, and `fasrcsw-rpmbuild-MPI`.
 Putting all this together, to try building the rpm, run the following:
 
 ``` bash
-fasrcsw-rpmbuild-$TYPE --define 'inspect yes' -ba "$NAME-$VERSION-$RELEASE".spec
+fasrcsw-rpmbuild-$TYPE --define 'trial yes' -ba "$NAME-$VERSION-$RELEASE".spec
 ```
 
-Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *inspect* step, the output will show something like this near the end:
+Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *trial* step, the output will show something like this near the end:
 
 ```
-*************** fasrcsw -- STOPPING due to %define inspect yes ****************
+*************** fasrcsw -- STOPPING due to %define trial yes ******************
 
 
 Look at the tree output below to decide how to finish off the spec file.  (`Bad

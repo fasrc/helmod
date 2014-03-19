@@ -7,7 +7,7 @@ clean:
 	source /etc/profile.d/lmod.sh; module purge
 
 trial:
-	fasrcsw-rpmbuild-$$TYPE --define 'inspect yes' -ba "$$NAME-$$VERSION-$$RELEASE".spec
+	fasrcsw-rpmbuild-$$TYPE --define 'trial yes' -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
 build:
 	fasrcsw-rpmbuild-$$TYPE -ba "$$NAME-$$VERSION-$$RELEASE".spec
