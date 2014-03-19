@@ -29,10 +29,10 @@ Packager: Harvard FAS Research Computing -- FIXME FIXME <FIXME@harvard.edu>
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-#http://...FIXME...
+URL: http://...FIXME...
 Source: %{name}-%{version}.tar.gz
 
 #
