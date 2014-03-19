@@ -1,21 +1,15 @@
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
 Name: FIXME
 
 #
-# FIXME
-#
 # enter the app version, e.g. 0.0.1
 #
 Version: FIXME
 
-#
-# FIXME
 #
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
@@ -23,14 +17,10 @@ Version: FIXME
 %define release_short fasrc01
 
 #
-# FIXME
-#
 # enter your FIRST LAST <EMAIL>
 #
 Packager: Harvard FAS Research Computing -- FIXME FIXME <FIXME@harvard.edu>
 
-#
-# FIXME
 #
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
@@ -38,8 +28,6 @@ Packager: Harvard FAS Research Computing -- FIXME FIXME <FIXME@harvard.edu>
 %define summary_static ...FIXME...
 Summary: %{summary_static}
 
-#
-# FIXME
 #
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
@@ -63,8 +51,6 @@ Prefix: %{_prefix}
 
 
 #
-# FIXME
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
@@ -78,12 +64,11 @@ Prefix: %{_prefix}
 %prep
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
 #
 
+# FIXME (or maybe it's fine)
 %setup
 
 
@@ -92,8 +77,6 @@ Prefix: %{_prefix}
 
 %build
 
-#
-# FIXME
 #
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
@@ -105,6 +88,7 @@ Prefix: %{_prefix}
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
+# FIXME (or maybe it's fine)
 %configure
 make
 
@@ -114,8 +98,6 @@ make
 
 %install
 
-#
-# FIXME
 #
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
@@ -128,6 +110,7 @@ make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+# FIXME (or maybe it's fine)
 %make_install
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -173,8 +156,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for an "inspect" trial build)
-#
 # - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
@@ -187,6 +168,9 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+# FIXME (but the above is enough for an "inspect" trial build)
+
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
