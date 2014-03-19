@@ -76,7 +76,7 @@ cd "$FASRCSW_DEV"/rpmbuild/SOURCES
 wget --no-clobber http://...
 ```
 
-For `amhello`, which is a bit complicated because it's a tarball within another tarball, see [this FAQ item](FAQ.md#how-do-i-download-amhello-1-0-tar-gz).
+For `amhello`, which is a bit complicated because it's a tarball within another tarball, see [this FAQ item](FAQ.md#how-do-i-download-amhello-10targz).
 
 
 ## Create a preliminary spec file
@@ -228,7 +228,7 @@ module load $NAME/$VERSION-$RELEASE
 module unload $NAME/$VERSION-$RELEASE
 ```
 
-If you want to erase and retry the rpm(s), see [this FAQ item](FAQ.md#How do I remove apps).
+If you want to erase and retry the rpm(s), see [this FAQ item](FAQ.md#how-do-i-remove-apps).
 
 
 ## Save your work
