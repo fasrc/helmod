@@ -1,14 +1,15 @@
 # Basics
 
+
 ### What are the naming conventions and restrictions for an app's NAME, VERSION, and RELEASE?
 
 None of these variables may contain whitespace or shell metacharacters.
-NAME and VERSION may not contain hyphens/dashes (the "-" character).
-RELEASE should be of the form `fasrc##` where `##` is a two-digit number, the first one being `fasrc01`.
+NAME and VERSION may not contain hyphens/dashes/"-".
+RELEASE should be of the form `ORG##` where `ORG` is a tag identifying your organization and `##` is a two-digit number, starting from `01`.
+The documentation and templates use `fasrc` for `ORG`.
 
 It's very highly desirable that the set of NAME-VERSION-RELEASEs for an app is chronological when sorted alphanumerically.
 In particular, the default module is the last version when shorted alphanumerically and should be the most recent.
-
 
 
 ### Why is a compiler a Core app and not a Comp app?  Why is an MPI implementation a Comp app and not an MPI app?
@@ -87,7 +88,6 @@ Note also that `prefix` alone usually does not cover `sysconfdir`, `sharedstated
 Note that rpmbuild has the shell echo all the commands it runs, so to see exactly what a macro does, use it and watch the output.
 
 
-
 ### How do I use one spec file to handle all compiler and MPI implementations?
 
 The compiler modules set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will often suffice.
@@ -105,7 +105,6 @@ If you're building an *MPI* app, these environment variables are also available:
 * `FASRCSW_MPI_NAME`
 * `FASRCSW_MPI_VERSION`
 * `FASRCSW_MPI_RELEASE`
-
 
 
 ### How do I build against just one compiler or MPI implementation instead of all?
@@ -142,6 +141,24 @@ See [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbui
 
 Note that rpmbuild does a lot of stripping and prelinking by default, and this often causes problems with pre-built binaries.
 See `%define __os_install_post %{nil}` for skipping those steps.
+
+
+### How do I remove apps?
+
+Define the `NAME`, `VERSION`, `RELEASE`, AND `TYPE` variables in your shell, as is done in the [HOWTO](HOWTO.md), and run the following:
+
+``` bash
+sudo -E fasrcsw-rpm -ev --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE" | xargs -I% basename % .rpm)
+```
+
+
+### How do I download amhello-1.0.tar.gz?
+
+To download `amhello`, which is used as a demo in the [HOWTO](HOWTO.md), use the following command:
+
+``` bash
+curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-components=2 -xvJf - automake-1.14/doc/amhello-1.0.tar.gz
+```
 
 
 
@@ -234,6 +251,7 @@ If you find an rpm you want to install and need to know what else to install, lo
 You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the fasrcsw clone's `%{_topdir}`.
 This is part of the design of rpmbuild -- the spec file cannot override the `%{buildroot}` or `%{_buildrootdir}` variable, and by default it points to a location within your home directory.
 You can provide `--buildroot` on the `rpmbuild` command line if you want, but be sure to use something app-specific as this location is `rm -fr`'ed during the build.
+
 
 ### Can I install the apps under a common prefix?
 

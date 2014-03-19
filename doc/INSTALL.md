@@ -28,7 +28,7 @@ Edit the configuration:
 $EDITOR setup.sh
 ```
 
-and set `FASRCSW_PROD` the the absolute path of this fasrcsw clone you just made.
+and set `FASRCSW_PROD` to the absolute path of this fasrcsw clone you just made.
 Push these changes back to the remote.
 
 Source the setup.sh:
@@ -152,7 +152,7 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 
 # Install standard compiler and MPI apps and configure setup.sh to use them
 
-You'll have to build the standard compiler and MPI apps that all the other packages are built against.
+You'll have to build the standard compiler and MPI apps against which all the other apps are built.
 Spec files are provided in `rpmbuild/SPECS`, but many of these require hacks that are not yet documented.
 
 Once you've settled upon the sets of compiler and MPI implementations against which to build software by default, set the `FASRCSW_COMPS` and `FASRCSW_MPIS` arrays in `setup.sh` and push these back to the master remote.

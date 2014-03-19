@@ -11,8 +11,12 @@ Name: FIXME
 Version: FIXME
 
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
+#
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
 %define release_short fasrc01
 
