@@ -19,6 +19,7 @@ test:
 
 install: 
 	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
+	sudo -E fasrcsw-update-lmod-spider-cache
 
 query:
 	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
@@ -35,3 +36,4 @@ post:
 
 clean: 
 	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)
+	sudo -E fasrcsw-update-lmod-spider-cache

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+if [ -z "$FASRCSW_PROD" ]; then
+	echo "*** ERROR *** FASRCSW_PROD is not defined" >&2
+	exit 1
+fi
+createSystemCacheFile.sh --spiderCacheDir "$FASRCSW_PROD"/moduledata/cacheDir --updateSystemFn "$FASRCSW_PROD"/moduledata/system.txt
