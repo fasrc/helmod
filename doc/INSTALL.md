@@ -49,6 +49,23 @@ fasrcsw-rpm --initdb
 This repo clone is the one and only `$FASRCSW_PROD`.
 
 
+## Have each contributor setup a development repo clone
+
+Each app contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
+
+``` bash
+git clone git@github.com:/fasrc/fasrcsw.git
+cd fasrcsw
+```
+
+These clones will need to regularly push updates back to the remote.
+
+Customize `setup.sh` if necessary.
+In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
+
+These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
+
+
 
 # Install lmod
 
@@ -141,21 +158,3 @@ You'll have to build the standard compiler and MPI apps against which all the ot
 Spec files are provided in `rpmbuild/SPECS`, but many of these require hacks that are not yet documented.
 
 Once you've settled upon the sets of compiler and MPI implementations against which to build software by default, set the `FASRCSW_COMPS` and `FASRCSW_MPIS` arrays in `setup.sh` and push these back to the master remote.
-
-
-
-# Have each contributor setup a development repo clone
-
-Each app contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
-
-``` bash
-git clone git@github.com:/fasrc/fasrcsw.git
-cd fasrcsw
-```
-
-These clones will need to regularly push updates back to the remote.
-
-Customize `setup.sh` if necessary.
-In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
-
-These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
