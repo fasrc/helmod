@@ -62,6 +62,7 @@ These clones will need to regularly push updates back to the remote.
 
 Customize `setup.sh` if necessary.
 In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
+Assuming someone else has done all the intial setup, you can procede to the [HOWTO](HOWTO.md).
 
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
