@@ -17,7 +17,7 @@ DESCRIPTION
 
 OPTIONS
 	--spiderCacheDir DIRECTORY
-		Whatever --with-spiderCacheDir Lmod was configured with (the full patch 
+		Whatever --with-spiderCacheDir Lmod was configured with (the full path 
 		to the cache directory).
 
 	--updateSystemFn PATH
@@ -102,4 +102,3 @@ touch "$updateSystemFn"
 "$LMOD_DIR"/spider -o moduleT "$MODULEPATH_ROOT"/Core > "$spiderCacheDir"/moduleT.lua.new
 test -e "$spiderCacheDir"/moduleT.lua && cp -af "$spiderCacheDir"/moduleT.lua{,.old}
 mv "$spiderCacheDir"/moduleT.lua{.new,}
-
