@@ -1,4 +1,4 @@
-.PHONY: all trial build filelist filequery test install query clean
+.PHONY: all trial build filelist filequery test install query post uninstall
 
 all: build
 
