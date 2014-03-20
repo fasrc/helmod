@@ -44,8 +44,6 @@ AUTHOR
 	Lmod/contrib/BuildSystemCacheFile/createSystemCacheFile.sh
 "
 
-#these are NOT normal Lmod environment variable
-#they should exactly match the corresponding --with-* ./configure options
 spiderCacheDir=''
 updateSystemFn=''
 lmodSetupScript=/etc/profile.d/lmod.sh
@@ -96,10 +94,12 @@ set -u
 
 #---
 
+
+#update the timestamp file -- this must be *older* than cache data!
+touch "$updateSystemFn"
+
 #write the cache file
-"$LMOD_DIR"/spider -o moduleT "$MODULEPATH_ROOT" > "$spiderCacheDir"/moduleT.lua.new
+"$LMOD_DIR"/spider -o moduleT "$MODULEPATH_ROOT"/Core > "$spiderCacheDir"/moduleT.lua.new
 test -e "$spiderCacheDir"/moduleT.lua && cp -af "$spiderCacheDir"/moduleT.lua{,.old}
 mv "$spiderCacheDir"/moduleT.lua{.new,}
 
-#update the timestamp file
-touch "$updateSystemFn"
