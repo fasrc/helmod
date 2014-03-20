@@ -1,10 +1,6 @@
-.PHONY: all clean build install
+.PHONY: all trial build filelist filequery test install query clean
 
-all: clean build install
-
-clean: 
-	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)
-	source /etc/profile.d/lmod.sh; module purge
+all: build
 
 trial:
 	fasrcsw-rpmbuild-$$TYPE --define 'trial yes' -ba "$$NAME-$$VERSION-$$RELEASE".spec
@@ -12,8 +8,20 @@ trial:
 build:
 	fasrcsw-rpmbuild-$$TYPE -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
-install: 
-	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
+filelist:
+	fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE"
+
+filequery:
+	fasrcsw-rpm -qilp $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
 
 test:
 	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps --test $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
+
+install: 
+	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
+
+query:
+	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
+
+clean: 
+	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)

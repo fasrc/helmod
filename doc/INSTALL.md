@@ -1,7 +1,9 @@
 # Overview
 
-The fasrcsw system is designed to work on a CentOS 6 cluster.
+Most of this is a one-time operation, done by the person setting up fasrcsw.
+In order to join an existing fasrcsw environment, [this section](#have-each-contributor-setup-a-development-repo-clone) is all that's needed.
 
+The fasrcsw system is designed to work on a CentOS 6 cluster.
 If you're setting this up for an organization other than Harvard FAS Research Computing (@fasrc on github), create a new canonical fasrcsw master remote and adjust urls below accordingly.
 
 
@@ -10,7 +12,7 @@ If you're setting this up for an organization other than Harvard FAS Research Co
 
 ## Setup the production repo clone
 
-As root, pick the central location on network storage for all cluster software and clone the fasrcsw repo there:
+As root, pick the central location on network storage for all cluster software, and clone the fasrcsw repo there:
 
 ``` bash
 git clone git@github.com:/fasrc/fasrcsw.git
@@ -47,28 +49,11 @@ fasrcsw-rpm --initdb
 This repo clone is the one and only `$FASRCSW_PROD`.
 
 
-## Have each contributor setup a development repo clone
-
-Each contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
-
-``` bash
-git clone git@github.com:/fasrc/fasrcsw.git
-cd fasrcsw
-```
-
-These clones will need to regularly push updates back to the remote.
-
-Customize `setup.sh` if necessary.
-In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
-
-These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
-
-
 
 # Install lmod
 
 The fasrcsw system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
-FAS RC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
+FASRC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
 
 
 ## Prerequisites
@@ -159,6 +144,18 @@ Once you've settled upon the sets of compiler and MPI implementations against wh
 
 
 
-# Verify
+# Have each contributor setup a development repo clone
 
-Make sure that `$FASRCSW_PROD` is backed up.
+Each app contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
+
+``` bash
+git clone git@github.com:/fasrc/fasrcsw.git
+cd fasrcsw
+```
+
+These clones will need to regularly push updates back to the remote.
+
+Customize `setup.sh` if necessary.
+In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
+
+These repo clones are know as `$FASRCSW_DEV` (one for each contributor).

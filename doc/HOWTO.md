@@ -12,6 +12,8 @@ The basic workflow to build an app using fasrcsw is:
 * install the rpm(s)
 * commit changes and move the build outputs to production locations
 
+Once you're comfortable with the workflow, you can probably just use [HOWTO-short](HOWTO-short.md) instead of this doc.
+
 The default behavior and templates are designed to work with GNU-toolchain-style software packages, i.e. things that use `configure`/`make`/`make install` with standard options, with as little modification as possible.
 As an example, this document uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
 
@@ -67,7 +69,7 @@ The `amhello` example can be used to test all app types, even though the depende
 
 ## Get the source code
 
-By whatever means necessary, get a copy of the app source archive into the location for the sources.
+Put a copy of the app source archive in the location for the sources.
 For example:
 
 ``` bash
@@ -100,7 +102,7 @@ $EDITOR "$NAME-$VERSION-$RELEASE".spec
 
 and address things with the word `FIXME` in them.
 For some things, the default will be fine.
-Eventually all need to be addressed, but for now, just complete everything up to where `modulefile.lua` is created.
+Just complete everything up to where `modulefile.lua` is created (the part where you need to know what environment variables to change).
 The next step will provide the necessary guidance on what to put in the module file.
 
 If the app you're building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
@@ -116,13 +118,11 @@ If it's different for different compilers and/or MPI implementations, see [this 
 
 The result of the above will be enough of a spec file to basically build the software.
 However, you have to build it and examine its output in order to know what to put in the module file that the rpm is also responsible for constructing.
-The template spec has a section that, if the macro `trial` is defined, will quit the rpmbuild during the `%install` step and use the `tree` command to dump out what was built and will be installed.
-
-There are also three different scripts depending on the type of app being built -- `fasrcsw-rpmbuild-Core`, `fasrcsw-rpmbuild-Comp`, and `fasrcsw-rpmbuild-MPI`.
-Putting all this together, to try building the rpm, run the following:
+Run the following to do a partial build, up to where that module file is built.
+This will print suggestions for what to put there:
 
 ``` bash
-fasrcsw-rpmbuild-$TYPE --define 'trial yes' -ba "$NAME-$VERSION-$RELEASE".spec
+make trial
 ```
 
 Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *trial* step, the output will show something like this near the end:
@@ -135,7 +135,7 @@ Look at the tree output below to decide how to finish off the spec file.  (`Bad
 exit status' is expected in this case, it's just a way to stop NOW.)
 
 
-/home/me/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
+/home/me/fasrcsw/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
 |-- README
 |-- bin
 |   `-- hello
@@ -162,20 +162,11 @@ error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
 The `Bad exit status` is expected in this case.
 The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
 
-The `fasrcsw-rpmbuild-Comp` and `fasrcsw-rpmbuild-MPI` scripts loop over the corresponding modules to be built against.
-To debug just one combination, see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-mpi-implementation-instead-of-all).
-
 
 ## Finish the spec file
 
-Re-open the spec file for editing:
-
-``` bash
-$EDITOR "$NAME-$VERSION-$RELEASE".spec
-```
-
-and, based upon the output in the previous step, write what goes in `modulefile.lua`.
-Some common things are already there as comments (`--` delimits a comment in lua).
+Based upon the output in the previous step, finish the spec file by writing what goes in `modulefile.lua`.
+Usually this is as simple as copy-n-pasting the suggested block of text at the end of the `make trial` output.
 
 
 ## Build the rpm(s)
@@ -183,15 +174,18 @@ Some common things are already there as comments (`--` delimits a comment in lua
 Now the rpm (or set of rpms) can be fully built:
 
 ``` bash
-fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
+make
 ```
 
-Once that runs successfully, double check that all worked as expected.
 For a Core app, only one rpm is built, but for Comp and MPI apps, multiple rpms are built.
-There are three helpers that print the names of the rpms that should've been built -- `fasrcsw-list-Core-rpms`, `fasrcsw-list-Comp-rpms`, and `fasrcsw-list-MPI-rpms`.
+In the latter case, possibly only one combination is failing to build; see [this FAQ item](FAQ.md#how-do-i-build-against-just-one-compiler-or-mpi-implementation-instead-of-all) to debug just that without rebuilding the working ones each time.
+
+Once that runs successfully, double check that all worked as expected.
+You can list and inspect the rpms that were built with the following:
 
 ``` bash
-fasrcsw-rpm -qilp $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE") | less
+make filelist
+make filequery | less
 ```
 
 (Add  --scripts to also see how the module file symlink is created in the `%postinstall`.)
@@ -203,7 +197,7 @@ For each package make sure:
 Test if the rpm(s) will install okay:
 
 ``` bash
-sudo -E fasrcsw-rpm -ivh --nodeps --oldpackage --test $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+make test
 ```
 
 
@@ -212,14 +206,19 @@ sudo -E fasrcsw-rpm -ivh --nodeps --oldpackage --test $(fasrcsw-list-$TYPE-rpms 
 Finally, install the rpm(s):
 
 ``` bash
-sudo -E fasrcsw-rpm -ivh --nodeps --oldpackage $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE")
+make install
 ```
 
-Check that the rpm(s) installed and the module(s) is/are there.
+Check that the rpm(s) installed:
+
+``` bash
+make query
+```
+
+and the module(s) is/are there.
 For a *Core* app:
 
 ``` bash
-fasrcsw-rpm -qa | grep "$NAME-$VERSION-$RELEASE"
 ls "$FASRCSW_PROD/apps/Core/$NAME/$VERSION-$RELEASE/"
 module avail
 module load $NAME/$VERSION-$RELEASE
@@ -227,12 +226,12 @@ module load $NAME/$VERSION-$RELEASE
 module unload $NAME/$VERSION-$RELEASE
 ```
 
-If you want to erase and retry the rpm(s), see [this FAQ item](FAQ.md#how-do-i-remove-apps).
+If you want to erase and retry the rpm(s), `make clean`.
 
 
 ## Save your work
 
-If you're just trying things out with `amhello`, [erase the rpm(s)](FAQ.md#how-do-i-remove-apps) and remove your spec file.
+If you're just trying things out with `amhello`, `make clean` and remove your spec file.
 Otherwise, for production apps:
 
 Copy the rpms to the production location:

@@ -145,10 +145,10 @@ See `%define __os_install_post %{nil}` for skipping those steps.
 
 ### How do I remove apps?
 
-Define the `NAME`, `VERSION`, `RELEASE`, AND `TYPE` variables in your shell, as is done in the [HOWTO](HOWTO.md), and run the following:
+Define the `NAME`, `VERSION`, `RELEASE`, AND `TYPE` variables in your shell, as is done in the [HOWTO](HOWTO.md), and run:
 
 ``` bash
-sudo -E fasrcsw-rpm -ev --nodeps $(fasrcsw-list-$TYPE-rpms "$NAME-$VERSION-$RELEASE" | xargs -I% basename % .rpm)
+make clean
 ```
 
 
