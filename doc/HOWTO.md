@@ -232,27 +232,14 @@ If you want to erase and retry the rpm(s), `make clean`.
 ## Save your work
 
 If you're just trying things out with `amhello`, `make clean` and remove your spec file.
-Otherwise, for production apps:
-
-Copy the rpms to the production location:
-
-``` bash
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
-```
-
-Add, commit, and push all your modifications to the fasrcsw git remote with something like the following:
+Otherwise, for production apps, copy the rpms to the production location and commit/push all your modifications to the fasrcsw git remote.
+The following will do all of this:
 
 ``` bash
-cd "$FASRCSW_DEV"
-git add .
-git commit -v .
-git pull
-git push
+make post
 ```
 
-And, as root, pull them to the production clone:
+For completeness, as root, pull them to the production clone:
 
 ``` bash
 cd "$FASRCSW_PROD"

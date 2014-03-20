@@ -50,16 +50,5 @@ make install
 __commit/post__ your updates:
 
 ``` bash
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SOURCES/
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/RPMS/
-sudo rsync -avu {"$FASRCSW_DEV","$FASRCSW_PROD"}/rpmbuild/SRPMS/
-cd "$FASRCSW_DEV"
-```
-
-``` bash
-cd "$FASRCSW_DEV"
-git add .
-git commit -v .
-git pull
-git push
+make post
 ```
