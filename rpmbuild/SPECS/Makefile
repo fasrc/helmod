@@ -23,5 +23,15 @@ install:
 query:
 	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
 
+post:
+	sudo rsync -avu {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SOURCES/
+	sudo rsync -avu {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/RPMS/
+	sudo rsync -avu {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SRPMS/
+	cd "$$FASRCSW_DEV"
+	git add .
+	git commit -v .
+	git pull
+	git push
+
 clean: 
 	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)
