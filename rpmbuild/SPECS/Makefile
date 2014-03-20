@@ -34,6 +34,6 @@ post:
 	git pull
 	git push
 
-clean: 
+uninstall: 
 	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)
 	sudo -E fasrcsw-update-lmod-spider-cache

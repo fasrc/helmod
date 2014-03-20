@@ -226,12 +226,12 @@ module load $NAME/$VERSION-$RELEASE
 module unload $NAME/$VERSION-$RELEASE
 ```
 
-If you want to erase and retry the rpm(s), `make clean`.
+If you want to erase and retry the rpm(s), `make uninstall`.
 
 
 ## Save your work
 
-If you're just trying things out with `amhello`, `make clean` and remove your spec file.
+If you're just trying things out with `amhello`, `make uninstall` and remove your spec file.
 Otherwise, for production apps, copy the rpms to the production location and commit/push all your modifications to the fasrcsw git remote.
 The following will do all of this:
 

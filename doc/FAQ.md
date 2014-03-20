@@ -148,7 +148,7 @@ See `%define __os_install_post %{nil}` for skipping those steps.
 Define the `NAME`, `VERSION`, `RELEASE`, AND `TYPE` variables in your shell, as is done in the [HOWTO](HOWTO.md), and run:
 
 ``` bash
-make clean
+make uninstall
 ```
 
 
