@@ -7,45 +7,46 @@
 
 """\
 NAME
-	modulelogger - log module usage to a MySQL database
+    modulelogger - log module usage to a MySQL database
 
 SYNOPSIS
-	modulelogger -u USERNAME -m MODULENAME
+    modulelogger -u USERNAME -m MODULENAME
 
 DESCRIPTION
-	n/a
+    n/a
 
 OPTIONS
-	-a, --action ACTION
-		The default is `load'.
+    -a, --action ACTION
+        The default is `load'.
 
-	-u, --username USERNAME
-		The default is the value of the USER environment variable.
+    -u, --username USERNAME
+        The default is the value of the USER environment variable.
 
-	-m, --modulename MODULENAME
-		Required.
-	
-	-f, --modulefname MODULEFNAME
-		The path of the modulefile used.
+    -m, --modulename MODULENAME
+        Required.
 
-	-c, --mysql-cnf-file PATH
-		MySQL config file to use when connecting.  This should define the 
-		database, username, and password used for inserts.
+    -f, --modulefname MODULEFNAME
+        The path of the modulefile used.
 
-		The default is /etc/modulestats/modulelogger.cnf.
+    -c, --mysql-cnf-file PATH
+        MySQL config file to use when connecting.  This should define the 
+        database, username, and password used for inserts.
 
-	-h, --help
-		Print this help.
+        The default is .my.cnf.modulelogger in the same directory as this 
+        script.
+
+    -h, --help
+        Print this help.
 
 REQUIREMENTS
-	MySQLdb
+    MySQLdb
 
 BUGS/TODO
-	n/a
+    n/a
 
 AUTHOR
-	Copyright (c) 2014, Harvard FAS Research Computing
-	All rights reserved.
+    Copyright (c) 2014, Harvard FAS Research Computing
+    All rights reserved.
 """
 
 import sys, os, time, socket, getopt
@@ -60,8 +61,8 @@ if __name__=='__main__':
 	d['username'] = 'NULL'
 	d['modulename'] = 'NULL'
 	d['modulefname'] = 'NULL'
-	
-	mysql_cnf_file = '/etc/modulestats/modulelogger.cnf'
+
+	mysql_cnf_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.my.cnf.modulelogger')
 
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], 'a:u:m:f:c:h', ('action=', 'username=', 'modulename=', 'modulefname=', 'mysql-cnf-file=', 'help',))
@@ -84,13 +85,13 @@ if __name__=='__main__':
 		elif opt in ('-h', '--help'):
 			sys.stdout.write(__doc__)
 			sys.exit(0)
-	
+
 	try:
 		import MySQLdb
 	except ImportError:
 		sys.stderr.write("*** ERROR *** this script requires MySQLdb\n")
 		sys.exit(1)
-	
+
 	#input checks
 	if d['action'] is None:
 		d['action'] = 'load'

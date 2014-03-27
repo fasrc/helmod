@@ -35,7 +35,6 @@ function load_hook(t)
       local sh = ''
       sh = sh .. "setsid"
       sh = sh .. " " .. sh_quote(dirname .. "/modulelogger")
-	  sh = sh .. " -c " .. sh_quote(dirname .. "/.my.cnf")
       sh = sh .. " -a load"
       sh = sh .. " -u " .. sh_quote(username)
       sh = sh .. " -m " .. sh_quote(t.modFullName)
