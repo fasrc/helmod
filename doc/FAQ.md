@@ -137,7 +137,7 @@ See [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbui
 
 * The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's more efficient, but also more cumbersome for sharing).
 * The `%build` section can be blank (aside from standard template code).
-* The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.  The the app is packages as a *sharball*, that execution can go here, too.
+* The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.  If the app is packaged as a *sharball*, that execution can go here, too.
 
 <!-- (this is now the default)
 Note that rpmbuild does a lot of stripping and prelinking by default, and this often causes problems with pre-built binaries.
