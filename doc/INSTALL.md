@@ -152,6 +152,12 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 ```
 
 
+## Other lmod features 
+
+Lmod features optional caching of the modulefile hierarchy to make spider and avail faster; fasrcsw enables this.
+Updates of the cache happen during the fasrcsw app build process, therefore no cron job or other automatica update mechanism is necessary.
+
+
 
 # Install standard compiler and MPI apps and configure setup.sh to use them
 
