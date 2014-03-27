@@ -10,36 +10,34 @@ NAME
     modulelogger - log module usage to a MySQL database
 
 SYNOPSIS
-    modulelogger -u USERNAME -m MODULENAME
+    modulelogger MODULENAME...
 
 DESCRIPTION
     n/a
 
 OPTIONS
     -a, --action ACTION
-        The default is `load'.
+        The default is `load', and as of writing that is the only hook used.
 
     -u, --username USERNAME
-        The default is the value of the USER environment variable.
-
-    -m, --modulename MODULENAME
-        Required.
+        The user who performed the module action.  The default is the value of 
+		the USER environment variable.
 
     -f, --modulefname MODULEFNAME
-        The path of the modulefile used.
+        The path of the modulefile used.  Optional.
 
     -c, --mysql-cnf-file PATH
         MySQL config file to use when connecting.  This should define the 
         database, username, and password used for inserts.
 
-        The default is .my.cnf.modulelogger in the same directory as this 
+        The default is `.my.cnf.modulelogger' in the same directory as this 
         script.
 
     -h, --help
         Print this help.
 
 REQUIREMENTS
-    MySQLdb
+    MySQLdb python package
 
 BUGS/TODO
     n/a
@@ -65,7 +63,7 @@ if __name__=='__main__':
 	mysql_cnf_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.my.cnf.modulelogger')
 
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], 'a:u:m:f:c:h', ('action=', 'username=', 'modulename=', 'modulefname=', 'mysql-cnf-file=', 'help',))
+		opts, args = getopt.gnu_getopt(sys.argv[1:], 'a:u:f:c:h', ('action=', 'username=', 'modulefname=', 'mysql-cnf-file=', 'help',))
 	except getopt.GetoptError, e:
 		sys.stderr.write("*** ERROR **** unable to process command line options: %s\n" % e)
 		sys.exit(1)
@@ -74,8 +72,6 @@ if __name__=='__main__':
 			d['action'] = optarg
 		elif opt in ('-u', '--username'):
 			d['username'] = optarg
-		elif opt in ('-m', '--modulename'):
-			d['modulename'] = optarg
 		elif opt in ('-f', '--modulefname'):
 			d['modulefname'] = optarg
 
@@ -100,43 +96,43 @@ if __name__=='__main__':
 		if d['username'] is None:
 			sys.stderr.write("*** ERROR *** no -u/--username given and no $USER in environment\n")
 			sys.exit(1)
-	if d['modulename'] is None:
-		sys.stderr.write("*** ERROR *** no -m/--modulename given\n")
-		sys.exit(1)
 
-	#(debug)
-	if False:
-		open('/tmp/modulestats.log','a').write('%s\n' % ' '.join([ str(x) for x in 
-			d['timestamp'],
-			d['action'],
-			d['hostname'],
-			d['username'],
-			d['modulename'],
-			d['modulefname'],
-		]))
+	for modulename in args:
+		d['modulename'] = modulename
 
-	#build sql insert
-	sql = 'INSERT INTO log SET '
-	kvs = []
-	for k, v in d.items():
-		if type(v)==type(''):
-			if "'" in v:
-				sys.stderr.write("*** ERROR *** bad value [%s] for field [%s] -- must not contain single quote\n")
+		#(debug)
+		if False:
+			open('/tmp/modulestats.log','a').write('%s\n' % ' '.join([ str(x) for x in 
+				d['timestamp'],
+				d['action'],
+				d['hostname'],
+				d['username'],
+				d['modulename'],
+				d['modulefname'],
+			]))
+
+		#build sql insert
+		sql = 'INSERT INTO log SET '
+		kvs = []
+		for k, v in d.items():
+			if type(v)==type(''):
+				if "'" in v:
+					sys.stderr.write("*** ERROR *** bad value [%s] for field [%s] -- must not contain single quote\n")
+					sys.exit(1)
+				kvs.append("%s='%s'" % (k, v))
+			elif type(v)==type(0):
+				kvs.append("%s=%s" % (k,v))
+			else:
+				sys.stderr.write("*** ERROR *** unexpected type [%s] for value of key [%s]"% (type(v), k))
 				sys.exit(1)
-			kvs.append("%s='%s'" % (k, v))
-		elif type(v)==type(0):
-			kvs.append("%s=%s" % (k,v))
-		else:
-			sys.stderr.write("*** ERROR *** unexpected type [%s] for value of key [%s]"% (type(v), k))
-			sys.exit(1)
-	sql += ','.join(kvs)
-	sql += ';'
+		sql += ','.join(kvs)
+		sql += ';'
 
-	#execute the insert
-	try:
-		c = MySQLdb.connect(read_default_file=mysql_cnf_file).cursor()
-		c.execute(sql)
-		c.close()
-	except Exception, e:
-		sys.stderr.write("*** ERROR *** unable to perform sql insert: %s\n" % str(e).strip())
-		sys.exit(1)
+		#execute the insert
+		try:
+			c = MySQLdb.connect(read_default_file=mysql_cnf_file).cursor()
+			c.execute(sql)
+			c.close()
+		except Exception, e:
+			sys.stderr.write("*** ERROR *** unable to perform sql insert: %s\n" % str(e).strip())
+			sys.exit(1)

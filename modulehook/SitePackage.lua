@@ -37,8 +37,8 @@ function load_hook(t)
       sh = sh .. " " .. sh_quote(dirname .. "/modulelogger")
       sh = sh .. " -a load"
       sh = sh .. " -u " .. sh_quote(username)
-      sh = sh .. " -m " .. sh_quote(t.modFullName)
       sh = sh .. " -f " .. sh_quote(t.fn)
+      sh = sh .. " " .. sh_quote(t.modFullName)
       sh = sh .. " >/dev/null 2>/dev/null &"
       os.execute(sh)
    end
