@@ -35,11 +35,12 @@ function load_hook(t)
       local sh = ''
       sh = sh .. "setsid"
       sh = sh .. " " .. sh_quote(dirname .. "/modulelogger")
+      sh = sh .. " -s lmod"
       sh = sh .. " -a load"
       sh = sh .. " -u " .. sh_quote(username)
       sh = sh .. " -f " .. sh_quote(t.fn)
       sh = sh .. " " .. sh_quote(t.modFullName)
-      sh = sh .. " >/dev/null 2>/dev/null &"
+      sh = sh .. " >/dev/null 2>&1 &"
       os.execute(sh)
    end
 end
