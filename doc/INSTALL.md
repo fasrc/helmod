@@ -157,7 +157,7 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 
 ### Spider cache
 
-Lmod features optional caching of the modulefile hierarchy to make spider and avail faster; fasrcsw enables this.
+lmod features optional caching of the modulefile hierarchy to make spider and avail faster; fasrcsw enables this.
 Updates of the cache happen during the fasrcsw app build process, therefore no cron job or other automatic update mechanism is necessary.
 
 ### Module usage logging
@@ -177,7 +177,7 @@ setenv LMOD_PACKAGE_PATH "$FASRCSW_PROD"/modulehook
 ```
 
 This is the internal lmod/lua logging, which is after resolution of default versions and includes all modules loaded as dependencies.
-To go to the extreme and also log just what users are asking for on the command line, you can run this patch for `init/bash` and `init/csh` (it assumes `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts as done above):
+To go to the extreme and also log what users are asking for on the command line, you can run this patch for `init/bash` and `init/csh` (it assumes `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts as done above):
 
 ``` bash
 patch --directory="$FASRCSW_PROD"/apps/lmod/lmod -p1 < "$FASRCSW_PROD"/misc/modulelogger.patch
