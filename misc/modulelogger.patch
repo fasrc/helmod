@@ -1,0 +1,33 @@
+diff -rupN a/init/bash b/init/bash
+--- a/init/bash	2013-11-21 18:38:43.000000000 -0500
++++ b/init/bash	2014-03-27 20:28:11.259537361 -0400
+@@ -46,6 +46,9 @@ module()
+ {
+   eval $($LMOD_CMD bash "$@")
+   [ $? = 0 ] && eval $(${LMOD_SETTARG_CMD:-:} -s sh)
++  [ $# -ge 2 -a "${1:-}" = 'load' ] && \
++    setsid "$FASRCSW_PROD"/modulehook/modulelogger \
++    -s cli -a load -u "$USER" "$@" >/dev/null 2>&1
+ }
+ 
+ if [ "${LMOD_SETTARG_CMD:-:}" != ":" ]; then
+diff -rupN a/init/csh b/init/csh
+--- a/init/csh	2013-11-21 18:38:43.000000000 -0500
++++ b/init/csh	2014-03-27 20:32:14.897156915 -0400
+@@ -17,10 +17,14 @@ if ( $?histchars) then
+   endif
+ endif
+ 
++# I don't know how to redirect stdout+stderr to /dev/null w/o getting 
++# "Ambiguous output redirect.", so this could be noisy when run...
++set modulelogger = 'if ( "\!*" =~ "load ?*" ) setsid "$FASRCSW_PROD"/modulehook/modulelogger -s cli -a load -u "$USER" \!*; endif;'
++
+ if ($?tcsh) then
+-  alias module  $prefix'eval `$LMOD_CMD csh '$midfix $histchar'*` '$postfix' eval `$LMOD_SETTARG_CMD -s csh`'
++  alias module  $prefix'eval `$LMOD_CMD csh '$midfix $histchar'*` '$postfix';'$modulelogger' eval `$LMOD_SETTARG_CMD -s csh`'
+ else
+-  alias module  $prefix'eval `$LMOD_CMD csh '$midfix $histchar'*` '$postfix
++  alias module  $prefix'eval `$LMOD_CMD csh '$midfix $histchar'*` '$postfix';'$modulelogger
+ endif
+ alias clearMT 'eval `'$LMOD_DIR/clearMT_cmd csh'`'
+ 
