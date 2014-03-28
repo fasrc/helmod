@@ -72,6 +72,7 @@ These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
 The fasrcsw system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
 FASRC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
+In particular, these instructions are matched to lmod 5.2, commit c00912cda9.
 
 
 ## Prerequisites
@@ -106,7 +107,7 @@ make pre-install
 make install
 ```
 
-*Note that this also installs some files in `/usr/share/zsh/site-functions`!*
+*Note that this also installs some files in `/usr/share/zsh/site-functions`*, outside of the prefix!*
 Once done setting up lmod, you may want to remove the following:
 
 ```
@@ -147,15 +148,40 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 #export MODULEPATH=$(.../apps/lmod/lmod/libexec/addto --append MODULEPATH .../apps/lmod/lmod/modulefiles/Core)
 ```
 
-``` bash
+``` csh
 #setenv MODULEPATH `.../apps/lmod/lmod/libexec/addto --append MODULEPATH .../apps/lmod/lmod/modulefiles/Core`
 ```
 
 
 ## Other lmod features 
 
+### Spider cache
+
 Lmod features optional caching of the modulefile hierarchy to make spider and avail faster; fasrcsw enables this.
-Updates of the cache happen during the fasrcsw app build process, therefore no cron job or other automatica update mechanism is necessary.
+Updates of the cache happen during the fasrcsw app build process, therefore no cron job or other automatic update mechanism is necessary.
+
+### Module usage logging
+
+fasrcsw includes a hook for logging module load events to a MySQL database.
+To use this, create a MySQL database using [$FASRCSW_PROD/modulehook/modulestats.sql](../modulehook/modulestats.sql), and create a file `$FASRCSW_PROD/modulehook/.my.cnf.modulelogger` with the host, database name, and credentials for connecting to it.
+Finally, tell lmod to use this hook by adding the following to `lmod.sh` and `lmod.csh`, respectively, filling in the value of FASRCSW_PROD:
+
+``` bash
+export FASRCSW_PROD=...
+export LMOD_PACKAGE_PATH="$FASRCSW_PROD"/modulehook
+```
+
+``` csh
+setenv FASRCSW_PROD /n/sw/fasrcsw
+setenv LMOD_PACKAGE_PATH "$FASRCSW_PROD"/modulehook
+```
+
+This is the internal lmod/lua logging, which is after resolution of default versions, and including all modules loaded as dependencies.
+To go to the extreme and also log just what users are asking for on the command line, you can run this patch, assuming `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts:
+
+``` bash
+patch --directory="$FASRCSW_PROD"/apps/lmod/lmod -p1 < "$FASRCSW_PROD"/misc/modulelogger.patch
+```
 
 
 
