@@ -167,17 +167,17 @@ To use this, create a MySQL database using [$FASRCSW_PROD/modulehook/modulestats
 Finally, tell lmod to use this hook by adding the following to `lmod.sh` and `lmod.csh`, respectively, filling in the value of FASRCSW_PROD:
 
 ``` bash
-export FASRCSW_PROD=...
+export FASRCSW_PROD=...FIXME...
 export LMOD_PACKAGE_PATH="$FASRCSW_PROD"/modulehook
 ```
 
 ``` csh
-setenv FASRCSW_PROD /n/sw/fasrcsw
+setenv FASRCSW_PROD ...FIXME...
 setenv LMOD_PACKAGE_PATH "$FASRCSW_PROD"/modulehook
 ```
 
-This is the internal lmod/lua logging, which is after resolution of default versions, and including all modules loaded as dependencies.
-To go to the extreme and also log just what users are asking for on the command line, you can run this patch, assuming `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts:
+This is the internal lmod/lua logging, which is after resolution of default versions and includes all modules loaded as dependencies.
+To go to the extreme and also log just what users are asking for on the command line, you can run this patch for `init/bash` and `init/csh` (it assumes `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts as done above):
 
 ``` bash
 patch --directory="$FASRCSW_PROD"/apps/lmod/lmod -p1 < "$FASRCSW_PROD"/misc/modulelogger.patch
