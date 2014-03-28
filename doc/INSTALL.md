@@ -107,7 +107,7 @@ make pre-install
 make install
 ```
 
-*Note that this also installs some files in `/usr/share/zsh/site-functions`*, outside of the prefix!*
+*Note that this also installs some files in `/usr/share/zsh/site-functions`*, outside of the prefix!
 Once done setting up lmod, you may want to remove the following:
 
 ```
