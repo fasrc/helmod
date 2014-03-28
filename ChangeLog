@@ -1,4 +1,10 @@
 0.0.2 (future)
+    * use @aaronk's Makefile approach
+
+    * add lmod spider caching
+
+    * add lmod module usage logging hooks
+
     * use the much better %make_install rather than %makeinstall
 
     * modulefile suggestions in actual lua code are now part of the output when 
