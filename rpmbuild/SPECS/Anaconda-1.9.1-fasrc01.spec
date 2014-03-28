@@ -1,5 +1,8 @@
 #------------------- package info ----------------------------------------------
 
+# binary package
+%define __prelink_undo_cmd %{nil}
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -62,7 +65,6 @@ Prefix: %{_prefix}
 A completely free enterprise-ready Python distribution for large-scale data processing, predictive analytics, and scientific computing, from Continuum Analytics.
 
 
-
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -91,6 +93,9 @@ A completely free enterprise-ready Python distribution for large-scale data proc
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
+#(do nothing)
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -104,15 +109,32 @@ A completely free enterprise-ready Python distribution for large-scale data proc
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-unset PYTHONPATH
+
+#--- This app insists on writing directly to the prefix.  Complicating, things, 
+#    it also insists that the prefix not exist, so even the symlink hack needs 
+#    to be further hacked (introduce an additional sub-directory).
+
+# Standard stuff.
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+
+# Symlink the final prefix (which the build insists on using), to the 
+# buildroot (the temporary place where we want to install it now).  
+# Note that this will fail if this is not the first build of this 
+# NAME/VERSION/RELEASE/TYPE.
+sudo mkdir -p "$(dirname %{_prefix})"
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
 #base sharball execution
 #-b ~ batch, -p ~ prefix
-bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p %{buildroot}/%{_prefix}
+unset PYTHONPATH
+bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
 
-#add-on everything possible
-export PATH="%{buildroot}/%{_prefix}/bin:$PATH"
-conda search | grep '^[^ ]' | awk '{print $1}' | xargs -n 1 conda install || true
+# Clean up that symlink.  The parent dir may be left over, oh well.
+sudo rm "%{_prefix}"
+
+#---
+
 
 #this is the part that allows for inspecting the build output without fully creating the rpm
 #there should be no need to change this
@@ -185,7 +207,7 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/x/bin")
 --prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")

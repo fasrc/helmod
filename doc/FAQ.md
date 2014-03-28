@@ -88,6 +88,46 @@ Note also that `prefix` alone usually does not cover `sysconfdir`, `sharedstated
 Note that rpmbuild has the shell echo all the commands it runs, so to see exactly what a macro does, use it and watch the output.
 
 
+### How do I handle apps that insist on writing directly to the production location?
+
+RPM building requires installing to a temporary location rather than the true prefix (e.g. with `make install DESTDIR=%{buildroot}`).
+Some apps don't respect this or otherwise want to write directly to the production location.
+In this case, when building you'll get `Permission denied' errors and see that it was attempting to write directly to `$FASRCSW_PROD/apps`.
+You can hack around this in a very ugly way by replacing:
+
+``` spec
+%make_install
+```
+
+with:
+
+``` bash
+#
+# This app insists on writing directly to the prefix.  Acquiesce, and hack a 
+# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
+# to install in our build environment, and then remove the symlink.  Note that 
+# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE 
+# combination.
+#
+
+# Standard stuff.
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
+```
+
+In the future, fasrcsw may take advantage of mock for this situation.
+
+
 ### How do I use one spec file to handle all compiler and MPI implementations?
 
 The compiler modules set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will often suffice.
