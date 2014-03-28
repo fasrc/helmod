@@ -92,7 +92,7 @@ Note that rpmbuild has the shell echo all the commands it runs, so to see exactl
 
 RPM building requires installing to a temporary location rather than the true prefix (e.g. with `make install DESTDIR=%{buildroot}`).
 Some apps don't respect this or otherwise want to write directly to the production location.
-In this case, when building you'll get `Permission denied' errors and see that it was attempting to write directly to `$FASRCSW_PROD/apps`.
+In this case, when building you'll get `Permission denied` errors and see that it was attempting to write directly to `$FASRCSW_PROD/apps`.
 You can hack around this in a very ugly way by replacing:
 
 ``` spec
