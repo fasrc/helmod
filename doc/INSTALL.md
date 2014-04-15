@@ -62,7 +62,7 @@ These clones will need to regularly push updates back to the remote.
 
 Customize `setup.sh` if necessary.
 In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
-Assuming someone else has done all the intial setup, you can procede to the [HOWTO](HOWTO.md).
+Assuming someone else has done all the initial setup, you can proceed to the [HOWTO](HOWTO.md).
 
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
@@ -71,61 +71,72 @@ These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 # Install lmod
 
 The fasrcsw system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
+<!--
 FASRC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
 In particular, these instructions are matched to lmod 5.2, commit c00912cda9.
+-->
+FASRC uses [the version posted on sourceforge](http://sourceforge.net/projects/lmod/); in particular, these instructions are matched to lmod 5.4.1.
+
+Lmod installation will write files outside of the given `--prefix`, specifically to the root-owned location `/usr/share/zsh/site-functions`.
+Rather than running `make install` as root, the following temporarily changes file attributes to allow your regular account's group to write there.
+The same approach is taken to just let it write to places within `$FASRCSW_PROD`.
+
+Thus, *this writes to production locations*!
+If you're upgrading, the lmod `make install` will automatically update to the `lmod -> X.Y.Z` symbolic link!
+(A better procedure for a more controlled upgraded needs to be implemented.)
 
 
-## Prerequisites
+## Prerequisites and prep
 
-lmod requires `lua` 5.1 or 5.2, plus `lua-filesystem`, `lua-posix`, and `lua-devel`.
+lmod requires `lua` 5.1 or 5.2, plus `lua-filesystem`, `lua-posix`, and `lua-devel` (at least as of lmod version 5.2).
 
+Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the parent of the production `apps` directory.
 
-<!--
-## Hack around lmod's ignoring of prefix for some files
-
-During the installation, lmod will try to write files to the main filesystem.
-Allow this temporarily:
+Temporarily allow the writes that lmod wants to do (assuming your primary group is a trusted admin group):
 
 ``` bash
 sudo chgrp $(id -gn) /usr/share/zsh/site-functions
-sudo chmod g+w /usr/share/zsh/site-functions
+sudo chmod g+w       /usr/share/zsh/site-functions
+for f in _ml _module; do
+    if [ -f /usr/share/zsh/site-functions/"$f"  ]; then
+        sudo chgrp $(id -gn) /usr/share/zsh/site-functions/"$f"
+        sudo chmod g+w       /usr/share/zsh/site-functions/"$f"
+    fi
+done
 ```
--->
+
+Also, temporarily allow writes to the production apps space:
+
+``` bash
+sudo chgrp $(id -gn) "$FASRCSW_PROD"/apps
+sudo chmod g+w       "$FASRCSW_PROD"/apps
+if [ -d "$FASRCSW_PROD"/apps/lmod/ ]; then
+    sudo chgrp $(id -gn) "$FASRCSW_PROD"/apps/lmod
+    sudo chmod g+w       "$FASRCSW_PROD"/apps/lmod
+fi
+
+```
+
+
+## If upgrading...
+
+Stop your deployment system from replacing these files before their updates are captured:
+
+``` bash
+/usr/share/zsh/site-functions/_ml
+/usr/share/zsh/site-functions/_module
+```
 
 
 ## Build and install it
 
-Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the production `apps` dir.
-
-
-Get the source code, configure it to use the various locations within fasrcsw, and build it.
-Since this writes to `$FASRCSW_PROD`, run as root:
+Get the source code (stash a copy in `$FASRCSW_PROD/rpmbuild/SOURCES/` for good measure), configure it to use the various locations within fasrcsw, and build it.
 
 ``` bash
 ./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
 make pre-install
 make install
 ```
-
-*Note that this also installs some files in `/usr/share/zsh/site-functions`*, outside of the prefix!
-Once done setting up lmod, you may want to remove the following:
-
-```
-/usr/share/zsh/site-functions/_ml
-/usr/share/zsh/site-functions/_module
-```
-
-
-<!--
-## Undo the hack above
-
-Set that directory back to the way it was:
-
-``` bash
-sudo chgrp root /usr/share/zsh/site-functions
-sudo chmod g-w /usr/share/zsh/site-functions
-```
--->
 
 
 ## Distribute configuration to all cluster nodes
@@ -150,6 +161,40 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 
 ``` csh
 #setenv MODULEPATH `.../apps/lmod/lmod/libexec/addto --append MODULEPATH .../apps/lmod/lmod/modulefiles/Core`
+```
+
+
+## Undo the permissions hacks above
+
+Set the zsh directory back to the way it was:
+
+``` bash
+sudo chgrp root /usr/share/zsh/site-functions
+sudo chmod g-w /usr/share/zsh/site-functions
+for f in _ml _module; do
+    if [ -f /usr/share/zsh/site-functions/"$f"  ]; then
+        sudo chgrp root /usr/share/zsh/site-functions/"$f"
+        sudo chmod g-w  /usr/share/zsh/site-functions/"$f"
+    fi
+done
+```
+
+and likewise for the lmod installation location:
+
+``` bash
+sudo chgrp root "$FASRCSW_PROD"/apps
+sudo chmod g-w "$FASRCSW_PROD"/apps
+if [ -d "$FASRCSW_PROD"/apps/lmod/ ]; then
+    sudo chgrp root "$FASRCSW_PROD"/apps/lmod
+    sudo chmod g-w  "$FASRCSW_PROD"/apps/lmod
+fi
+```
+
+You may also want to change the ownership of the newly installed lmod version directory and symlink to root, e.g. with something like:
+
+```
+VERSION=5.4.1
+sudo chown -R root:root "$FASRCSW_PROD"/apps/{lmod,$VERSION}
 ```
 
 
@@ -180,8 +225,10 @@ This is the internal lmod/lua logging, which is after resolution of default vers
 To go to the extreme and also log what users are asking for on the command line, you can run this patch for `init/bash` and `init/csh` (it assumes `FASRCSW_PROD` is set in the base `lmod.sh` and `lmod.csh` setup scripts as done above):
 
 ``` bash
-patch --directory="$FASRCSW_PROD"/apps/lmod/lmod -p1 < "$FASRCSW_PROD"/misc/modulelogger.patch
+sudo patch --directory="$FASRCSW_PROD"/apps/lmod/lmod -p1 < "$FASRCSW_PROD"/misc/modulelogger.patch
 ```
+
+(The patch was made against lmod 5.2 but still works in 5.4.1 since there are only minor offsets.)
 
 
 
