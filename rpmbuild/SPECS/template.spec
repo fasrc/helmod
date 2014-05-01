@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 
 # FIXME (or maybe it's fine)
 %configure
-make
+make %{?_smp_mflags}
 
 
 
