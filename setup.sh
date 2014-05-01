@@ -17,6 +17,7 @@ export FASRCSW_MPIS=(
 
 #the build host
 export FASRCSW_BUILD_HOST=builds
+test "$(hostname -s)" != "$FASRCSW_BUILD_HOST" && echo "WARNING: the current host is not the canonical build host, $FASRCSW_BUILD_HOST" >&2
 
 #rpm packager credits
 export FASRCSW_AUTHOR="$(getent passwd $USER | cut -d: -f5), Harvard FAS Research Computing <rchelp@fas.harvard.edu>"
