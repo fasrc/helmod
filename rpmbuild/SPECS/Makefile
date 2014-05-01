@@ -29,7 +29,7 @@ post:
 	sudo rsync -avu {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/RPMS/
 	sudo rsync -avu {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SRPMS/
 	cd "$$FASRCSW_DEV"
-	git add .
+	git add --all .
 	git commit -v .
 	git pull
 	git push

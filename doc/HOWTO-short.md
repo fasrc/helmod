@@ -47,7 +47,7 @@ make test
 make install
 ```
 
-__commit/post__ your updates:
+__commit/post__ your updates (this adds/commits/pushes/rsyncs *all* local content):
 
 ``` bash
 make post
