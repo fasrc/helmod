@@ -8,7 +8,7 @@ source ./setup.sh
 
 __download__ the source archive to `"$FASRCSW_DEV"/rpmbuild/SOURCES`
 
-__define__ what you're working on (`TYPE` is `Comp` for generic things, `MPI` for MPI-enabled things):
+__define__ what you're working on (`TYPE` is `Core` for generic things, `Comp` if you really want to build using newer compilers, or `MPI` for MPI-enabled things):
 
 ``` bash
 export NAME=...

@@ -163,6 +163,8 @@ We also comment out the following lines in `lmod.sh` and `lmod.csh` respectively
 #setenv MODULEPATH `.../apps/lmod/lmod/libexec/addto --append MODULEPATH .../apps/lmod/lmod/modulefiles/Core`
 ```
 
+And we remove `MODULEPATH $MODULEPATH_ROOT/$LMOD_sys` from the line above that, too.
+
 
 ## Undo the permissions hacks above
 

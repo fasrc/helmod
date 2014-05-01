@@ -65,6 +65,7 @@ For example, to test the simple *Core* case with `amhello`: `export NAME=amhello
 Note that this breaks convention and uses `$USER` for the `RELEASE` instead of `fasrc01` -- this is to avoid people clobbering each other during a demo.
 The `amhello` example can be used to test all app types, even though the dependencies are not real.
 
+Unless you have a reason to build with the newer compilers or you need to build against MPI, just set `TYPE=Core`.
 
 
 ## Get the source code
