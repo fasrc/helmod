@@ -51,7 +51,9 @@ This repo clone is the one and only `$FASRCSW_PROD`.
 
 ## Have each contributor setup a development repo clone
 
-Each app contributor should clone the fasrcsw repo in some personal location, preferably on network storage, e.g. somewhere in his or her home directory:
+Each app contributor should clone the fasrcsw repo in some personal location.
+The scripts in the repo need to be able to be read by root, so the location should not be root squashed (or, if root squashed, must be world-readable).
+Accumulation of sources and build output can easily reach many GBs, so make sure there is room to grow, too.
 
 ``` bash
 git clone git@github.com:/fasrc/fasrcsw.git
