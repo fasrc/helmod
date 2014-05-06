@@ -27,7 +27,8 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
 %define summary_static ...FIXME...
 Summary: %{summary_static}
