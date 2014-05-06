@@ -181,7 +181,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 -- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "/n/sw/rc/bin")
 EOF
 
 
