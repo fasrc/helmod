@@ -159,6 +159,7 @@ module load mpc/1.0.2-fasrc01
 #		export FFLAGS
 #
 #		--build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --target=x86_64-redhat-linux-gnu \
+#	and make in parallel, %{?_smp_mflags}
 cd %{_topdir}/BUILD/%{name}-%{version}
 mkdir objdir
 cd objdir
@@ -177,7 +178,7 @@ cd objdir
   --sharedstatedir=%{_prefix}/var/lib \
   --mandir=%{_prefix}/share/man \
   --infodir=%{_prefix}/share/inf
-make
+make %{?_smp_mflags}
 cd ..
 
 
@@ -296,21 +297,22 @@ setenv("CXX", "g++")
 setenv("FC" , "gfortran")
 setenv("F77", "gfortran")
 
-prepend_path("PATH",              "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",   "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",      "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",      "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",   "%{_prefix}/lib64/pkgconfig")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/include")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/install-tools/include")
-prepend_path("CPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/plugin/include")
-prepend_path("CPATH",             "%{_prefix}/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/install-tools/include")
-prepend_path("FPATH",             "%{_prefix}/lib64/gcc/x86_64-redhat-linux-gnu/4.9.0/plugin/include")
-prepend_path("FPATH",             "%{_prefix}/include")
-prepend_path("MANPATH",           "%{_prefix}/share/man")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/install-tools/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/plugin/include")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/install-tools/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-unknown-linux-gnu/4.9.0/plugin/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
