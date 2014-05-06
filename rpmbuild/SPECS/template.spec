@@ -172,6 +172,7 @@ done
 
 # FIXME (but the above is enough for a "trial" build)
 
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
