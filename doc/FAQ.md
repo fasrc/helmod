@@ -288,6 +288,20 @@ If you find an rpm you want to install and need to know what else to install, lo
 # Miscellaneous
 
 
+### How do I diff a spec file with the relevant version of the template spec file?
+
+App spec files are initially created by copying the `template.spec` file.
+However, the template is occasionally updated, and diffing any given spec file with the current template will include both the app-specific differences and the changes to the template since the app first appeared.
+That can be confusing when you're just looking for the core procedure to build the app and want to use the latest template.
+
+You can use git to diff the two different files from the two different versions:
+
+``` bash
+hash="$(git log --diff-filter=A --oneline -- rpmbuild/SPECS/$NAME-$VERSION-$RELEASE.spec | cut -d' ' -f1)"
+git diff "$hash":rpmbuild/SPECS/template.spec ^HEAD:rpmbuild/SPECS/"$NAME-$VERSION-$RELEASE".spec
+```
+
+
 ### Why is rpmbuild still writing to my home directory?
 
 You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the fasrcsw clone's `%{_topdir}`.
