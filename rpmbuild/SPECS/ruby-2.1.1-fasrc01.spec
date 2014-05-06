@@ -29,7 +29,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static "An interpreter of object-oriented scripting language"
+%define summary_static An interpreter of object-oriented scripting language
 Summary: %{summary_static}
 
 #
