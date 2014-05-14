@@ -26,80 +26,12 @@ A compiler *is* part of the Comp *family*, and an MPI app *is* a part of the MPI
 # App building
 
 
-### How do I compile manually instead of using the rpmbuild macros?
-
-The rpmbuild macros employed in the template spec file are for software packaged in the GNU-toolchain-style -- a source archive that unpacks to a directory named NAME-VERSION and is built with `configure`/`make`/`make install` with appropriate *prefix* options.
-The macros also do a lot of extra stuff like setting default `CFLAGS`, `CXXFLAGS`, etc. too.
-
-The macros have their own options and can often be tweaked to work.
-For example, to add an argument to the `./configure` command, you can just append it to the `%configure` macro line.
-
-However, if you need to do things manually, you can replace the macros with the following as a starting point.
-Note that these are *very* stripped down versions of what the full macros actually do.
-
-In the `%prep` section, replace:
-
-```
-%setup
-```
-
-with:
-
-``` bash
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
-stat %{name}-%{version}
-```
-
-In the `%build` section, replace:
-
-``` spec
-%configure
-make
-```
-
-with:
-
-``` bash
-cd %{_topdir}/BUILD/%{name}-%{version}
-./configure --prefix=%{_prefix}
-make
-```
-
-In the `%install` section, replace:
-
-``` spec
-%make_install
-```
-
-with:
-
-``` bash
-cd %{_topdir}/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-```
-
-Note that `./configure` and `make install` use two different prefixes.
-If `make` is still trying to install stuff directly in `%{_prefix}`, you may have to instead directly provide `%{buildroot}/%{_prefix}` to `./configure` (but that could cause trouble if any apps use rpaths, and you'll probably have to set `%define __arch_install_post %{nil}` to avoid rpm complaining about it).
-Note also that `prefix` alone usually does not cover `sysconfdir`, `sharedstatedir`, etc.; if the app uses these you'll have to add the corresponding arguments to `./configure` and `make install` (as the macros do).
-
-Note that rpmbuild has the shell echo all the commands it runs, so to see exactly what a macro does, use it and watch the output.
-
-
 ### How do I handle apps that insist on writing directly to the production location?
 
 RPM building requires installing to a temporary location rather than the true prefix (e.g. with `make install DESTDIR=%{buildroot}`).
 Some apps don't respect this or otherwise want to write directly to the production location.
 In this case, when building you'll get `Permission denied` errors and see that it was attempting to write directly to `$FASRCSW_PROD/apps`.
-You can hack around this in a very ugly way by replacing:
-
-``` spec
-%make_install
-```
-
-with:
+You can hack around this in a very ugly way by replacing the template's make install snippet with:
 
 ``` bash
 #
@@ -111,6 +43,7 @@ with:
 #
 
 # Standard stuff.
+umask 022
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
@@ -175,7 +108,7 @@ Note that since these are arrays, a simple `echo $FASRCSW_COMPS` is misleading (
 
 See [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) about building manually instead of using the macros.
 
-* The `%setup` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's more efficient, but also more cumbersome for sharing).
+* The `%prep` section should just unpack the files, same as if they were sources.  Alternatively, they can even be put in SOURCES pre-unpacked and `%prep` can do nothing; that's more efficient, but also more cumbersome for sharing).
 * The `%build` section can be blank (aside from standard template code).
 * The `%install` section can just copy files directly from `%{_topdir}/BUILD/%{name}-%{version}` (or `%{_topdir}/SOURCES/%{name}-%{version}` if pre-unpacked) to `%{buildroot}/%{_prefix}`.  If the app is packaged as a *sharball*, that execution can go here, too.
 
@@ -303,7 +236,9 @@ git diff "$hash":rpmbuild/SPECS/template.spec ^HEAD:rpmbuild/SPECS/"$NAME-$VERSI
 
 ### How can I make building go faster?
 
-Consider binding the rpmbuild work dir (`%{_topdir}/BUILD`, the place where sources are unpacked and compiled) to faster storage, such as local scratch space.
+Consider adding `%{?_smp_mflags}` after `make` (which usually just adds `-jN` where `N` is number of cores on the host).
+
+Also consider binding the rpmbuild work dir (`%{_topdir}/BUILD`, the place where sources are unpacked and compiled) to faster storage, such as local scratch space.
 You can do so with something like the following:
 
 ``` bash
@@ -311,6 +246,14 @@ mkdir -p /tmp/"$USER"/fasrcsw/BUILD
 cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/.gitignore /tmp/"$USER"/fasrcsw/BUILD
 sudo mount -o bind /tmp/"$USER"/fasrcsw/BUILD "$FASRCSW_DEV"/rpmbuild/BUILD
 ```
+
+### What are the values of the rpm-specific variables?
+
+* `%{_topdir}` is `"$FASRCSW_DEV"/rpmbuild`
+* `%{_prefix}` is `"$FASRCSW_PROD"/apps/{Core,Comp,MPI}/...(dependency dirs if non-Core).../%{name}/%{version}-%{release}`
+* `%{buildroot}` is `$HOME/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}`
+
+See the FAQ below about why `%{buildroot}` uses your `$HOME` instead of `$FASRCSW_DEV`.
 
 
 ### Why is rpmbuild still writing to my home directory?

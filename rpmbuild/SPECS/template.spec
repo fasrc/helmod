@@ -68,13 +68,22 @@ Prefix: %{_prefix}
 
 %prep
 
+
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
+#
+# %%{_topdir} is "$FASRCSW_DEV/rpmbuild/"
 #
 
-# FIXME (or maybe it's fine)
-%setup
+umask 022
+cd %{_topdir}/BUILD 
+rm -rf %{name}-%{version}
+tar xvf %{_topdir}/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -82,20 +91,42 @@ Prefix: %{_prefix}
 
 %build
 
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-# FIXME (or maybe it's fine)
-%configure
-make %{?_smp_mflags}
+umask 022
+cd %{_topdir}/BUILD/%{name}-%{version}
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -103,25 +134,40 @@ make %{?_smp_mflags}
 
 %install
 
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# FIXME (or maybe it's fine)
-%make_install
 
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+
+umask 022
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}
+make install DESTDIR=%{buildroot}
+
+
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -157,9 +203,15 @@ done
 %endif
 
 # 
-# - uncomment any applicable prepend_path things
+# FIXME (but the above is enough for a "trial" build)
 #
-# - do any other customizing of the module, e.g. load dependencies
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
+#
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -169,8 +221,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-# FIXME (but the above is enough for a "trial" build)
 
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
