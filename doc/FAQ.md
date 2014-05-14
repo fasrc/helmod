@@ -301,6 +301,17 @@ hash="$(git log --diff-filter=A --oneline -- rpmbuild/SPECS/$NAME-$VERSION-$RELE
 git diff "$hash":rpmbuild/SPECS/template.spec ^HEAD:rpmbuild/SPECS/"$NAME-$VERSION-$RELEASE".spec
 ```
 
+### How can I make building go faster?
+
+Consider binding the rpmbuild work dir (`%{_topdir}/BUILD`, the place where sources are unpacked and compiled) to faster storage, such as local scratch space.
+You can do so with something like the following:
+
+``` bash
+mkdir -p /tmp/"$USER"/fasrcsw/BUILD
+cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/.gitignore /tmp/"$USER"/fasrcsw/BUILD
+sudo mount -o bind /tmp/"$USER"/fasrcsw/BUILD "$FASRCSW_DEV"/rpmbuild/BUILD
+```
+
 
 ### Why is rpmbuild still writing to my home directory?
 

@@ -64,6 +64,7 @@ These clones will need to regularly push updates back to the remote.
 
 Customize `setup.sh` if necessary.
 In particular, make sure `FASRCSW_PROD` points to the location of the production repo above.
+For better performance, you might want to [bind the rpmbuild BUILD directory to local scratch storage](FAQ.md#how-can-i-make-building-go-faster).
 Assuming someone else has done all the initial setup, you can proceed to the [HOWTO](HOWTO.md).
 
 These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
