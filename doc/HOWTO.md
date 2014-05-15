@@ -10,12 +10,13 @@ The basic workflow to build an app using fasrcsw is:
 * do a preliminary build of the software to see what it creates, in order to know what to put in the module file
 * complete the spec file and build the final rpm(s)
 * install the rpm(s)
-* commit changes and move the build outputs to production locations
+* commit changes and move the build outputs to production repos and archives
 
 Once you're comfortable with the workflow, you can probably just use [HOWTO-short](HOWTO-short.md) instead of this doc.
 
 The default behavior and templates are designed to work with GNU-toolchain-style software packages, i.e. things that use `configure`/`make`/`make install` with standard options, with as little modification as possible.
 As an example, this document uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
+If you're new to fasrcsw, *try building and installing amhello first*, to get the hang of things.
 
 
 ## Prepare
@@ -24,7 +25,7 @@ Get ready to build software:
 
 * make sure you've cloned and configured fasrcsw according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
 * make sure you're logged into the build host
-* make sure you're logged into your normal user account, *not* root
+* make sure you're logged into your normal user account (with sudo privilege), *not* root
 
 `cd` to your personal fasrcsw clone.
 Make sure your clone is up-to-date and your environment is pristine, and setup the environment:
@@ -101,17 +102,16 @@ Now edit the spec file:
 $EDITOR "$NAME-$VERSION-$RELEASE".spec
 ```
 
-and address things with the word `FIXME` in them.
-For some things, the default will be fine.
+and find and address all the appearances of `FIXME`.
+For example, there are sections where `./configure`, `make`, and `make install` called; adjust them if necessary.
+For GNU-toolchain-style software, including amhello, the template code works as-is.
 Just complete everything up to where `modulefile.lua` is created (the part where you need to know what environment variables to change).
 The next step will provide the necessary guidance on what to put in the module file.
 
 If the app you're building requires other apps, follow the templates for loading the appropriate modules during the `%build` step and having the module file require them, too.
 See [this FAQ item](FAQ.md#how-are-simple-app-dependencies-handled) for more details.
 
-If you need to add options to the `./configure` command, you can append them to the `%configure` macro.
-If the build procedure is very different from a standard `configure`/`make`/`make install`, you'll have to manually code the corresponding steps -- see [this FAQ item](FAQ.md#how-do-i-compile-manually-instead-of-using-the-rpmbuild-macros) for details.
-If it's different for different compilers and/or MPI implementations, see [this FAQ item](FAQ.md#how-do-i-use-one-spec-file-to-handle-all-compiler-and-mpi-implementations).
+If the build process is different for different compilers and/or MPI implementations, see [this FAQ item](FAQ.md#how-do-i-use-one-spec-file-to-handle-all-compiler-and-mpi-implementations).
 
 
 
@@ -189,8 +189,8 @@ make filelist
 make filequery | less
 ```
 
-(Add  --scripts to also see how the module file symlink is created in the `%postinstall`.)
-For each package make sure:
+(Add `--scripts` to the latter to see how the module file symlink is created in the `%postinstall`.)
+For each package you should see that:
 
 * all the metadata looks good
 * the `Relocations` and all files are under an app-specific prefix under `$FASRCSW_PROD`. 
@@ -200,6 +200,9 @@ Test if the rpm(s) will install okay:
 ``` bash
 make test
 ```
+
+This currently only tests that the rpm is installable, and that almost never fails.
+Note that it does *not* test if the loading the module or running the software actually works.
 
 
 ## Install the rpm(s)
@@ -227,12 +230,12 @@ module load $NAME/$VERSION-$RELEASE
 module unload $NAME/$VERSION-$RELEASE
 ```
 
-If you want to erase and retry the rpm(s), `make uninstall`.
+If you want to erase and retry the process, `make uninstall`.
 
 
 ## Save your work
 
-If you're just trying things out with `amhello`, `make uninstall` and remove your spec file.
+If you're just trying things out with `amhello`, `make uninstall` and remove your spec file (`amhello*` is `.gitignore`d anyways).
 Otherwise, for production apps, copy the rpms to the production location and commit/push all your modifications to the fasrcsw git remote.
 The following will do all of this:
 
