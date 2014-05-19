@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2014, Harvard FAS Research Computing
+# All rights reserved.
+
+set -e
+
+helpstr="\
+NAME
+	make_bib_wrapper_modules - make a module for each package that bib provides
+
+SYNOPSIS
+	sudo -E ./make_bib_wrapper_modules --bib BIB_MODULE
+
+DESCRIPTION
+	Bioinformatics Brew -- bib -- is a self-contained package ecosystem.  
+	Having just the one module hides the huge set of bioinformatics packages 
+	that bib provides.
+	
+	This script will take every package in a given bib module and make a 
+	wrapper module for it, so that is it visible to \`module avail'.  Each 
+	wrapper module warns that many bioinformatics packages will be affected, 
+	and it notes to load bib directly to avoid the warning.
+
+	The modules this makes have a version suffix of \`.bib'.  I.e. the format 
+	is:
+
+	     \$NAME/\$VERSION.bib-\$RELEASE
+
+	Where \$NAME and \$VERSION are given from bib, and \$RELEASE is provided as 
+	a command line option.
+	
+	You'll have to run this with sudo, since it writes to the production 
+	modulefiles location.
+
+OPTIONS
+	--bib BIB_MODULE
+		The full name of the bib module for which to build wrapper modules, 
+		such as \`bib/2014.05.19-fasrc01'.
+
+	--release RELEASE
+		The release string to use on the constructed modules.  The default is 
+		\`fasrc01'.
+
+	-h, --help
+		Print this help.
+
+EXAMPLES
+	sudo -E ./make_bib_wrapper_modules --bib bib/2014.05.19-fasrc01
+	sudo -E fasrcsw-update-lmod-spider-cache
+
+REQUIREMENTS
+	n/a
+
+BUGS/TODO
+	n/a
+
+AUTHOR
+	Copyright (c) 2014, HARVARD FAS Research Computing
+	All rights reserved.
+"
+
+
+export bib=''
+export release=fasrc01
+
+args=$(getopt -n "$(basename "$0")" -l bib:,release:,help -o h -- "$@")
+if [ $? -ne 0 ]; then
+	exit 65  #(getopt will have written the error message)
+fi
+eval set -- "$args"
+while [ ! -z "$1" ]; do
+	case "$1" in
+		--bib)
+			bib="$2"
+			shift
+			;;
+		--release)
+			release="$2"
+			shift
+			;;
+
+		-h | --help)
+			echo -n "$helpstr"
+			exit 0
+			;;
+		--) 
+			shift
+			break
+			;;
+	esac
+	shift
+done
+
+set +e
+set +u
+source /etc/profile
+module purge
+set -e
+set -u
+
+if [ -z "$FASRCSW_PROD" ]; then
+	echo "*** ERROR *** FASRCSW_PROD is not set" >&2
+	exit 1
+fi
+if [ -z "$bib" ]; then
+	echo "*** ERROR *** --bib not given" >&2
+	exit 1
+fi
+if [ -z "$bib" ]; then
+	echo "*** ERROR *** empty --release given" >&2
+	exit 1
+fi
+
+
+#---
+
+
+module load "$bib"
+
+bib list | tail -n +3 | awk '{print $1" "$2}' | while read NAME VERSION; do
+	file="$FASRCSW_PROD/modulefiles/Core/${NAME}/${VERSION}.bib-${release}.lua"
+
+	echo "making: $file"
+
+	if true; then
+		mkdir -p "$(dirname "$file")"
+
+		cat > "$file" <<-EOF
+		local helpstr = [[
+		${NAME}-${VERSION}.bib-${release}
+		a wrapper module for the version provided by ${bib} (bioinformatics brew)
+		]]
+		help(helpstr,"\n")
+
+		whatis("Name: ${NAME}")
+		whatis("Version: ${VERSION}.bib-${release}")
+		whatis("Description: a wrapper module for the version provided by bioinformatics brew ($bib)")
+
+		if mode()=="load" then
+		    LmodMessage("WARNING: Loading this module will silently load many bioinformatics packages.")
+		    LmodMessage("         Load \`bib' directly, instead of this module, to suppress this message.")
+		    if not isloaded("bib") then
+		        load("$bib")
+		    end
+		end
+		EOF
+	fi
+done
