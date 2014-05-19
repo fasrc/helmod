@@ -71,6 +71,46 @@ Also, add this to the top of the spec file, so that you don't get any failures f
 In the future, fasrcsw may take advantage of mock for this situation.
 
 
+### How do I handle apps where the tarball and/or untarred directory have unconventional names?
+
+It's easiest if you just manually repackage the source as `${NAME}-${VERSION}.tar.gz` (or whatever zip suffix is appropriate) and have it untar to a single directory `${NAME}-${VERSION}`.
+Alternatively, you can code the above retar or the handling of the non-standard name in the `%prep` and/or other sections.
+
+
+### How do I apply patch source code?
+
+You can script any changes you like, but the easiest is to prepare a patch with `diff` and apply it with `patch`.
+
+Outside of `fasrcsw`, unzip/untar two copies of the source, renaming the top directories `a` and `b`, respectively.
+Make all of your changes to the `b` copy.
+
+Next run the command:
+
+``` bash
+diff -rupN a b
+```
+
+That will output a patch.
+In the `%prep` section of the spec file, after the unzip/untar, where you're in the top directory of the source, run the `patch` command, piping in a copy of the output of the `diff` command from above.
+
+For example, for a one-word change in a hello-world file, the full patch application in the spec file might be something like this:
+
+``` bash
+cat <<EOF | patch -p1
+diff -rupN a/hello_world.c b/hello_world.c
+--- a/hello_world.c     2014-05-19 18:01:41.000000000 -0400
++++ b/hello_world.c     2014-05-19 18:01:54.000000000 -0400
+@@ -1,5 +1,5 @@
+ #include <stdio.h>
+ int main(int argc, char **argv) {
+-       printf("Hello Foo!\n");
++       printf("Hello Bar!\n");
+        return 0;
+ }
+EOF
+```
+
+
 ### How do I use one spec file to handle all compiler and MPI implementations?
 
 The compiler modules set variables such as `CC`, `CXX`, etc., so for nicely packaged software that gets configuration information from the environment, one block of build code will often suffice.
