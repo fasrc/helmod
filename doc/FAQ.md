@@ -46,7 +46,7 @@ You can hack around this in a very ugly way by replacing the template's make ins
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
 sudo mkdir -p "$(dirname %{_prefix})"
