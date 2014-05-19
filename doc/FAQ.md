@@ -31,7 +31,7 @@ A compiler *is* part of the Comp *family*, and an MPI app *is* a part of the MPI
 RPM building requires installing to a temporary location rather than the true prefix (e.g. with `make install DESTDIR=%{buildroot}`).
 Some apps don't respect this or otherwise want to write directly to the production location.
 In this case, when building you'll get `Permission denied` errors and see that it was attempting to write directly to `$FASRCSW_PROD/apps`.
-You can hack around this in a very ugly way by replacing the template's make install snippet with:
+You can hack around this in a very ugly way by replacing the template's `make install` snippet with:
 
 ``` bash
 #
@@ -57,6 +57,15 @@ make install
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
 sudo rm "%{_prefix}"
+```
+
+Also, add this to the top of the spec file, so that you don't get any failures from /usr/lib/rpm/check-buildroot if the production location is referenced with the build outputs:
+
+``` spec
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
 ```
 
 In the future, fasrcsw may take advantage of mock for this situation.
