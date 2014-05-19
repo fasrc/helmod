@@ -11,8 +11,8 @@ export FASRCSW_COMPS=(
 	intel/13.0.079-fasrc01
 )
 export FASRCSW_MPIS=(
-	openmpi/1.6.5-fasrc01
-	mvapich2/2.0b-fasrc01
+	openmpi/1.8.1-fasrc01
+	mvapich2/2.0rc1-fasrc01
 )
 
 #the build host
