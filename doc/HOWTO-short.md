@@ -24,7 +24,7 @@ cd "$FASRCSW_DEV"/rpmbuild/SPECS
 cp -ai template.spec "$NAME-$VERSION-$RELEASE".spec
 ```
 
-__edit__ the spec file and __address__ each `FIXME` up until the modulefile.lua creation
+__edit__ the spec file and __address__ each `FIXME` up until the modulefile.lua creation (i.e. adjust the `./configure`/`make`/`make install` snippets if necessary):
 
 do a __trial build__:
 
