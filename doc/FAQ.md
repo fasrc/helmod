@@ -50,6 +50,7 @@ mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
 sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
 sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
 make install
