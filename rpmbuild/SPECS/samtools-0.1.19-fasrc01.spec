@@ -106,9 +106,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# Have to replace the CC and CFLAGS lines so that the environment CC and 
-# CFLAGS are used
-sed -i bak 's/^CC\s+gcc/CC    $(CC)/' Makefile 
+# Have to replace the CC so that the environment CC is used and add the 
+# ZLIBFORSAMTOOLS variable to the CFLAGS line
+
+sed -i 's/^CC=.*//' Makefile 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel

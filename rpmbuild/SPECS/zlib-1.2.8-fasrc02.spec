@@ -1,33 +1,28 @@
 #------------------- package info ----------------------------------------------
-
-#
-# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
-Name: zlib
+Name: %{getenv:NAME}
 
-#
-# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 1.2.8
+Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Plamen Krastev <plamenkrastev@fas.harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
 # FIXME
