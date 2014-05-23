@@ -103,13 +103,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+module load zlib
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 # Have to replace the CC so that the environment CC is used and add the 
 # ZLIBFORSAMTOOLS variable to the CFLAGS line
 
-sed -i 's/^CC=.*//' Makefile 
+sed -i -e 's/^CC=.*//' Makefile 
+sed -i -e 's/^\(CFLAGS=.*\)/\1 $(ZLIBFORSAMTOOLS)/' Makefile
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -146,8 +148,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -226,18 +227,18 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 --if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
+--	if not isloaded("zlib") then
+--		load("zlib")
 --	end
 --end
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("PATH",                "%{_prefix}")
+prepend_path("CPATH",               "%{_prefix}")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}")
+prepend_path("LIBRARY_PATH",        "%{_prefix}")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 --prepend_path("MANPATH",             "%{_prefix}/man")
