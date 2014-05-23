@@ -226,11 +226,11 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("zlib") then
---		load("zlib")
---	end
---end
+if mode()=="load" then
+	if not isloaded("zlib") then
+		load("zlib/1.2.8-fasrc02")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
 prepend_path("PATH",                "%{_prefix}")
