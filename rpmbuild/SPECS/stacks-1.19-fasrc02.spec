@@ -108,7 +108,7 @@ module load samtools/0.1.19-fasrc01
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
+export CXX="$CXX -I$ZLIB_INCLUDE -L$ZLIB_LIB" && ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -130,7 +130,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+export CC="$CC -I$ZLIB_INCLUDE -L$ZLIB_LIB" &&  make %{?_smp_mflags}
 
 
 
