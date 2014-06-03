@@ -113,6 +113,8 @@ test "%{comp_name}" == "intel" && find . -name "Makefile" | xargs -i sed -i -e '
 #percent sign) to build in parallel
 make
 
+# Get the sprism binary
+wget http://ftp.ncbi.nih.gov/pub/agarwala/srprism/srprism
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -144,8 +146,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/bin
-cp bmtagger/bmdiff bmtagger/bmdump bmtagger/bmfilter bmtagger/bmtool bmtagger/extract_fullseq bmtagger/bmtagger.sh %{buildroot}/%{_prefix}/bin
-
+cp srprism bmtagger/bmdiff bmtagger/bmdump bmtagger/bmfilter bmtagger/bmtool bmtagger/extract_fullseq bmtagger/bmtagger.sh %{buildroot}/%{_prefix}/bin
+chmod +x %{buildroot}/%{_prefix}/bin/*
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
