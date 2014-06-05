@@ -18,9 +18,6 @@ Version: %{getenv:VERSION}
 # and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
-# fasrc02 includes the links to sparsehash and bam
-# sparsehash must be installed on the build host- not needed when deployed
-#
 %define release_short %{getenv:RELEASE}
 
 #
@@ -33,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a software pipeline for building loci from short-read sequences
+%define summary_static SAM Tools provide various utilities for manipulating alignments in the SAM format, including sorting, merging, indexing and generating alignments in a per-position format.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://creskolab.uoregon.edu/stacks/source/stacks-1.19.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.sourceforge.net/project/samtools/samtools/0.1.17/samtools-0.1.17.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -63,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Stacks is a software pipeline for building loci from short-read sequences, such as those generated on the Illumina platform. Stacks was developed to work with restriction enzyme-based data, such as RAD-seq, for the purpose of building genetic maps and conducting population genomics and phylogeography.
-
+SAM Tools provide various utilities for manipulating alignments in the SAM format, including sorting, merging, indexing and generating alignments in a per-position format.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -73,6 +69,8 @@ Stacks is a software pipeline for building loci from short-read sequences, such 
 
 
 #
+# FIXME
+#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
@@ -80,7 +78,7 @@ Stacks is a software pipeline for building loci from short-read sequences, such 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xjvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -95,6 +93,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
+# FIXME
+#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
@@ -103,38 +103,19 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-module load samtools/0.1.19-fasrc01
-
+module load zlib
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# Handle the TYPE=Core case where CC and CXX are not defined
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
+# Have to replace the CC so that the environment CC is used and add the 
+# ZLIBFORSAMTOOLS variable to the CFLAGS line
 
-export CXX="$CXX -I$ZLIB_INCLUDE -L$ZLIB_LIB" && ./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-sparsehash \
-	--enable-bam \
-        --with-bam-include-path=$SAMTOOLS_INCLUDE \
-        --with-bam-lib-path=$SAMTOOLS_LIB
-
+sed -i -e 's/^CC=.*//' Makefile 
+sed -i -e 's/^CFLAGS=\s\(.*\)/CFLAGS= $(ZLIBFORSAMTOOLS) \1/' Makefile
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-export CC="$CC -I$ZLIB_INCLUDE -L$ZLIB_LIB" &&  make %{?_smp_mflags}
+make
 
 
 
@@ -146,6 +127,8 @@ export CC="$CC -I$ZLIB_INCLUDE -L$ZLIB_LIB" &&  make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -164,9 +147,8 @@ export CC="$CC -I$ZLIB_INCLUDE -L$ZLIB_LIB" &&  make %{?_smp_mflags}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}
-make install DESTDIR=%{buildroot}
-
+mkdir -p %{buildroot}/%{_prefix}
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -245,13 +227,28 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("samtools") then
-		load("samtools/0.1.19-fasrc01")
+	if not isloaded("zlib") then
+		load("zlib/1.2.8-fasrc02")
 	end
 end
 
--- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+---- environment changes (uncomment what's relevant)
+setenv("SAMTOOLS_LIB",              "%{_prefix}")
+setenv("SAMTOOLS_INCLUDE",          "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
+prepend_path("CPATH",               "%{_prefix}")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}")
+prepend_path("LIBRARY_PATH",        "%{_prefix}")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

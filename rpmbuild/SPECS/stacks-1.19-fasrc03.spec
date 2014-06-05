@@ -126,7 +126,7 @@ export CXX="$CXX -I$ZLIB_INCLUDE -L$ZLIB_LIB" && ./configure --prefix=%{_prefix}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--enable-sparsehash \
+	--disable-sparsehash \
 	--enable-bam \
         --with-bam-include-path=$SAMTOOLS_INCLUDE \
         --with-bam-lib-path=$SAMTOOLS_LIB
