@@ -114,7 +114,8 @@ stat %{name}
 cd %{_topdir}/BUILD/%{name}
 ./configure --prefix=%{_prefix}
 make all
-
+make fpack
+make funpack
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
@@ -135,6 +136,10 @@ cd %{_topdir}/BUILD/%{name}
 echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make prefix=%{buildroot}/%{_prefix} install
+
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{name}/fpack %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{name}/funpack %{buildroot}/%{_prefix}/bin
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -204,7 +209,7 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
