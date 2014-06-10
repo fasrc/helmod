@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
+%define summary_static Mercurial is a free, distributed source control management tool.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2
-Source: %{name}_1_55_0.tar.bz2
+URL: http://mercurial.selenic.com/release/mercurial-3.0.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
-
+Mercurial is a free, distributed source control management tool. It offers you the power to efficiently handle projects of any size while using an intuitive interface. It is easy to use and hard to break, making it ideal for anyone working with versioned files.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +77,9 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_1_55_0
-tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_55_0.tar.*
-cd %{name}_1_55_0
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -104,21 +103,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 module load python/2.7.6-fasrc01
 
-# Build based on instructions from this page
-# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
-%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
-
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x \
---with-toolset=%{toolset_name}
-
-test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
-# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -127,6 +114,7 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
 
 
 #
@@ -146,11 +134,13 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+module load python/2.7.6-fasrc01
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
-echo %{buildroot} | grep -q %{name}_1_55_0 && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
+
+python setup.py install --root=%{buildroot} --record=INSTALLED_FILES --prefix=%{_prefix}
 
 
 #(this should not need to be changed)
@@ -229,14 +219,14 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("python") then
+		load("python/2.7.6-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
@@ -249,7 +239,7 @@ whatis("Description: %{summary_static}")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PYTHONPATH",          "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 
