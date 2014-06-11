@@ -1,51 +1,44 @@
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
-Name: cfitsio
+Name: %{getenv:NAME}
 
-#
-# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 3360
+Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Plamen Krastev <plamenkrastev@fas.harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# FIXME
-#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static C interface to FITS files
+%define summary_static HMMER version 3.1b1
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#http://fossies.org/linux/privat/cfitsio3360.tar.gz
-Source: %{name}%{version}.tar.gz
+URL: http://selab.janelia.org/software/hmmer3/3.1b1/hmmer-3.1b1-linux-intel-x86_64.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -63,13 +56,13 @@ Prefix: %{_prefix}
 
 
 #
-# FIXME
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-C interface to FITS files.
+HMMER is used for searching sequence databases for homologs of protein sequences, and for making protein
+sequence alignments. It implements methods using probabilistic models called profile hidden Markov models
+(profile HMMs).
 
 
 
@@ -78,25 +71,24 @@ C interface to FITS files.
 %prep
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
 #
 
-#%%setup
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}%{version}.tar.gz
-stat %{name}
+# FIXME (or maybe it's fine)
+##%%setup
 
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}-%{version}*.tar.*
+mv %{name}-%{version}-linux-intel-x86_64 %{name}-%{version}
+mv %{_topdir}/SOURCES/%{name}-%{version}*.tar.* %{_topdir}/SOURCES/%{name}-%{version}.tar.gz
+stat %{name}-%{version}
 
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
-#
-# FIXME
 #
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
@@ -108,20 +100,19 @@ stat %{name}
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-#%%configure
-#make
+# FIXME (or maybe it's fine)
+##%%configure
+##make %{?_smp_mflags}
 
-cd %{_topdir}/BUILD/%{name}
+cd %{_topdir}/BUILD/%{name}-%{version}
 ./configure --prefix=%{_prefix}
-make all
-make fpack
-make funpack
+make
+
+
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#
-# FIXME
 #
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
@@ -130,16 +121,14 @@ make funpack
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#%%makeinstall
+# FIXME (or maybe it's fine)
+##%%make_install
 
-cd %{_topdir}/BUILD/%{name}
-echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make prefix=%{buildroot}/%{_prefix} install
+make install DESTDIR=%{buildroot}
 
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp %{_topdir}/BUILD/%{name}/fpack %{buildroot}/%{_prefix}/bin
-cp %{_topdir}/BUILD/%{name}/funpack %{buildroot}/%{_prefix}/bin
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -165,6 +154,14 @@ done
 
 	echo
 	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -176,8 +173,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
-#
 # - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
@@ -190,6 +185,10 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+# FIXME (but the above is enough for a "trial" build)
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -209,20 +208,12 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("PATH",                "%{_prefix}/sbin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 

@@ -109,7 +109,10 @@ module load python/2.7.6-fasrc01
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
 
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "%{comp_name}")
+
+
+%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
+%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
 
 ./bootstrap.sh --prefix=%{_prefix} --with-python-root=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x \
 --with-toolset=%{toolset_name}
@@ -147,7 +150,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
 echo %{buildroot} | grep -q %{name}_1_55_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{comp_version} --prefix=%{buildroot}/%{_prefix} 
+./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
 
 
 #(this should not need to be changed)
