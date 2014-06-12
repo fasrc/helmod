@@ -194,6 +194,9 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
+setenv("GMP_HOME",                 "%{_prefix}")
+setenv("GMP_INCLUDE",              "%{_prefix}/include")
+setenv("GMP_LIB",                  "%{_prefix}/lib64")
 --prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")

@@ -201,6 +201,9 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 -- environment changes (uncomment what's relevant)
+setenv("PYTHON_HOME",               "%{_prefix}/x")
+setenv("PYTHON_INCLUDE",            "%{_prefix}/x/include")
+setenv("PYTHON_LIB",                "%{_prefix}/x/lib")
 prepend_path("PATH",                "%{_prefix}/x/bin")
 EOF
 

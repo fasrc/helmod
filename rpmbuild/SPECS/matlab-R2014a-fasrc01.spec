@@ -204,7 +204,7 @@ whatis("Description: %{summary_static}")
 -- relying on set_alias is a bad idea -- aliases are not exported to 
 -- sub-shells; should wrap it in a separate script like we used to do
 set_alias("matlab", "matlab -singleCompThread")
-
+setenv("MATLAB_HOME",                      "/n/sw/matlab-R2014a")
 prepend_path("PATH",                       "/n/sw/matlab-R2014a/bin")
 prepend_path("LD_LIBRARY_PATH",            "/n/sw/matlab-R2014a/bin/glnxa64")
 prepend_path("LD_LIBRARY_PATH",            "/n/sw/matlab-R2014a/extern/lib/glnxa64")

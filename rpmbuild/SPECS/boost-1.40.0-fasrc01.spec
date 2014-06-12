@@ -27,19 +27,18 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static the GNU multiple precision arithmetic library
+%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# NOTE: I renamed gmp-6.0.0a.tar.bz2 to gmp-6.0.0.tar.bz2, since that what it 
-# identifies itself as.
-URL: https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://downloads.sourceforge.net/project/boost/boost/1.40.0/boost_1_40_0.tar.gz 
+Source: %{name}_1_40_0.tar.gz
 
 #
 # there should be no need to change the following
@@ -61,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-GMP is a free library for arbitrary precision arithmetic, operating on signed integers, rational numbers, and floating-point numbers. There is no practical limit to the precision except the ones implied by the available memory in the machine GMP runs on. GMP has a rich set of functions, and the functions have a regular interface.
+Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
 
 
 
@@ -69,12 +68,20 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 
 %prep
 
+
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-%setup
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}_1_40_0
+tar xvzf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_40_0.tar.*
+cd %{name}_1_40_0
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -82,44 +89,79 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 
 %build
 
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-#module load NAME/VERSION-RELEASE
 
-%configure
-make %{?_smp_mflags}
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+module load python/2.7.6-fasrc01
+
+# Build based on instructions from this page
+# https://svn.boost.org/trac/boost/ticket/1811
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
+
+
+
+%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
+%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
+
+./bootstrap.sh --prefix="%{_prefix}" --with-python-root="${PYTHON_HOME}" \
+--with-toolset=%{toolset_name} --libdir="%{_prefix}/lib"
+
+test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
+# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-%make_install
 
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
+echo %{buildroot} | grep -q %{name}_1_40_0 && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+./bjam install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
+
+
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -155,9 +197,15 @@ done
 %endif
 
 # 
-# - uncomment any applicable prepend_path things
+# FIXME (but the above is enough for a "trial" build)
 #
-# - do any other customizing of the module, e.g. load dependencies
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
+#
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -168,8 +216,7 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-# FIXME (but the above is enough for a "trial" build)
-
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -189,13 +236,23 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("GMP_HOME",                 "%{_prefix}")
-setenv("GMP_INCLUDE",              "%{_prefix}/include")
-setenv("GMP_LIB",                  "%{_prefix}/lib64")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+setenv("BOOST_HOME",                 "%{_prefix}")
+setenv("BOOST_INCLUDE",              "%{_prefix}/include")
+setenv("BOOST_LIB",                  "%{_prefix}/lib")
+--prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

@@ -93,7 +93,7 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-%configure
+%configure --enable-cxx
 make %{?_smp_mflags}
 
 
