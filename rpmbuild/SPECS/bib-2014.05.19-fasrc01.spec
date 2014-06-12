@@ -207,6 +207,21 @@ yes | bib install velvet
 #   Ready to install.  Press ENTER to continue with the install.
 #followed by a pause, but it's actually doing stuff
 
+#this was NOT done for bib-2014.05.19-fasrc01; staging for next time
+#to fix this:
+#	$ pwd
+#	/n/sw/fasrcsw/apps/Core/bib/2014.05.19-fasrc01
+#	$ find . >/dev/null
+#	find: `./install/samtools/0.1.19': Permission denied
+#	find: `./install/gblocks/0.91b': Permission denied
+#	find: `./install/bowtie/1.0.0': Permission denied
+#	$ ls -alFd ./install/samtools/0.1.19 ./install/gblocks/0.91b ./install/bowtie/1.0.0
+#	drwxrwx--- 8 root root 3149 2014-05-19 14:06:30 ./install/bowtie/1.0.0/
+#	drwx------ 4 root root  138 2014-05-19 14:06:41 ./install/gblocks/0.91b/
+#	drwxr-x--- 7 root root 2822 2014-05-19 14:07:31 ./install/samtools/0.1.19/
+
+chmod -R go+rX "%{_prefix}"/install
+chmod -R go-w  "%{_prefix}"/install
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
 sudo rm "%{_prefix}"
