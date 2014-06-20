@@ -1,51 +1,50 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
+
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
-Name: ncbi-blast
+Name: %{getenv:NAME}
 
-#
-# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 2.2.29+
+Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Aaron Kitzmiller <aaron_kitzmiller@harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# FIXME
-#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static Basic Local Alignment Search Tool (BLAST) is used to search query sequences against a sequence database
+%define summary_static tRNA detection in large-scale genome sequence
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#http://...FIXME...
-Source: %{name}-%{version}-src.tar.gz
+URL: http://selab.janelia.org/software/tRNAscan-SE/tRNAscan-SE.tar.Z
+Source: %{name}.tar.Z
 
 #
 # there should be no need to change the following
@@ -63,51 +62,71 @@ Prefix: %{_prefix}
 
 
 #
-# FIXME
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Basic Local Alignment Search Tool (BLAST) (1, 2) is the tool most frequently used for calculating sequence similarity. BLAST comes in variations for use with different query sequences against different databases. 
-
+tRNAscan-SE detects ~99% of eukaryotic nuclear or prokaryotic tRNA genes, with a false positive rate of less than one per 15 gigabases, and with a search speed of about 30 kb/second. It was implemented for large-scale human genome sequence analysis, but is applicable to other DNAs as well. It applies our COVE software (see below) with a carefully built tRNA covariance model, while getting around COVE's speed limitations by using two tRNA finding programs from other research groups as fast first-pass scanners (Fichant and Burks', and an implementation of an algorithm from A. Pavesi's group). It runs on any UNIX system with Perl and a C compiler installed.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-# %%setup
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}-%{version}-src.tar.*
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xZvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.tar.Z
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
-#
-# FIXME
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-#module load NAME/VERSION-RELEASE
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
-./configure --prefix=%{_prefix} --with-mt --without-debug
-make -j 4
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+module load perl
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+sed -i -e 's?^PERLDIR.*?PERLDIR = ${PERL_HOME}/bin?' \
+       -e 's?^BINDIR.*?BINDIR = %{_prefix}/bin?' \
+       -e 's?^LIBDIR.*?LIBDIR = %{_prefix}/lib/tRNAscan-SE?' \
+       -e 's?^MANDIR.*?MANDIR = %{_prefix}/man?' \
+       -e 's?^TMPDIR.*?TMPDIR = /scratch?' \
+       -e 's?@if test -d?if test -L?' \
+       Makefile
+
+test %{comp_name} == "intel" && sed -i -e 's?^CC =.*?CC = intel?' Makefile
+
+#Fix the getline conflict in sqio.c
+sed -i -e 's/getline/getline2/g' sqio.c
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -115,32 +134,57 @@ make -j 4
 
 %install
 
-#
-# FIXME
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# %%make_install
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-# sudo install -o akitzmiller -g rc_admin -m 755 -d %{_prefix}
-make install DESTDIR=%{buildroot}
 
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})" || true
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
+# More makefile substitution
+sed -i -e 's?mkdir -p $(BINDIR)?mkdir -p %{buildroot}/$(BINDIR)?' \
+       -e 's?mkdir -p $(LIBDIR)?mkdir -p %{buildroot}/$(LIBDIR)?' \
+       -e 's?mkdir -p $(MANDIR)?mkdir -p %{buildroot}/$(MANDIR)?' \
+       Makefile
+
+# Load perl so that PERL_HOME works
+module load perl
+
+make install
+echo "Done"
+
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -178,9 +222,13 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# - uncomment any applicable prepend_path things
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
 #
-# - do any other customizing of the module, e.g. load dependencies
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -190,6 +238,9 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+# Dir is already made
+mkdir -p %{buildroot}/%{_prefix} || true
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -202,22 +253,22 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("perl") then
+		load("perl/5.10.1-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 --prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 --prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
+prepend_path("MANPATH",             "%{_prefix}/man")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
 --prepend_path("PATH",                "%{_prefix}/sbin")
 --prepend_path("INFOPATH",            "%{_prefix}/share/info")

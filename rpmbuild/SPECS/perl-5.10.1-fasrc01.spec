@@ -239,6 +239,7 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
+setenv("PERL_HOME",                   "%{_prefix}")
 prepend_path("PATH",                  "%{_prefix}/bin")
 prepend_path("PERL5LIB",              "%{_prefix}/lib")
 --prepend_path("PATH",                "%{_prefix}/sbin")
