@@ -264,11 +264,11 @@ whatis("Description: %{summary_static}")
 --end
 
 -- environment changes (uncomment what's relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/bin/binO/$ESMF_OS.$ESMF_COMPILER.64.$ESMF_COMM.default")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/libO/$ESMF_OS.$ESMF_COMPILER.64.$ESMF_COMM.default")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/libO/$ESMF_OS.$ESMF_COMPILER.64.$ESMF_COMM.default")
 EOF
 
 
