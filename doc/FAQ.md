@@ -59,6 +59,9 @@ make install
 sudo rm "%{_prefix}"
 ```
 
+Sometimes software even still has trouble because it canonicalizes the symbolic link.
+In that case, create a real directory instead of a symlink (owned by you, not root), move everything after the software installs, and remove the directory.
+
 Also, add this to the top of the spec file, so that you don't get any failures from /usr/lib/rpm/check-buildroot if the production location is referenced with the build outputs:
 
 ``` spec
