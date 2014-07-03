@@ -11,5 +11,5 @@ See the `doc` directory for more information, specifically:
 * [HOWTO](doc/HOWTO.md) for day-to-day usage instructions (or [HOWTO-short](doc/HOWTO-short.md) for experienced users)
 * [FAQ](doc/FAQ.md) for answers to common questions and other details
 
-fasrcsw captures all the details and hacks that go into building any given software package as as shell snippets in RPM spec files.
-See the [rpmbuild/SPECS](rpmbuild/SPECS) directory for a bunch of examples (see [this FAQ item](doc/FAQ.md#how-do-i-diff-a-spec-file-with-the-relevant-version-of-the-template-spec-file) for diffing them from the template for the interesting bits).
+fasrcsw captures all the details and hacks that go into building any given software package as shell snippets in RPM spec files.
+See the [rpmbuild/SPECS](rpmbuild/SPECS) directory for a bunch of real examples (see [this FAQ item](doc/FAQ.md#how-do-i-diff-a-spec-file-with-the-relevant-version-of-the-template-spec-file) for diffing them from the template for the interesting bits).
