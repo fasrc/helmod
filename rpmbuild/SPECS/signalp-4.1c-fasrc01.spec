@@ -30,15 +30,17 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static SignalP 4.1 predicts the presence and location of signal peptide cleavage sites in amino acid sequences from different organisms: Gram-positive prokaryotes, Gram-negative prokaryotes, and eukaryotes. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-2.1.5.tar.gz
-Source: %{name}-%{version}.tar.gz
+# Submit a request and get an email with the tarball attached
+#
+URL: http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?signalp
+Source: %{name}-%{version}.Linux.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +62,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
+SignalP 4.1 predicts the presence and location of signal peptide cleavage sites in amino acid sequences from different organisms: Gram-positive prokaryotes, Gram-negative prokaryotes, and eukaryotes. The method incorporates a prediction of cleavage sites and a signal peptide/non-signal peptide prediction based on a combination of several artificial neural networks.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +79,9 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-4.1
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.Linux.tar.*
+cd %{name}-4.1
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -105,28 +106,16 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-4.1
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-mpi \
-	--enable-threads--with-openmp
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+# Replace /usr/bin/perl with /usr/bin/env perl
+sed -i -e 's?#!/usr/bin/perl?#!/usr/bin/env perl?' \
+       -e 's?^\(\s*$ENV{SIGNALP} = \).*?\1"%{_prefix}";?' \
+       -e 's?^\(my $outputDir = \).*?\1"/scratch";?' \
+       -e 's?^\(my $MAX_ALLOWED_ENTRIES=\).*?\1 10000000;?' signalp
+# Replace signalp installation location
+# Fix temp dir to /scratch
+# Increase max entries 
 
 
 
@@ -156,10 +145,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-4.1
+echo %{buildroot} | grep -q %{name}-4.1 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -238,18 +227,27 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("perl") then
+		load("perl/5.10.1-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("PATH",                "%{_prefix}")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

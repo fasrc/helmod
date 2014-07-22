@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static Bowtie 2 is an ultrafast and memory-efficient tool for aligning sequencing reads to long reference sequences
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-2.1.5.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL:  http://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.2.2/bowtie2-2.2.2-source.zip
+Source: %{name}-%{version}-source.zip
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
+Bowtie 2 is an ultrafast and memory-efficient tool for aligning sequencing reads to long reference sequences
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -79,7 +78,7 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-source.zip
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -107,23 +106,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-mpi \
-	--enable-threads--with-openmp
-
+sed -i -e 's?^\(CC =.*\)?#\1?' \
+       -e 's?^\(CPP =.*\)?#\1?' \
+       -e 's?^\(CXX =.*\)?#\1?' Makefile 
+    
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
@@ -158,8 +144,8 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp bowtie2 bowtie2-align-s bowtie2-align-l bowtie2-build bowtie2-build-s bowtie2-build-l bowtie2-inspect bowtie2-inspect-s bowtie2-inspect-l %{buildroot}/%{_prefix}/bin
 
 
 #(this should not need to be changed)
@@ -245,11 +231,7 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 
