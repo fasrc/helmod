@@ -1,0 +1,427 @@
+fasrcsw-rpmbuild-$TYPE -ba "$NAME-$VERSION-$RELEASE".spec
+
+
+fasrcsw: building an rpm
+
+Executing(%prep): /bin/bash -e /var/tmp/rpm-tmp.3VVMl3
+cutadapt-1.4.1/
+cutadapt-1.4.1/galaxy/
+cutadapt-1.4.1/galaxy/fastx_clipper_sequences.txt.sample
+cutadapt-1.4.1/galaxy/fabfile.py
+cutadapt-1.4.1/galaxy/test-data/
+cutadapt-1.4.1/galaxy/test-data/cutadapt_discard.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest.fa
+cutadapt-1.4.1/galaxy/test-data/cutadapt_small.fastq
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest2.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_small.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest.out
+cutadapt-1.4.1/galaxy/cutadapt.xml
+cutadapt-1.4.1/galaxy/tool_dependencies.xml
+cutadapt-1.4.1/galaxy/README
+cutadapt-1.4.1/README.md
+cutadapt-1.4.1/setup.py
+cutadapt-1.4.1/PKG-INFO
+cutadapt-1.4.1/tests/
+cutadapt-1.4.1/tests/data/
+cutadapt-1.4.1/tests/data/E3MFGYR02_random_10_reads_no_trim.fasta
+cutadapt-1.4.1/tests/data/example.fa
+cutadapt-1.4.1/tests/data/sra.fastq
+cutadapt-1.4.1/tests/data/anchored.fasta
+cutadapt-1.4.1/tests/data/wildcard.fa
+cutadapt-1.4.1/tests/data/multiblock.fastq.gz
+cutadapt-1.4.1/tests/data/paired.2.fastq
+cutadapt-1.4.1/tests/data/polya.fasta
+cutadapt-1.4.1/tests/data/simple.fastq
+cutadapt-1.4.1/tests/data/solid.csfasta
+cutadapt-1.4.1/tests/data/454.fa
+cutadapt-1.4.1/tests/data/small.fastq.bz2
+cutadapt-1.4.1/tests/data/small.myownextension
+cutadapt-1.4.1/tests/data/twoadapters.fasta
+cutadapt-1.4.1/tests/data/overlapb.fa
+cutadapt-1.4.1/tests/data/tooshort.fa
+cutadapt-1.4.1/tests/data/paired.1.fastq
+cutadapt-1.4.1/tests/data/trimN3.fasta
+cutadapt-1.4.1/tests/data/tooshort.noprimer.fa
+cutadapt-1.4.1/tests/data/plus.fastq
+cutadapt-1.4.1/tests/data/lengths.fa
+cutadapt-1.4.1/tests/data/dos.fastq
+cutadapt-1.4.1/tests/data/empty.fastq
+cutadapt-1.4.1/tests/data/small.fastq.gz
+cutadapt-1.4.1/tests/data/trimN5.fasta
+cutadapt-1.4.1/tests/data/simple.fasta
+cutadapt-1.4.1/tests/data/s_1_sequence.txt.gz
+cutadapt-1.4.1/tests/data/solid.fasta
+cutadapt-1.4.1/tests/data/anchored_no_indels.fasta
+cutadapt-1.4.1/tests/data/solid5p.fastq
+cutadapt-1.4.1/tests/data/wildcard_adapter.fa
+cutadapt-1.4.1/tests/data/rest.txt
+cutadapt-1.4.1/tests/data/lowqual.fastq
+cutadapt-1.4.1/tests/data/restfront.txt
+cutadapt-1.4.1/tests/data/toolong.fa
+cutadapt-1.4.1/tests/data/wildcardN.fa
+cutadapt-1.4.1/tests/data/illumina.fastq.gz
+cutadapt-1.4.1/tests/data/E3MFGYR02_random_10_reads_no_trim.qual
+cutadapt-1.4.1/tests/data/solid5p.fasta
+cutadapt-1.4.1/tests/data/solid.qual
+cutadapt-1.4.1/tests/data/small.fastq
+cutadapt-1.4.1/tests/data/illumina64.fastq
+cutadapt-1.4.1/tests/data/overlapa.fa
+cutadapt-1.4.1/tests/data/rest.fa
+cutadapt-1.4.1/tests/data/solid.fastq
+cutadapt-1.4.1/tests/data/issue46.fasta
+cutadapt-1.4.1/tests/data/withplus.fastq
+cutadapt-1.4.1/tests/testtrim.py
+cutadapt-1.4.1/tests/testargs.py
+cutadapt-1.4.1/tests/testxopen.py
+cutadapt-1.4.1/tests/testcolorspace.py
+cutadapt-1.4.1/tests/tests.py
+cutadapt-1.4.1/tests/cut/
+cutadapt-1.4.1/tests/cut/minlen.noprimer.fa
+cutadapt-1.4.1/tests/cut/example.fa
+cutadapt-1.4.1/tests/cut/sra.fastq
+cutadapt-1.4.1/tests/cut/anchored.fasta
+cutadapt-1.4.1/tests/cut/wildcard_adapter_anywhere.fa
+cutadapt-1.4.1/tests/cut/wildcard.fa
+cutadapt-1.4.1/tests/cut/restfront.fa
+cutadapt-1.4.1/tests/cut/paired.2.fastq
+cutadapt-1.4.1/tests/cut/polya.fasta
+cutadapt-1.4.1/tests/cut/anchored_no_indels_wildcard.fasta
+cutadapt-1.4.1/tests/cut/solidmaq.fastq
+cutadapt-1.4.1/tests/cut/454.fa
+cutadapt-1.4.1/tests/cut/illumina.fastq
+cutadapt-1.4.1/tests/cut/paired.m14.2.fastq
+cutadapt-1.4.1/tests/cut/twoadapters.fasta
+cutadapt-1.4.1/tests/cut/examplefront.fa
+cutadapt-1.4.1/tests/cut/overlapb.fa
+cutadapt-1.4.1/tests/cut/paired.1.fastq
+cutadapt-1.4.1/tests/cut/trimN3.fasta
+cutadapt-1.4.1/tests/cut/plus.fastq
+cutadapt-1.4.1/tests/cut/dos.fastq
+cutadapt-1.4.1/tests/cut/paired.m14.1.fastq
+cutadapt-1.4.1/tests/cut/empty.fastq
+cutadapt-1.4.1/tests/cut/no-trim.fastq
+cutadapt-1.4.1/tests/cut/solid5p-anchored.notrim.fasta
+cutadapt-1.4.1/tests/cut/maxlen.fa
+cutadapt-1.4.1/tests/cut/trimN5.fasta
+cutadapt-1.4.1/tests/cut/solidbfast.fastq
+cutadapt-1.4.1/tests/cut/discard-untrimmed.fastq
+cutadapt-1.4.1/tests/cut/stripped.fasta
+cutadapt-1.4.1/tests/cut/lowercase.fastq
+cutadapt-1.4.1/tests/cut/s_1_sequence.txt
+cutadapt-1.4.1/tests/cut/minlen.fa
+cutadapt-1.4.1/tests/cut/solid5p-anchored.fastq
+cutadapt-1.4.1/tests/cut/discard.fastq
+cutadapt-1.4.1/tests/cut/solid.fasta
+cutadapt-1.4.1/tests/cut/anchored_no_indels.fasta
+cutadapt-1.4.1/tests/cut/solid5p.fastq
+cutadapt-1.4.1/tests/cut/illumina.info.txt
+cutadapt-1.4.1/tests/cut/wildcard_adapter.fa
+cutadapt-1.4.1/tests/cut/suffix.fastq
+cutadapt-1.4.1/tests/cut/solid5p-anchored.notrim.fastq
+cutadapt-1.4.1/tests/cut/lowqual.fastq
+cutadapt-1.4.1/tests/cut/solidqual.fastq
+cutadapt-1.4.1/tests/cut/wildcardN.fa
+cutadapt-1.4.1/tests/cut/solid5p-anchored.fasta
+cutadapt-1.4.1/tests/cut/solid5p.fasta
+cutadapt-1.4.1/tests/cut/small.fastq
+cutadapt-1.4.1/tests/cut/illumina64.fastq
+cutadapt-1.4.1/tests/cut/overlapa.fa
+cutadapt-1.4.1/tests/cut/rest.fa
+cutadapt-1.4.1/tests/cut/solid.fastq
+cutadapt-1.4.1/tests/cut/issue46.fasta
+cutadapt-1.4.1/tests/testadapters.py
+cutadapt-1.4.1/tests/testseqio.py
+cutadapt-1.4.1/tests/testalign.py
+cutadapt-1.4.1/bin/
+cutadapt-1.4.1/bin/_preamble.py
+cutadapt-1.4.1/bin/cutadapt
+cutadapt-1.4.1/cutadapt/
+cutadapt-1.4.1/cutadapt/_qualtrim.pyx
+cutadapt-1.4.1/cutadapt/_seqio.pyx
+cutadapt-1.4.1/cutadapt/_align.pyx
+cutadapt-1.4.1/cutadapt/xopen.py
+cutadapt-1.4.1/cutadapt/adapters.py
+cutadapt-1.4.1/cutadapt/colorspace.py
+cutadapt-1.4.1/cutadapt/align.py
+cutadapt-1.4.1/cutadapt/_align.so
+cutadapt-1.4.1/cutadapt/seqio.py
+cutadapt-1.4.1/cutadapt/_qualtrim.c
+cutadapt-1.4.1/cutadapt/_qualtrim.so
+cutadapt-1.4.1/cutadapt/scripts/
+cutadapt-1.4.1/cutadapt/scripts/cutadapt.py
+cutadapt-1.4.1/cutadapt/scripts/__init__.py
+cutadapt-1.4.1/cutadapt/_align.c
+cutadapt-1.4.1/cutadapt/__init__.py
+cutadapt-1.4.1/cutadapt/qualtrim.py
+Executing(%build): /bin/bash -e /var/tmp/rpm-tmp.1RKUq0
+running build
+running build_py
+creating build
+creating build/lib.linux-x86_64-2.7
+creating build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/seqio.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/align.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/colorspace.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/adapters.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/qualtrim.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/__init__.py -> build/lib.linux-x86_64-2.7/cutadapt
+copying cutadapt/xopen.py -> build/lib.linux-x86_64-2.7/cutadapt
+creating build/lib.linux-x86_64-2.7/cutadapt/scripts
+copying cutadapt/scripts/cutadapt.py -> build/lib.linux-x86_64-2.7/cutadapt/scripts
+copying cutadapt/scripts/__init__.py -> build/lib.linux-x86_64-2.7/cutadapt/scripts
+running build_ext
+skipping 'cutadapt/_align.c' Cython extension (up-to-date)
+building 'cutadapt._align' extension
+creating build/temp.linux-x86_64-2.7
+creating build/temp.linux-x86_64-2.7/cutadapt
+gcc -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/include/python2.7 -c cutadapt/_align.c -o build/temp.linux-x86_64-2.7/cutadapt/_align.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cutadapt/_align.o -L/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/lib -lpython2.7 -o build/lib.linux-x86_64-2.7/cutadapt/_align.so
+skipping 'cutadapt/_qualtrim.c' Cython extension (up-to-date)
+building 'cutadapt._qualtrim' extension
+gcc -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/include/python2.7 -c cutadapt/_qualtrim.c -o build/temp.linux-x86_64-2.7/cutadapt/_qualtrim.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cutadapt/_qualtrim.o -L/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/lib -lpython2.7 -o build/lib.linux-x86_64-2.7/cutadapt/_qualtrim.so
+cythoning cutadapt/_seqio.pyx to cutadapt/_seqio.c
+building 'cutadapt._seqio' extension
+gcc -fno-strict-aliasing -g -O2 -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -I/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/include/python2.7 -c cutadapt/_seqio.c -o build/temp.linux-x86_64-2.7/cutadapt/_seqio.o
+gcc -pthread -shared build/temp.linux-x86_64-2.7/cutadapt/_seqio.o -L/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/lib -lpython2.7 -o build/lib.linux-x86_64-2.7/cutadapt/_seqio.so
+running build_scripts
+creating build/scripts-2.7
+copying and adjusting bin/cutadapt -> build/scripts-2.7
+changing mode of build/scripts-2.7/cutadapt from 700 to 755
+Executing(%install): /bin/bash -e /var/tmp/rpm-tmp.YfUOBo
+running install
+running build
+running build_py
+creating build/lib.linux-x86_64-2.6
+creating build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/seqio.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/align.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/colorspace.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/adapters.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/qualtrim.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/__init__.py -> build/lib.linux-x86_64-2.6/cutadapt
+copying cutadapt/xopen.py -> build/lib.linux-x86_64-2.6/cutadapt
+creating build/lib.linux-x86_64-2.6/cutadapt/scripts
+copying cutadapt/scripts/cutadapt.py -> build/lib.linux-x86_64-2.6/cutadapt/scripts
+copying cutadapt/scripts/__init__.py -> build/lib.linux-x86_64-2.6/cutadapt/scripts
+running build_ext
+building 'cutadapt._align' extension
+creating build/temp.linux-x86_64-2.6
+creating build/temp.linux-x86_64-2.6/cutadapt
+gcc -fno-strict-aliasing -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -DNDEBUG -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -fPIC -I/usr/include/python2.6 -c cutadapt/_align.c -o build/temp.linux-x86_64-2.6/cutadapt/_align.o
+gcc -pthread -shared build/temp.linux-x86_64-2.6/cutadapt/_align.o -L/usr/lib64 -lpython2.6 -o build/lib.linux-x86_64-2.6/cutadapt/_align.so
+building 'cutadapt._qualtrim' extension
+gcc -fno-strict-aliasing -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -DNDEBUG -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -fPIC -I/usr/include/python2.6 -c cutadapt/_qualtrim.c -o build/temp.linux-x86_64-2.6/cutadapt/_qualtrim.o
+gcc -pthread -shared build/temp.linux-x86_64-2.6/cutadapt/_qualtrim.o -L/usr/lib64 -lpython2.6 -o build/lib.linux-x86_64-2.6/cutadapt/_qualtrim.so
+building 'cutadapt._seqio' extension
+gcc -fno-strict-aliasing -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -DNDEBUG -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -D_GNU_SOURCE -fPIC -fwrapv -fPIC -I/usr/include/python2.6 -c cutadapt/_seqio.c -o build/temp.linux-x86_64-2.6/cutadapt/_seqio.o
+gcc -pthread -shared build/temp.linux-x86_64-2.6/cutadapt/_seqio.o -L/usr/lib64 -lpython2.6 -o build/lib.linux-x86_64-2.6/cutadapt/_seqio.so
+running build_scripts
+creating build/scripts-2.6
+copying and adjusting bin/cutadapt -> build/scripts-2.6
+changing mode of build/scripts-2.6/cutadapt from 700 to 755
+running install_lib
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/seqio.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/align.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/colorspace.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/_seqio.so -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/scripts
+copying build/lib.linux-x86_64-2.6/cutadapt/scripts/cutadapt.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/scripts
+copying build/lib.linux-x86_64-2.6/cutadapt/scripts/__init__.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/scripts
+copying build/lib.linux-x86_64-2.6/cutadapt/adapters.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/qualtrim.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/__init__.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/xopen.py -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/_qualtrim.so -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+copying build/lib.linux-x86_64-2.6/cutadapt/_align.so -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/seqio.py to seqio.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/align.py to align.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/colorspace.py to colorspace.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/scripts/cutadapt.py to cutadapt.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/scripts/__init__.py to __init__.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/adapters.py to adapters.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/qualtrim.py to qualtrim.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/__init__.py to __init__.pyc
+byte-compiling /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt/xopen.py to xopen.pyc
+running install_scripts
+creating /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/bin
+copying build/scripts-2.6/cutadapt -> /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/bin
+changing mode of /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/bin/cutadapt to 755
+running install_egg_info
+Writing /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64//n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/cutadapt/1.4.1-fasrc01/lib64/python2.6/site-packages/cutadapt-1.4.1-py2.6.egg-info
+Processing files: cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64
+Provides: _align.so()(64bit) _qualtrim.so()(64bit) _seqio.so()(64bit)
+Requires(interp): /bin/sh /bin/sh /bin/sh /bin/sh
+Requires(rpmlib): rpmlib(CompressedFileNames) <= 3.0.4-1 rpmlib(FileDigests) <= 4.6.0-1 rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+Requires(pre): /bin/sh
+Requires(post): /bin/sh
+Requires(preun): /bin/sh
+Requires(postun): /bin/sh
+Requires: /usr/bin/env /usr/bin/python libc.so.6()(64bit) libc.so.6(GLIBC_2.2.5)(64bit) libc.so.6(GLIBC_2.4)(64bit) libpthread.so.0()(64bit) libpython2.6.so.1.0()(64bit)
+Checking for unpackaged file(s): /usr/lib/rpm/check-files /n/home_rc/mclamp/rpmbuild/BUILDROOT/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64
+Wrote: /n/home_rc/mclamp/git/fasrcsw/rpmbuild/SRPMS/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.src.rpm
+Wrote: /n/home_rc/mclamp/git/fasrcsw/rpmbuild/RPMS/x86_64/cutadapt-1.4.1-fasrc01_gcc_4.8.2_fasrc01.x86_64.rpm
+Executing(%clean): /bin/bash -e /var/tmp/rpm-tmp.kIPnoh
+fasrcsw-rpmbuild-Core SUCCESS
+
+
+fasrcsw: building an rpm
+
+Executing(%prep): /bin/bash -e /var/tmp/rpm-tmp.Ez26Dl
+cutadapt-1.4.1/
+cutadapt-1.4.1/galaxy/
+cutadapt-1.4.1/galaxy/fastx_clipper_sequences.txt.sample
+cutadapt-1.4.1/galaxy/fabfile.py
+cutadapt-1.4.1/galaxy/test-data/
+cutadapt-1.4.1/galaxy/test-data/cutadapt_discard.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest.fa
+cutadapt-1.4.1/galaxy/test-data/cutadapt_small.fastq
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest2.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_small.out
+cutadapt-1.4.1/galaxy/test-data/cutadapt_rest.out
+cutadapt-1.4.1/galaxy/cutadapt.xml
+cutadapt-1.4.1/galaxy/tool_dependencies.xml
+cutadapt-1.4.1/galaxy/README
+cutadapt-1.4.1/README.md
+cutadapt-1.4.1/setup.py
+cutadapt-1.4.1/PKG-INFO
+cutadapt-1.4.1/tests/
+cutadapt-1.4.1/tests/data/
+cutadapt-1.4.1/tests/data/E3MFGYR02_random_10_reads_no_trim.fasta
+cutadapt-1.4.1/tests/data/example.fa
+cutadapt-1.4.1/tests/data/sra.fastq
+cutadapt-1.4.1/tests/data/anchored.fasta
+cutadapt-1.4.1/tests/data/wildcard.fa
+cutadapt-1.4.1/tests/data/multiblock.fastq.gz
+cutadapt-1.4.1/tests/data/paired.2.fastq
+cutadapt-1.4.1/tests/data/polya.fasta
+cutadapt-1.4.1/tests/data/simple.fastq
+cutadapt-1.4.1/tests/data/solid.csfasta
+cutadapt-1.4.1/tests/data/454.fa
+cutadapt-1.4.1/tests/data/small.fastq.bz2
+cutadapt-1.4.1/tests/data/small.myownextension
+cutadapt-1.4.1/tests/data/twoadapters.fasta
+cutadapt-1.4.1/tests/data/overlapb.fa
+cutadapt-1.4.1/tests/data/tooshort.fa
+cutadapt-1.4.1/tests/data/paired.1.fastq
+cutadapt-1.4.1/tests/data/trimN3.fasta
+cutadapt-1.4.1/tests/data/tooshort.noprimer.fa
+cutadapt-1.4.1/tests/data/plus.fastq
+cutadapt-1.4.1/tests/data/lengths.fa
+cutadapt-1.4.1/tests/data/dos.fastq
+cutadapt-1.4.1/tests/data/empty.fastq
+cutadapt-1.4.1/tests/data/small.fastq.gz
+cutadapt-1.4.1/tests/data/trimN5.fasta
+cutadapt-1.4.1/tests/data/simple.fasta
+cutadapt-1.4.1/tests/data/s_1_sequence.txt.gz
+cutadapt-1.4.1/tests/data/solid.fasta
+cutadapt-1.4.1/tests/data/anchored_no_indels.fasta
+cutadapt-1.4.1/tests/data/solid5p.fastq
+cutadapt-1.4.1/tests/data/wildcard_adapter.fa
+cutadapt-1.4.1/tests/data/rest.txt
+cutadapt-1.4.1/tests/data/lowqual.fastq
+cutadapt-1.4.1/tests/data/restfront.txt
+cutadapt-1.4.1/tests/data/toolong.fa
+cutadapt-1.4.1/tests/data/wildcardN.fa
+cutadapt-1.4.1/tests/data/illumina.fastq.gz
+cutadapt-1.4.1/tests/data/E3MFGYR02_random_10_reads_no_trim.qual
+cutadapt-1.4.1/tests/data/solid5p.fasta
+cutadapt-1.4.1/tests/data/solid.qual
+cutadapt-1.4.1/tests/data/small.fastq
+cutadapt-1.4.1/tests/data/illumina64.fastq
+cutadapt-1.4.1/tests/data/overlapa.fa
+cutadapt-1.4.1/tests/data/rest.fa
+cutadapt-1.4.1/tests/data/solid.fastq
+cutadapt-1.4.1/tests/data/issue46.fasta
+cutadapt-1.4.1/tests/data/withplus.fastq
+cutadapt-1.4.1/tests/testtrim.py
+cutadapt-1.4.1/tests/testargs.py
+cutadapt-1.4.1/tests/testxopen.py
+cutadapt-1.4.1/tests/testcolorspace.py
+cutadapt-1.4.1/tests/tests.py
+cutadapt-1.4.1/tests/cut/
+cutadapt-1.4.1/tests/cut/minlen.noprimer.fa
+cutadapt-1.4.1/tests/cut/example.fa
+cutadapt-1.4.1/tests/cut/sra.fastq
+cutadapt-1.4.1/tests/cut/anchored.fasta
+cutadapt-1.4.1/tests/cut/wildcard_adapter_anywhere.fa
+cutadapt-1.4.1/tests/cut/wildcard.fa
+cutadapt-1.4.1/tests/cut/restfront.fa
+cutadapt-1.4.1/tests/cut/paired.2.fastq
+cutadapt-1.4.1/tests/cut/polya.fasta
+cutadapt-1.4.1/tests/cut/anchored_no_indels_wildcard.fasta
+cutadapt-1.4.1/tests/cut/solidmaq.fastq
+cutadapt-1.4.1/tests/cut/454.fa
+cutadapt-1.4.1/tests/cut/illumina.fastq
+cutadapt-1.4.1/tests/cut/paired.m14.2.fastq
+cutadapt-1.4.1/tests/cut/twoadapters.fasta
+cutadapt-1.4.1/tests/cut/examplefront.fa
+cutadapt-1.4.1/tests/cut/overlapb.fa
+cutadapt-1.4.1/tests/cut/paired.1.fastq
+cutadapt-1.4.1/tests/cut/trimN3.fasta
+cutadapt-1.4.1/tests/cut/plus.fastq
+cutadapt-1.4.1/tests/cut/dos.fastq
+cutadapt-1.4.1/tests/cut/paired.m14.1.fastq
+cutadapt-1.4.1/tests/cut/empty.fastq
+cutadapt-1.4.1/tests/cut/no-trim.fastq
+cutadapt-1.4.1/tests/cut/solid5p-anchored.notrim.fasta
+cutadapt-1.4.1/tests/cut/maxlen.fa
+cutadapt-1.4.1/tests/cut/trimN5.fasta
+cutadapt-1.4.1/tests/cut/solidbfast.fastq
+cutadapt-1.4.1/tests/cut/discard-untrimmed.fastq
+cutadapt-1.4.1/tests/cut/stripped.fasta
+cutadapt-1.4.1/tests/cut/lowercase.fastq
+cutadapt-1.4.1/tests/cut/s_1_sequence.txt
+cutadapt-1.4.1/tests/cut/minlen.fa
+cutadapt-1.4.1/tests/cut/solid5p-anchored.fastq
+cutadapt-1.4.1/tests/cut/discard.fastq
+cutadapt-1.4.1/tests/cut/solid.fasta
+cutadapt-1.4.1/tests/cut/anchored_no_indels.fasta
+cutadapt-1.4.1/tests/cut/solid5p.fastq
+cutadapt-1.4.1/tests/cut/illumina.info.txt
+cutadapt-1.4.1/tests/cut/wildcard_adapter.fa
+cutadapt-1.4.1/tests/cut/suffix.fastq
+cutadapt-1.4.1/tests/cut/solid5p-anchored.notrim.fastq
+cutadapt-1.4.1/tests/cut/lowqual.fastq
+cutadapt-1.4.1/tests/cut/solidqual.fastq
+cutadapt-1.4.1/tests/cut/wildcardN.fa
+cutadapt-1.4.1/tests/cut/solid5p-anchored.fasta
+cutadapt-1.4.1/tests/cut/solid5p.fasta
+cutadapt-1.4.1/tests/cut/small.fastq
+cutadapt-1.4.1/tests/cut/illumina64.fastq
+cutadapt-1.4.1/tests/cut/overlapa.fa
+cutadapt-1.4.1/tests/cut/rest.fa
+cutadapt-1.4.1/tests/cut/solid.fastq
+cutadapt-1.4.1/tests/cut/issue46.fasta
+cutadapt-1.4.1/tests/testadapters.py
+cutadapt-1.4.1/tests/testseqio.py
+cutadapt-1.4.1/tests/testalign.py
+cutadapt-1.4.1/bin/
+cutadapt-1.4.1/bin/_preamble.py
+cutadapt-1.4.1/bin/cutadapt
+cutadapt-1.4.1/cutadapt/
+cutadapt-1.4.1/cutadapt/_qualtrim.pyx
+cutadapt-1.4.1/cutadapt/_seqio.pyx
+cutadapt-1.4.1/cutadapt/_align.pyx
+cutadapt-1.4.1/cutadapt/xopen.py
+cutadapt-1.4.1/cutadapt/adapters.py
+cutadapt-1.4.1/cutadapt/colorspace.py
+cutadapt-1.4.1/cutadapt/align.py
+cutadapt-1.4.1/cutadapt/_align.so
+cutadapt-1.4.1/cutadapt/seqio.py
+cutadapt-1.4.1/cutadapt/_qualtrim.c
+cutadapt-1.4.1/cutadapt/_qualtrim.so
+cutadapt-1.4.1/cutadapt/scripts/
+cutadapt-1.4.1/cutadapt/scripts/cutadapt.py
+cutadapt-1.4.1/cutadapt/scripts/__init__.py
+cutadapt-1.4.1/cutadapt/_align.c
+cutadapt-1.4.1/cutadapt/__init__.py
+cutadapt-1.4.1/cutadapt/qualtrim.py
+Executing(%build): /bin/bash -e /var/tmp/rpm-tmp.3XyKl6
+
+
+RPM build errors:
