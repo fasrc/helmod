@@ -56,17 +56,16 @@ If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the
 Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
 Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app--why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
 
-* A *Core* app is one that does not depend on a compiler or MPI implementation.  The compilers themselves, and their dependencies, are core apps, but that's about it.
-* A *Comp* app is one that depends upon compiler but not MPI implementation.  The MPI implementation apps themselves are *Comp* apps, as are almost all general, non-mpi-enabled apps.
+* A *Core* app is one that does not depend on a compiler or MPI implementation.
+* A *Comp* app is one that depends upon compiler but not MPI implementation.  It's conventional to build MPI implementation apps against multiple compilers, so The MPI apps themselves are *Comp* apps.
 * A *MPI* app is one that depends upon MPI implementation, and therefore upon compiler, too.
 
 Set `TYPE` to the string `Core`, `Comp`, or `MPI`.
+Unless you have a reason to build with the newer compilers or you need to build against MPI, just set `TYPE=Core` (see [this FAQ item](FAQ.md#should-an-average-app-be-a-core-app-or-a-comp-app) for more info).
 
 For example, to test the simple *Core* case with `amhello`: `export NAME=amhello ; export VERSION=1.0 ; export RELEASE=$USER ; export TYPE=Core`.
 Note that this breaks convention and uses `$USER` for the `RELEASE` instead of `fasrc01` -- this is to avoid people clobbering each other during a demo.
 The `amhello` example can be used to test all app types, even though the dependencies are not real.
-
-Unless you have a reason to build with the newer compilers or you need to build against MPI, just set `TYPE=Core`.
 
 
 ## Get the source code

@@ -18,8 +18,15 @@ The app classifications used by fasrcsw and the module hierarchy describe the ap
 They mainly pertain to the layout in the filesystem.
 
 An app *family* is something a bit different.
-That's used by lmod to ensure only one instance of a family is loaded at a time and that proper swapping of dependencies happens when a family instance is swapped.
+That's used by Lmod to ensure only one instance of a family is loaded at a time and that proper swapping of dependencies happens when a family instance is swapped.
 A compiler *is* part of the Comp *family*, and an MPI app *is* a part of the MPI *family*.
+
+
+### Should an average app be a Core app or a Comp app?
+
+At FASRC, we suggest using TYPE=Core unless you have a specific reason not to.
+This is different from the conventional Lmod hierarchy, where, by default, a version of the app is built for each compiler (i.e. the app would by TYPE=Comp).
+We found it's too much overhead trying to get apps to build using compilers they weren't designed to use, especially where there is no specific need for it.
 
 
 
@@ -336,7 +343,7 @@ And, earlier in the `%install` section, take out the for-loop that copies `COPYI
 
 ### What about easybuild?
 
-From a cursory look, its support of lmod appears to be minimal.
+From a cursory look, its support of Lmod appears to be minimal.
 In particular, it does not support module hierarchies.
 
 
