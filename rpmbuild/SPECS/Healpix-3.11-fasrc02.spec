@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
+%define summary_static Data Analysis, Simulations and Visualization on the Sphere
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/Software/bcl2fastq/bcl2fastq2-v2.15.0.4.tar.gz
-Source: bcl2fastq2-v2.15.0.4.tar.gz
+URL:  http://downloads.sourceforge.net/project/healpix/Healpix_3.11/Healpix_3.11_2013Apr24.tar.gz
+Source: %{name}_%{version}_2013Apr24.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
-
+Software for pixelization, hierarchical indexation, synthesis, analysis, and visualization of data on the sphere.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,10 +77,11 @@ bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them int
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf bcl2fastq  
-gunzip -c "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.gz | tar xv
-cd bcl2fastq
+rm -rf %{name}_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}_2013Apr24.tar.*
+cd %{name}_%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -101,59 +101,138 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+module load cfitsio
 
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
+%define cfitsiohome ${CFITSIO_HOME}
+%define cfitsioinclude ${CFITSIO_INCLUDE}
+%define cfitsiolib ${CFITSIO_LIB}
+%define builddir ${FASRCSW_DEV}/rpmbuild/BUILD/%{name}_%{version}
 
-# Handle TYPE=Core
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
+export healpixtarget=basic_gcc
+test "%{comp_name}" == "intel" && healpixtarget=linux_icc
 
-export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
-export BOOST_ROOT=$BOOST_HOME
+test -z $CC && CC=gcc
+test -z $FC && FC=gfortran
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 
-# Patch the bcl2fastq redist macros cmake file
-cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
-33a34
->        set(\${\${libname}_UPPER}_FOUND "TRUE")
+cat > Makefile.patch <<EOF
+7,11c7,11
+< ALL       = c-void cpp-void f90-void healpy-void 
+< TESTS     = c-void cpp-void f90-void healpy-void 
+< CLEAN     = c-void cpp-void f90-void healpy-void 
+< TIDY      = c-void cpp-void f90-void healpy-void 
+< DISTCLEAN = c-void cpp-void f90-void healpy-void 
+---
+> ALL       = c-all cpp-void f90-all healpy-void 
+> TESTS     = c-test cpp-void f90-test healpy-void 
+> CLEAN     = c-clean cpp-void f90-clean healpy-void 
+> TIDY      = c-tidy cpp-void f90-tidy healpy-void 
+> DISTCLEAN = c-distclean cpp-void f90-distclean healpy-void 
+16,21c16,21
+< HEALPIX=
+< F90_BINDIR	=
+< F90_INCDIR	=
+< F90_LIBDIR	=
+< FITSDIR	= 
+< LIBFITS	= 
+---
+> HEALPIX   = %builddir
+> F90_BINDIR    =  %builddir/bin
+> F90_INCDIR    =  %builddir/include
+> F90_LIBDIR    =  %builddir/lib
+> FITSDIR   = $CFITSIO_LIB
+> LIBFITS   = cfitsio
+23,24c23,24
+< F90_FFTSRC  = 
+< F90_ADDUS   = 
+---
+> F90_FFTSRC    = healpix_fft
+> F90_ADDUS =  
+28,35c28,35
+< F90_FC	= 
+< F90_FFLAGS	= 
+< F90_CC	= 
+< F90_CFLAGS	= 
+< F90_LDFLAGS	=
+< F90_AR      = 
+< F90_PPFLAGS =
+< F90_I8FLAG  = 
+---
+> F90_FC    = $FC
+> F90_FFLAGS    = -O3 -I\$(F90_INCDIR) -DGFORTRAN -fno-second-underscore -fopenmp -fPIC
+> F90_CC    = $CC
+> F90_CFLAGS    = -O3 -std=c99 -DgFortran -fopenmp -fPIC
+> F90_LDFLAGS   = -L\$(F90_LIBDIR) -L\$(FITSDIR) -lhealpix -lhpxgif -l\$(LIBFITS) -Wl,-R\$(FITSDIR)
+> F90_AR        = ar -rsv
+> F90_PPFLAGS   = 
+> F90_I8FLAG  = -fdefault-integer-8
+37,38c37,38
+< F90_PGFLAG  =
+< F90_PGLIBS  =
+---
+> F90_PGFLAG  = 
+> F90_PGLIBS  = 
+40c40
+< F90_MOD	=
+---
+> F90_MOD   = mod
+42c42
+< F90_OS	=
+---
+> F90_OS    = Linux
+54,56c54,56
+< C_CC  = 
+< C_PIC = 
+< C_OPT = 
+---
+> C_CC        = $CC
+> C_PIC       = -fPIC
+> C_OPT       = -O2 -Wall
+59,61c59,61
+< C_LIBDIR = 
+< C_INCDIR = 
+< C_AR     = 
+---
+> C_LIBDIR      = %builddir/lib
+> C_INCDIR      = %builddir/include
+> C_AR        = ar -rsv
+64,66c64,66
+< C_CFITSIO_INCDIR = 
+< C_CFITSIO_LIBDIR = 
+< C_WLRPATH = 
+---
+> C_CFITSIO_INCDIR = $CFITSIO_INCLUDE
+> C_CFITSIO_LIBDIR = $CFITSIO_LIB
+> C_WLRPATH = -Wl,-R${CFITSIO_LIB}
+69c69
+< C_ALL =
+---
+> C_ALL     = c-static
+76c76
+< HEALPIX_TARGET =
+---
+> HEALPIX_TARGET = %healpixtarget
+78,79c78,79
+< CFITSIO_EXT_LIB=
+< CFITSIO_EXT_INC=
+---
+> CFITSIO_EXT_LIB = -L%cfitsiolib -lcfitsio
+> CFITSIO_EXT_INC = -I%cfitsioinclude
 EOF
 
-# Patch the cxxConfigure cmake file
-cat <<EOF | patch src/cmake/cxxConfigure.cmake
-110c110,116
-< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
->   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
->   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
->   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
-> endif(LIBXML2_FOUND)
-> 
-> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
-117c123
-< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> endif(NOT LIBXML2_FOUND)
-EOF
+patch -o Makefile Makefile.in Makefile.patch
 
+#Fix screwed up Makefile
+sed -i -e 's?@cp -p libsharp_healpix_f.a $(LIBDIR)/?@cp -p libsharp_healpix_f.a $(LIBDIR)?' src/f90/sharp/Makefile
 
-# Create the build directory if it isn't here
-test -d build && rm -rf build
-mkdir build
-cd build
+#Create include, bin, and lib dirs
+for d in %builddir/lib %builddir/include %builddir/bin
+do
+    mkdir -p $d || echo "Directory $d exists"
+done
 
-../src/configure --prefix=%{_prefix}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
 make
 
 
@@ -184,12 +263,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
-make install DESTDIR=%{buildroot}
-
+cp -r {bin,include,lib}  %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -268,13 +345,19 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
+	if not isloaded("cfitsio") then
+		load("cfitsio/3360-fasrc02")
 	end
 end
 
 ---- environment changes (uncomment what's relevant)
+setenv("HEALPIX_HOME",              "%{_prefix}")
+setenv("HEALPIX_INCLUDE",           "%{_prefix}/include")
+setenv("HEALPIX_LIB",               "%{_prefix}/lib")
 prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
+%define summary_static FreeFem++ is a partial differential equation solver.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/Software/bcl2fastq/bcl2fastq2-v2.15.0.4.tar.gz
-Source: bcl2fastq2-v2.15.0.4.tar.gz
+URL: http://www.freefem.org/ff++/ftp/freefem++-3.31-2.tar.gz
+Source: %{name}-3.31-2.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
-
+FreeFem++ is a partial differential equation solver. It has its own language. freefem scripts can solve multiphysics non linear systems in 2D and 3D.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,10 +77,11 @@ bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them int
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf bcl2fastq  
-gunzip -c "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.gz | tar xv
-cd bcl2fastq
+rm -rf %{name}-3.31-2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-3.31-2.tar.*
+cd %{name}-3.31-2
 chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -101,59 +101,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
-
-# Handle TYPE=Core
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
-
-export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
-export BOOST_ROOT=$BOOST_HOME
+module load gsl
+module load fftw
+module load SuiteSparse/3.7.1-fasrc01
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.31-2
 
-# Patch the bcl2fastq redist macros cmake file
-cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
-33a34
->        set(\${\${libname}_UPPER}_FOUND "TRUE")
-EOF
+test -z $CC && export CC=gcc
+test -z $CXX && export CXX=g++
 
-# Patch the cxxConfigure cmake file
-cat <<EOF | patch src/cmake/cxxConfigure.cmake
-110c110,116
-< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
->   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
->   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
->   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
-> endif(LIBXML2_FOUND)
-> 
-> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
-117c123
-< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> endif(NOT LIBXML2_FOUND)
-EOF
+CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
+CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
+export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
 
+./configure --prefix=%{_prefix} \
+    --enable-download \
+    --disable-parms
 
-# Create the build directory if it isn't here
-test -d build && rm -rf build
-mkdir build
-cd build
-
-../src/configure --prefix=%{_prefix}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
 make
 
 
@@ -184,10 +149,9 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.31-2
+echo %{buildroot} | grep -q %{name}-3.31-2 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
 make install DESTDIR=%{buildroot}
 
 
@@ -268,13 +232,22 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
+	if not isloaded("gsl") then
+		load("gsl/1.16-fasrc02")
 	end
 end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("FREEFEM_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/lib/ff++/3.31-2/bin")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib/ff++/3.31-2/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ff++/3.31-2/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/ff++/3.31-2/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/ff++/3.31-2/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/ff++/3.31-2/lib/pkgconfig")
 EOF
 
 

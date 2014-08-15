@@ -26,19 +26,22 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static GNU Scientific Library is numerical library for C and C++ programmers.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/Software/bcl2fastq/bcl2fastq2-v2.15.0.4.tar.gz
-Source: bcl2fastq2-v2.15.0.4.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+#http://...FIXME...
+Source: http://gnu.mirrors.hoobly.com/gnu/gsl/gsl-1.16.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,11 +59,35 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
+The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers. It is free software under the GNU General Public License.
+
+The library provides a wide range of mathematical routines such as random number generators, special functions and least-squares fitting. There are over 1000 functions in total with an extensive test suite.
+
+The complete range of subject areas covered by the library includes,
+Complex Numbers 	Roots of Polynomials
+Special Functions 	Vectors and Matrices
+Permutations 	Sorting
+BLAS Support 	Linear Algebra
+Eigensystems 	Fast Fourier Transforms
+Quadrature 	Random Numbers
+Quasi-Random Sequences 	Random Distributions
+Statistics 	Histograms
+N-Tuples 	Monte Carlo Integration
+Simulated Annealing 	Differential Equations
+Interpolation 	Numerical Differentiation
+Chebyshev Approximation 	Series Acceleration
+Discrete Hankel Transforms 	Root-Finding
+Minimization 	Least-Squares Fitting
+Physical Constants 	IEEE Floating-Point
+Discrete Wavelet Transforms 	Basis splines
+
+Unlike the licenses of proprietary numerical libraries the license of GSL does not restrict scientific cooperation. It allows you to share your programs freely with others.
 
 
 
@@ -68,92 +95,35 @@ bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them int
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf bcl2fastq  
-gunzip -c "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.gz | tar xv
-cd bcl2fastq
-chmod -Rf a+rX,u+w,g-w,o-w .
+%setup
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
-
-# Handle TYPE=Core
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
-
-export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
-export BOOST_ROOT=$BOOST_HOME
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
-
-# Patch the bcl2fastq redist macros cmake file
-cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
-33a34
->        set(\${\${libname}_UPPER}_FOUND "TRUE")
-EOF
-
-# Patch the cxxConfigure cmake file
-cat <<EOF | patch src/cmake/cxxConfigure.cmake
-110c110,116
-< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
->   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
->   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
->   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
-> endif(LIBXML2_FOUND)
-> 
-> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
-117c123
-< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> endif(NOT LIBXML2_FOUND)
-EOF
-
-
-# Create the build directory if it isn't here
-test -d build && rm -rf build
-mkdir build
-cd build
-
-../src/configure --prefix=%{_prefix}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+%configure
 make
 
 
@@ -162,44 +132,26 @@ make
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
-mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
-make install DESTDIR=%{buildroot}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
 
+%makeinstall
 
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -216,14 +168,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -237,13 +181,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -253,8 +193,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -266,15 +204,17 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
-	end
-end
-
 ---- environment changes (uncomment what's relevant)
+setenv("GSL_HOME",                  "%{_prefix}")
+setenv("GSL_INCLUDE",               "%{_prefix}/include")
+setenv("GSL_LIB",                   "%{_prefix}/lib64")
 prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
 EOF
 
 

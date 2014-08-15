@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
+%define summary_static SuiteSparse is a meta-package of sparse matrix packages.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/Software/bcl2fastq/bcl2fastq2-v2.15.0.4.tar.gz
-Source: bcl2fastq2-v2.15.0.4.tar.gz
+URL: http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-4.2.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
+A package of sparse matrix packages including AMD: symmetric approximate minimum degree,BTF: permutation to block triangular form, CAMD: symmetric approximate minimum degree, CCOLAMD: constrained column approximate minimum degree, COLAMD: column approximate minimum degree, CHOLMOD: sparse supernodal Cholesky factorization and update/downdate, CSparse: a concise sparse matrix package, CXSparse: an extended version of CSparse, KLU: sparse LU factorization, for circuit simulation, LDL: a simple LDL^T factorization, UMFPACK: sparse multifrontal LU factorization, RBio: MATLAB toolbox for reading/writing sparse matrices, UFconfig: common configuration for all but CSparse, SuiteSparseQR: multifrontal sparse QR
 
 
 
@@ -78,10 +78,11 @@ bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them int
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf bcl2fastq  
-gunzip -c "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.gz | tar xv
-cd bcl2fastq
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -103,54 +104,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
-
-# Handle TYPE=Core
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
-
-export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
-export BOOST_ROOT=$BOOST_HOME
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-# Patch the bcl2fastq redist macros cmake file
-cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
-33a34
->        set(\${\${libname}_UPPER}_FOUND "TRUE")
-EOF
-
-# Patch the cxxConfigure cmake file
-cat <<EOF | patch src/cmake/cxxConfigure.cmake
-110c110,116
-< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
->   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
->   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
->   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
-> endif(LIBXML2_FOUND)
-> 
-> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
-117c123
-< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> endif(NOT LIBXML2_FOUND)
-EOF
-
-
-# Create the build directory if it isn't here
-test -d build && rm -rf build
-mkdir build
-cd build
-
-../src/configure --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -184,11 +140,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -267,14 +222,53 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("SUITESPARSE_HOME",              "%{_prefix}")
+setenv("AMD_HOME",                      "%{_prefix}/AMD")
+setenv("AMD_INCLUDE",                   "%{_prefix}/AMD/Include")
+setenv("AMD_LIB",                       "%{_prefix}/AMD/Lib")
+setenv("BTF_HOME",                      "%{_prefix}/BTF")
+setenv("BTF_INCLUDE",                   "%{_prefix}/BTF/Include")
+setenv("BTF_LIB",                       "%{_prefix}/BTF/Lib")
+setenv("CAMD_HOME",                      "%{_prefix}/CAMD")
+setenv("CAMD_INCLUDE",                   "%{_prefix}/CAMD/Include")
+setenv("CAMD_LIB",                       "%{_prefix}/CAMD/Lib")
+setenv("CCOLAMD_HOME",                      "%{_prefix}/CCOLAMD")
+setenv("CCOLAMD_INCLUDE",                   "%{_prefix}/CCOLAMD/Include")
+setenv("CCOLAMD_LIB",                       "%{_prefix}/CCOLAMD/Lib")
+setenv("CHOLMOD_HOME",                      "%{_prefix}/CHOLMOD")
+setenv("CHOLMOD_INCLUDE",                   "%{_prefix}/CHOLMOD/Include")
+setenv("CHOLMOD_LIB",                       "%{_prefix}/CHOLMOD/Lib")
+setenv("COLAMD_HOME",                      "%{_prefix}/COLAMD")
+setenv("COLAMD_INCLUDE",                   "%{_prefix}/COLAMD/Include")
+setenv("COLAMD_LIB",                       "%{_prefix}/COLAMD/Lib")
+setenv("CSPARSE_HOME",                      "%{_prefix}/CSparse")
+setenv("CSPARSE_INCLUDE",                   "%{_prefix}/CSparse/Include")
+setenv("CSPARSE_LIB",                       "%{_prefix}/CSparse/Lib")
+setenv("CXSPARSE_HOME",                      "%{_prefix}/CXSparse")
+setenv("CXSPARSE_INCLUDE",                   "%{_prefix}/CXSparse/Include")
+setenv("CXSPARSE_LIB",                       "%{_prefix}/CXSparse/Lib")
+setenv("KLU_HOME",                      "%{_prefix}/KLU")
+setenv("KLU_INCLUDE",                   "%{_prefix}/KLU/Include")
+setenv("KLU_LIB",                       "%{_prefix}/KLU/Lib")
+setenv("LDL_HOME",                      "%{_prefix}/LDL")
+setenv("LDL_INCLUDE",                   "%{_prefix}/LDL/Include")
+setenv("LDL_LIB",                       "%{_prefix}/LDL/Lib")
+setenv("RBIO_HOME",                      "%{_prefix}/RBio")
+setenv("RBIO_INCLUDE",                   "%{_prefix}/RBio/Include")
+setenv("RBIO_LIB",                       "%{_prefix}/RBio/Lib")
+setenv("SPQR_HOME",                      "%{_prefix}/SPQR")
+setenv("SPQR_INCLUDE",                   "%{_prefix}/SPQR/Include")
+setenv("SPQR_LIB",                       "%{_prefix}/SPQR/Lib")
+setenv("UMFPACK_HOME",                      "%{_prefix}/UMFPACK")
+setenv("UMFPACK_INCLUDE",                   "%{_prefix}/UMFPACK/Include")
+setenv("UMFPACK_LIB",                       "%{_prefix}/UMFPACK/Lib")
 EOF
 
 

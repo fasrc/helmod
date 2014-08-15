@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
+%define summary_static Scientific image processing suite with a primary focus on processing data from transmission electron microscopes
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/Software/bcl2fastq/bcl2fastq2-v2.15.0.4.tar.gz
-Source: bcl2fastq2-v2.15.0.4.tar.gz
+URL: http://ncmi.bcm.edu/ncmi/software/counter_222/software_128/manage_addProduct/NCMI/attendee_factory?myname=eman2.1beta4.source.tar.gz
+Source: %{name}.%{version}.source.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
-
+EMAN2 is the successor to EMAN1. It is a broadly based greyscale scientific image processing suite with a primary focus on processing data from transmission electron microscopes. EMAN's original purpose was performing single particle reconstructions (3-D volumetric models from 2-D cryo-EM images) at the highest possible resolution, but the suite now also offers support for single particle cryo-ET, and tools useful in many other subdisciplines such as helical reconstruction, 2-D crystallography and whole-cell tomography. EMAN2 is capable of processing very large data sets (>100,000 particle) very efficiently (up to 20x faster than EMAN1).
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,12 +77,10 @@ bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them int
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf bcl2fastq  
-gunzip -c "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.gz | tar xv
-cd bcl2fastq
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
+rm -rf EMAN2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.%{version}.source.tar.*
+cd EMAN2
+chmod -Rf a+rX,u+w,g-w,o-w .  
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -101,60 +98,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+module load python/2.7.6-fasrc01
+export PYTHON_ROOT=$PYTHON_HOME
+export PYTHON_VERSION=2.7.6
 
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
+module load fftw
+export FFTW3DIR=$FFTW_HOME
 
-# Handle TYPE=Core
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
+module load gsl
+export GSLDIR=$GSL_HOME
 
-export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
-export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
-export BOOST_ROOT=$BOOST_HOME
+module load hdf5
+export HDF5DIR=$HDF5_HOME
+
+module load ftgl
+export FTGLDIR=$FTGL_HOME
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/EMAN2/src
 
-# Patch the bcl2fastq redist macros cmake file
-cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
-33a34
->        set(\${\${libname}_UPPER}_FOUND "TRUE")
-EOF
-
-# Patch the cxxConfigure cmake file
-cat <<EOF | patch src/cmake/cxxConfigure.cmake
-110c110,116
-< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
->   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
->   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
->   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
-> endif(LIBXML2_FOUND)
-> 
-> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
-117c123
-< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
----
-> endif(NOT LIBXML2_FOUND)
-EOF
-
-
-# Create the build directory if it isn't here
 test -d build && rm -rf build
+
 mkdir build
 cd build
 
-../src/configure --prefix=%{_prefix}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+cmake ../eman2 -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix}
+make -j 4
 
 
 
@@ -184,11 +153,15 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
-mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
-make install DESTDIR=%{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/EMAN2/src/build
+echo %{buildroot} | grep -q EMAN2 && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/lib
+mkdir -p %{buildroot}/%{_prefix}/include
+make install
+cp -r $HOME/EMAN2/{bin,lib,include} %{buildroot}/%{_prefix}
+
+
 
 
 #(this should not need to be changed)
@@ -268,13 +241,29 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
+	if not isloaded("python") then
+		load("python/2.7.6-fasrc01")
+	end
+	if not isloaded("fftw") then
+		load("fftw/3.3.4-fasrc04")
+	end
+	if not isloaded("gsl") then
+		load("gsl/1.16-fasrc02")
+	end
+	if not isloaded("hdf5") then
+		load("hdf5/1.8.12-fasrc03")
+	end
+	if not isloaded("ftgl") then
+		load("ftgl/2.1.3rc5-fasrc01")
 	end
 end
 
 ---- environment changes (uncomment what's relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("PYTHONPATH",          "%{_prefix}/lib")
 EOF
 
 
