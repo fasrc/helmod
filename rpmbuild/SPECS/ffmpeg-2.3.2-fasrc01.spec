@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A standalone library of the Fraunhofer FDK AAC code from Android.
+%define summary_static FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/mstorsjo/fdk-aac/archive/v0.1.3.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://ffmpeg.org/releases/ffmpeg-2.3.3.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A standalone library of the Fraunhofer FDK AAC code from Android.
+The FFmpeg project tries to provide the best technically possible solution for developers of applications and end users alike. To achieve this we combine the best free software options available. We slightly favor our own code to keep the dependencies on other libs low and to maximize code sharing between parts of FFmpeg. Wherever the question of "best" cannot be answered we support both options so the end user can choose.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -101,29 +101,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+module load xvidcore
+module load libtheora
+module load yasm
+module load opus
+module load fdk-aac
+module load lame
+module load x264
+module load faac
+module load libvpx
+module load opencore-amr
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-./autogen.sh
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+
+./configure --enable-shared --enable-gpl --enable-libass --enable-libfdk-aac --enable-libopus --enable-libfaac --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-nonfree --enable-postproc --enable-version3 --enable-x11grab --enable-libvpx --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make -j 4
 
 
 
@@ -235,22 +231,47 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("xvidcore") then
+		load("xvidcore/1.3.3-fasrc01")
+	end
+	if not isloaded("libtheora") then
+		load("libtheora/1.1.1-fasrc01")
+	end
+	if not isloaded("opus") then
+		load("opus/1.0.3-fasrc01")
+	end
+	if not isloaded("fdk-aac") then
+		load("fdk-aac/0.1.3-fasrc01")
+	end
+	if not isloaded("lame") then
+		load("lame/3.99.5-fasrc01")
+	end
+	if not isloaded("x264") then
+		load("x264/20140814-fasrc01")
+	end
+	if not isloaded("faac") then
+		load("faac/1.28-fasrc01")
+	end
+	if not isloaded("libvpx") then
+		load("libvpx/v1.3.0-fasrc01")
+	end
+	if not isloaded("opencore-amr") then
+		load("opencore-amr/0.1.3-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
-setenv("FDKAAC_HOME",              "%{_prefix}")
-setenv("FDKAAC_INCLUDE",           "%{_prefix}/include")
-setenv("FDKAAC_LIB",               "%{_prefix}/lib64")
+setenv("FFMPEG_HOME",              "%{_prefix}")
+setenv("FFMPEG_LIB",               "%{_prefix}/lib")
+setenv("FFMPEG_INCLUDE",           "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A standalone library of the Fraunhofer FDK AAC code from Android.
+%define summary_static Opus is a totally open, royalty-free, highly versatile audio codec.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/mstorsjo/fdk-aac/archive/v0.1.3.tar.gz
+URL: http://downloads.xiph.org/releases/opus/opus-1.0.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A standalone library of the Fraunhofer FDK AAC code from Android.
+Opus is unmatched for interactive speech and music transmission over the Internet, but is also intended for storage and streaming applications. It is standardized by the Internet Engineering Task Force (IETF) as RFC 6716 which incorporated technology from Skype's SILK codec and Xiph.Org's CELT codec.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,7 +105,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-./autogen.sh
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -119,7 +119,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+	--infodir=%{_prefix}/share/info 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -242,14 +242,14 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("FDKAAC_HOME",              "%{_prefix}")
-setenv("FDKAAC_INCLUDE",           "%{_prefix}/include")
-setenv("FDKAAC_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("OPUS_HOME",                "%{_prefix}")
+setenv("OPUS_INCLUDE",             "%{_prefix}/include")
+setenv("OPUS_LIB",                 "%{_prefix}/lib64")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 

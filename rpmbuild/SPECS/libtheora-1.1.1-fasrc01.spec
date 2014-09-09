@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A standalone library of the Fraunhofer FDK AAC code from Android.
+%define summary_static Theora is a free and open video compression format from the Xiph.org Foundation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/mstorsjo/fdk-aac/archive/v0.1.3.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A standalone library of the Fraunhofer FDK AAC code from Android.
+Theora scales from postage stamp to HD resolution, and is considered particularly competitive at low bitrates. It is in the same class as MPEG-4/DiVX, and like the Vorbis audio codec it has lots of room for improvement as encoder technology develops.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,7 +105,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-./autogen.sh
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -242,10 +242,9 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("FDKAAC_HOME",              "%{_prefix}")
-setenv("FDKAAC_INCLUDE",           "%{_prefix}/include")
-setenv("FDKAAC_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("LIBTHEORA_HOME",           "%{_prefix}")
+setenv("LIBTHEORA_INCLUDE",        "%{_prefix}/include")
+setenv("LIBTHEORA_LIB",            "%{_prefix}/lib64")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")

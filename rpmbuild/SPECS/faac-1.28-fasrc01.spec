@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A standalone library of the Fraunhofer FDK AAC code from Android.
+%define summary_static FAAC is an MPEG-4 and MPEG-2 AAC encoder.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/mstorsjo/fdk-aac/archive/v0.1.3.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.sourceforge.net/faac/faac-1.28.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A standalone library of the Fraunhofer FDK AAC code from Android.
+FAAC is based on the original ISO MPEG reference code.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,7 +105,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-./autogen.sh
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -123,6 +123,16 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
+cat <<EOF | patch common/mp4v2/mpeg4ip.h
+123,129d122
+< #ifdef __cplusplus
+< extern "C" {
+< #endif
+< char *strcasestr(const char *haystack, const char *needle);
+< #ifdef __cplusplus
+< }
+< #endif
+EOF
 make
 
 
@@ -242,15 +252,15 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("FDKAAC_HOME",              "%{_prefix}")
-setenv("FDKAAC_INCLUDE",           "%{_prefix}/include")
-setenv("FDKAAC_LIB",               "%{_prefix}/lib64")
+setenv("FAAC_HOME",                "%{_prefix}")
+setenv("FAAC_LIB",                 "%{_prefix}/lib64")
+setenv("FAAC_INCLUDE",             "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 

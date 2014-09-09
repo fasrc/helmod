@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A standalone library of the Fraunhofer FDK AAC code from Android.
+%define summary_static Audio codecs extracted from Android Open Source Project
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/mstorsjo/fdk-aac/archive/v0.1.3.tar.gz
+URL: http://downloads.sourceforge.net/project/opencore-amr/opencore-amr/opencore-amr-0.1.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A standalone library of the Fraunhofer FDK AAC code from Android.
-
+Library of OpenCORE Framework implementation of Adaptive Multi Rate Narrowband and Wideband (AMR-NB and AMR-WB) speech codec. Library of VisualOn implementation of Adaptive Multi Rate Wideband (AMR-WB) encoder and Advanced Audio Coding (AAC) encoder. Modified library of Fraunhofer AAC decoder and encoder.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -105,7 +104,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-./autogen.sh
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -242,10 +241,9 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("FDKAAC_HOME",              "%{_prefix}")
-setenv("FDKAAC_INCLUDE",           "%{_prefix}/include")
-setenv("FDKAAC_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("OPENCOREAMR_HOME",         "%{_prefix}")
+setenv("OPENCOREAMR_INCLUDE",      "%{_prefix}/include")
+setenv("OPENCOREAMR_LIB",          "%{_prefix}/lib64")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
