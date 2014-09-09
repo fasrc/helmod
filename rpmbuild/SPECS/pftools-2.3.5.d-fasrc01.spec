@@ -30,16 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static The pftools package contains programs for profile searches and programs for profile construction.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+URL: ftp://lausanne.isb-sib.ch/pub/software/unix/pftools/pft2.3/pft2.3.5.d.tar.gz
+Source: pft%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -61,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+The pftools package contains programs for profile searches and programs for profile construction.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +77,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+rm -rf pftools
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/pft%{version}.tar.*
+cd pftools
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -102,13 +101,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
-module load mpc
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/pftools
 
-python INSTALL.py imetamos
+sed -i -e 's?^F77.*??' \
+       -e 's?^CC.*??' Makefile
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -138,10 +141,27 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/pftools
+echo %{buildroot} | grep -q pft-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/man/man1
+mkdir -p %{buildroot}/%{_prefix}/man/man5
+
+pkgFiles="CVPBR322 GTPA_HUMAN MYSA_HUMAN coils.prf pam220.cmp score.lis ecp.prf pam250.cmp sh3.gpr \
+R76849.seq gonnet.cmp pam30.cmp sh3.msf blosum100.cmp pam40.cmp sh3.prf \
+blosum30.cmp pam400.cmp sh3.seq blosum45.cmp pam80.cmp standard.random blosum50.cmp pfam_sh3.hmm test.out \
+blosum62.cmp pam120.cmp test.sh blosum65.cmp pam160.cmp profile.txt blosum80.cmp pam200.cmp \
+README prosite13.prf"
+
+binFiles="gtop pfmake pfscan pfw ptoh htop pfscale pfsearch psa2msa 2ft 6ft ptof"
+manFiles="gtop.1 pfmake.1 pfscan.1 pfw.1 ptoh.1 htop.1 pfscale.1 pfsearch.1 psa2msa.1 2ft.1 6ft.1 ptof.1"
+man5Files="psa.5 xpsa.5"
+
+cp $pkgFiles %{buildroot}/%{_prefix}
+cp $binFiles %{buildroot}/%{_prefix}/bin
+cd man
+cp $manFiles %{buildroot}/%{_prefix}/man/man1
+cp $man5Files %{buildroot}/%{_prefix}/man/man5
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -219,15 +239,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("PFTOOLS_HOME",              "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("MANPATH",             "%{_prefix}/man")
 EOF
 
 

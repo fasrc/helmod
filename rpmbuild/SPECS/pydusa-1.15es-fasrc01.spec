@@ -30,16 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static MPI add on for EMAN2
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+# This is a form that needs to be filled out
+URL: http://ncmi.bcm.edu/ncmi/software/counter_222/software_121/manage_addProduct/NCMI/attendee_factory?myname=pydusa-1.15es.tgz
+Source: %{name}-%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -61,7 +61,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+MPI add on for EMAN2
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +78,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tgz
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -103,12 +103,36 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 module load python
-module load mpc
+
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-python INSTALL.py imetamos
+# Fix the Makefile so DESTDIR is supported 
+rm Makefile.in
+sed -i -e 's?${prefix}?${DESTDIR}${prefix}?g' Makefile.am
+
+# Remove the Numerical reference from configure.ac
+rm configure
+cat <<EOF | patch configure.ac
+54,58d53
+< py_com=\`\${py_path} -c "import Numeric"\`
+< if test "\$?" != "0"; then
+<         AC_MSG_ERROR([python module Numeric is not installed])
+< fi
+< 
+EOF
+
+touch {NEWS,README,AUTHORS,ChangeLog}
+aclocal
+automake
+autoconf
+
+./configure --prefix=%{_prefix} 
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -138,10 +162,11 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -219,15 +244,28 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("PYDUSA_HOME",                 "%{_prefix}")
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

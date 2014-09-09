@@ -30,16 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static OpenMM is a toolkit for molecular simulation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
+# Requires account
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+URL: https://simtk.org/frs/download.php?file_id=4026
+Source: %{name}%{version}-Source.zip
 
 #
 # there should be no need to change the following
@@ -61,7 +61,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+OpenMM is a toolkit for molecular simulation. It can be used either as a stand-alone application for running simulations, or as a library you call from your own code. It provides a combination of extreme flexibility (through custom forces and integrators), openness, and high performance (especially on recent GPUs) that make it truly unique among simulation codes
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +78,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+rm -rf %{name}%{version}-Source
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}-Source.zip
+cd %{name}%{version}-Source
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -101,14 +101,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # 
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##make sure to add them to modulefile.lua below, too!  
+module load cmake
 module load python
-module load mpc
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
 
-python INSTALL.py imetamos
+test -d build || mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make -j 4
 
 
 
@@ -138,10 +144,16 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
+echo %{buildroot} | grep -q %{name}%{version}-Source && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/python
+cd build
+make DESTDIR=%{buildroot} install
+pwd
+ls -l
+cd python
+cp -r simtk %{buildroot}%{_prefix}/python
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -219,15 +231,22 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("OPENMM_HOME",              "%{_prefix}")
+setenv("OPENMM_LIB",               "%{_prefix}/lib")
+setenv("OPENMM_INCLUDE",           "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/python")
 EOF
 
 

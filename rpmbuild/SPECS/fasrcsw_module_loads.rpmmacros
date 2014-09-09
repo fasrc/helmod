@@ -1,6 +1,6 @@
 #--- this requires fasrcsw_defines.rpmmacros
 
-source /etc/profile.d/modules.sh
+source /usr/local/bin/lmod.sh
 
 %if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
 	module load %{comp_name}/%{comp_version}-%{comp_release}

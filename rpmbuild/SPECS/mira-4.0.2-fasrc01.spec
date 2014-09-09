@@ -30,16 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static MIRA is a multi-pass DNA sequence data assembler/mapper for whole genome and EST/RNASeq projects
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+URL: http://sourceforge.net/projects/mira-assembler/files/latest/download
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -61,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+Sequence assembler and sequence mapping for whole genome shotgun and EST / RNASeq sequencing data. Can use Sanger, 454, Illumina and IonTorrent data. PacBio: CCS and error corrected data usable, uncorrected not yet.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +77,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
+rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -102,13 +101,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
-module load mpc
+module load expat
+module load boost/1.54.0-fasrc01
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-python INSTALL.py imetamos
+./configure --prefix=%{_prefix} --with-boost=$BOOST_HOME
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -138,10 +141,11 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -220,14 +224,14 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
+	if not isloaded("boost/1.54.0-fasrc01") then
+		load("boost/1.54.0-fasrc01")
 	end
 end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("MIRA_HOME",                "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 

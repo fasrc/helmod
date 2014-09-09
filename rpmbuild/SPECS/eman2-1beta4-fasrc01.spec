@@ -259,6 +259,7 @@ if mode()=="load" then
 end
 
 ---- environment changes (uncomment what's relevant)
+setenv("EMAN2_HOME",                "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")

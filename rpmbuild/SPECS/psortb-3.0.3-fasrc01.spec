@@ -30,16 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static Psort Perl code
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+URL: http://www.psort.org/download/bio-tools-psort-all.3.0.3.tar.gz
+Source:  bio-tools-psort-all.3.0.3.tar.gz 
 
 #
 # there should be no need to change the following
@@ -61,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+Psortb Perl tools
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +77,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+rm -rf bio-tools-psort-all
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/bio-tools-psort-all.3.0.3.tar.gz
+cd bio-tools-psort-all
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -102,13 +101,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
-module load mpc
+module load perl-modules
+module load ncbi-blast/2.2.26-fasrc01
+module load pftools/2.3.5.d-fasrc01
+module load libpsortb/1.0-fasrc01 
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bio-tools-psort-all
+perl Makefile.PL PREFIX=%{_prefix}
 
-python INSTALL.py imetamos
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -138,10 +142,19 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bio-tools-psort-all
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+module load perl-modules
+make install DESTDIR=%{buildroot}
+
+for bin in psort/bin/psort.tmpt psort/bin/psort psort/bin/check-sig psort/server/rpc/classify.xpl psort/server/www/results.pl psort/server/startup.pl psort/conf/analysis/signal/gramneg/check-sig psort/conf/analysis/signal/grampos/check-sig psort/conf/analysis/signal/archaea/check-sig t/sclblast.pl
+do
+    sed -i -e 's?/usr/bin/perl?/usr/bin/env perl?' $bin
+done
+
+cp -r psort/* %{buildroot}%{_prefix}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -220,14 +233,27 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
+	if not isloaded("perl-modules") then
+		load("perl-modules/5.10.1-fasrc04")
 	end
+	if not isloaded("ncbi-blast/2.2.26-fasrc01") then
+		load("ncbi-blast/2.2.26-fasrc01")
+	end
+    if not isloaded("pftools/2.3.5.d-fasrc01") then
+        load("pftools/2.3.5.d-fasrc01")
+    end
+    if not isloaded("libpsortb/1.0-fasrc01") then
+        load("libpsortb/1.0-fasrc01")
+    end
 end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("PSORTB_HOME",              "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1/x86_64-linux")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/man")
 EOF
 
 

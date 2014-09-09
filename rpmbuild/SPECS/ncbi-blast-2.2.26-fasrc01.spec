@@ -30,16 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular framework for (meta)genomic assembly, analysis and validation
+%define summary_static Old C version of BLAST
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# Used git checkout to get the source code
-URL: https://github.com/marbl/metAMOS.git
-Source: %{name}-%{version}.tar.gz
+URL: ftp://ftp.ncbi.nlm.nih.gov/blast/executables/release/2.2.26/ncbi.tar.gz
+Source: ncbi.tar.gz
 
 #
 # there should be no need to change the following
@@ -61,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-MetAMOS represents a focused effort to create automated, reproducible, traceable assembly & analysis infused with current best practices and state-of-the-art methods. MetAMOS for input can start with next-generation sequencing reads or assemblies, and as output, produces: assembly reports, genomic scaffolds, open-reading frames, variant motifs, taxonomic or functional annotations, Krona charts and HTML report.
+Old C version of BLAST, including the blastall executable
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,9 +77,9 @@ MetAMOS represents a focused effort to create automated, reproducible, traceable
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}
+rm -rf ncbi
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/ncbi.tar.*
+cd ncbi
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -102,13 +101,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
-module load mpc
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
 
-python INSTALL.py imetamos
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+ncbi/make/makedis.csh
 
 
 
@@ -138,10 +138,11 @@ python INSTALL.py imetamos
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/ncbi
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+cp -r {bin,include,lib} %{buildroot}/%{_prefix}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -219,15 +220,19 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("python") then
-		load("python/2.7.6-fasrc01")
-	end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PERL5LIB",            "%{_prefix}/KronaTools/lib")
+setenv("BLAST_HOME",                "%{_prefix}")
+setenv("BLAST_LIB",                 "%{_prefix}/lib")
+setenv("BLAST_INCLUDE",             "%{_prefix}/include")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 
