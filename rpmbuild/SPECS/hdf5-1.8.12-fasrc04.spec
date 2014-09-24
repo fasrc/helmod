@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static HDF5 is a data model, library, and file format for storing and managing data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-3.6.3.tar.gz
+URL: http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
+HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -101,10 +101,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+module load zlib/1.2.8-fasrc02
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-export FC="$FC -fPIC"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -120,12 +120,12 @@ export FC="$FC -fPIC"
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-    --with-temp-large=/scratch \
-    --enable-shared
+	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" \
+	--enable-fortran --enable-shared --enable-static
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make -j 4
 
 
 
@@ -237,23 +237,23 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("zlib") then
+		load("zlib/1.2.8-fasrc02")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("HDF5_HOME",                 "%{_prefix}")
+setenv("HDF5_INCLUDE",              "%{_prefix}/include")
+setenv("HDF5_LIB",                  "%{_prefix}/lib64")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
 EOF
 
 

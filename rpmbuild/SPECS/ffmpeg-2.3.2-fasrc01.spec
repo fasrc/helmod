@@ -111,6 +111,9 @@ module load x264
 module load faac
 module load libvpx
 module load opencore-amr
+module load libass
+module load fribidi
+module load enca
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -258,6 +261,15 @@ if mode()=="load" then
 	end
 	if not isloaded("opencore-amr") then
 		load("opencore-amr/0.1.3-fasrc01")
+	end
+	if not isloaded("libass") then
+		load("libass/0.11.2-fasrc01")
+	end
+	if not isloaded("fribidi") then
+		load("fribidi/0.19.1-fasrc01")
+	end
+	if not isloaded("enca") then
+		load("enca/1.15-fasrc01")
 	end
 end
 

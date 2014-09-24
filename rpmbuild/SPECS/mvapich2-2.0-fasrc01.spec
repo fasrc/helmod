@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-3.6.3.tar.gz
+URL: http://mvapich.cse.ohio-state.edu/download/mvapich2/mvapich2-2.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
+MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -78,7 +79,7 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -101,12 +102,19 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-export FC="$FC -fPIC"
 
-./configure --prefix=%{_prefix} \
+##we are no longer a fan of these
+#--with-slurm-include=/usr/include/slurm --with-slurm-lib=/usr/lib64/slurm --with-pmi=slurm
+
+#w/o this, lots of undefined references to log2 and pow, from lots of *_osu.c (e.g allgather_osu.c, allreduce_osu.c, scatter_osu.c, etc.)
+export LDFLAGS='-lm'
+
+./configure --enable-fc --enable-f77 --enable-cxx --with-device=ch3:nemesis:ib --with-pm=no \
+    --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -119,13 +127,11 @@ export FC="$FC -fPIC"
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --with-temp-large=/scratch \
-    --enable-shared
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -243,17 +249,25 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
+-- environment changes (uncomment what's relevant)
+setenv("MPI_HOME",                 "%{_prefix}")
+setenv("MPI_INCLUDE",              "%{_prefix}/include")
+setenv("MPI_LIB",                  "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 
