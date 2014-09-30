@@ -341,13 +341,15 @@ In the `%files` section, instead of using just `%{_prefix}/*`, use:
 And, earlier in the `%install` section, take out the for-loop that copies `COPYING`, `README`, etc. to the root of the prefix (or otherwise allow rpm to ignore these files that will not be part of the final package).
 
 
-### What about easybuild?
+### What about EasyBuild?
 
 From a cursory look, its support of Lmod appears to be minimal.
-In particular, it does not support module hierarchies.
+<strike>In particular, it does not support module hierarchies.</strike>
+**UPDATE** Lmod+EasyBuild integration has come a long way since we wrote fasrcsw.
+Check it out -- [http://hpcugent.github.io/easybuild/](http://hpcugent.github.io/easybuild/).
 
 
-### What about mock?
+### What about Mock?
 
 Good question.
 The fasrcsw system does not use mock, but it's possible it could benefit from doing so.

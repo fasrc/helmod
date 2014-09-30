@@ -1,0 +1,13 @@
+This is a snapshot of the puppet module we at FASRC are using to manange the
+cutover from legacy environment modules to Lmod modules.  It has (almost)
+nothing to do with software building, rpms, etc. that the rest of fasrcsw is
+concerned with.  Also, it will likely become out of date, since it's an
+independent copy of the code we're actually running.
+
+It's the code behind our user documentation here:
+
+https://rc.fas.harvard.edu/resources/documentation/software-on-odyssey/intro/
+
+It includes the optional tweaks in the fasrcsw documentation, such as adding
+more module load logging to Lmod.  Some stuff in files/legacy/ is from
+https://github.com/fasrc/module-usage.
