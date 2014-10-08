@@ -236,14 +236,10 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+load("netcdf/4.3.2-fasrc03")
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/bin")
 --prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
