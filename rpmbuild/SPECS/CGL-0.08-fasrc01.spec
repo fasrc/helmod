@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static CGL version 0.08
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
+URL: http://www.yandell-lab.org/downloads/CGL-0.08.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-...FIXME...
+CGL is a software library designed to facilitate the use of genome annotations as substrates for computation and experimentation; we call it "CGL", an acronym for Comparitive Genomics Library, and pronounce it "Seagull". The purpose of CGL is to provide an informatics infrastructure for a laboratory, department, or research institute engaged in the large-scale analysis of genomes and their annotations.
 
 
 
@@ -107,24 +107,33 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# ./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
+
+module load perl/5.10.1-fasrc01
+module load perl-modules/5.10.1-fasrc07
+module load Datastore/0.11-fasrc01
+
+#export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
+export PERL_MM_USE_DEFAULT=true
+perl Makefile.PL PREFIX=%{_prefix} 
 make
+
 
 
 
@@ -153,10 +162,13 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+
+
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+
 make install DESTDIR=%{buildroot}
 
 
@@ -235,30 +247,32 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+-- prerequisite apps (uncomment and tweak if necessary)
+if mode()=="load" then
+	if not isloaded("perl") then
+		load("perl/5.10.1-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("Datastore") then
+		load("Datastore/0.11-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("perl-modules") then
+		load("perl-modules/5.10.1-fasrc07")
+	end
+end
+
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PERL5LIB",              "%{_prefix}/lib")
+prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")
+prepend_path("PERL5LIB",              "%{_prefix}/lib/perl5")
+prepend_path("MANPATH",            "%{_prefix}/man")
+setenv("CGL_SO_SOURCE",            "%{_prefix}/sample_data/so.obo")
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
