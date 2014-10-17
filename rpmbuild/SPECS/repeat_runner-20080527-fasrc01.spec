@@ -104,29 +104,38 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
+module load perl/5.10.1-fasrc01
+module load perl-modules/5.10.1-fasrc07
+module load Datastore/0.11-fasrc01
+module load CGL/0.08-fasrc01
+module load RepeatMasker/4.0.5-fasrc01
+
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# ./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
 
+#make
+sed -i 's@/usr/local/RepeatMasker/@/n/sw/fasrcsw/apps/Core/RepeatMasker/4.0.5-fasrc01/@' config/parameters.cfg
+sed -i 's@/Users/myandell/repeat_runner/@/n/sw/fasrcsw/apps/Core/repeat_runner/20080527-fasrc01/@' config/parameters.cfg
+sed -i 's@/usr/local/wu-blast/@/n/sw/fasrcsw/apps/Core/ncbi-rmblastn/2.2.28-fasrc01/bin/@' config/parameters.cfg
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -158,8 +167,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+#make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -237,27 +246,38 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("perl") then
+		load("perl/5.10.1-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("perl-modules") then
+		load("perl-modules/5.10.1-fasrc07")
+	end
+end
+if mode()=="load" then
+	if not isloaded("Datastore") then
+		load("Datastore/0.11-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("CGL") then
+		load("CGL/0.08-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("RepeatMasker") then
+		load("RepeatMasker/4.0.5-fasrc01")
+	end
+end
+
+
 
 ---- environment changes (uncomment what's relevant)
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("REPEAT_RUNNER_HOME",         "%{_prefix}")
+setenv("REPEAT_RUNNER_LIB",         "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 
