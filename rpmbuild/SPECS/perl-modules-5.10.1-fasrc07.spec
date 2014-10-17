@@ -1,18 +1,21 @@
 #------------------- package info ----------------------------------------------
+#
+# For this to work, cpanm (CPAN Minus) must be installed
+#
 
 #
 # FIXME
 #
 # enter the simple app name, e.g. myapp
 #
-Name: ncbi-blast
+Name: perl-modules
 
 #
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 2.2.29+
+Version: 5.10.1
 
 #
 # FIXME
@@ -20,7 +23,7 @@ Version: 2.2.29+
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
 #
 # FIXME
@@ -35,7 +38,7 @@ Packager: Harvard FAS Research Computing -- Aaron Kitzmiller <aaron_kitzmiller@h
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use)
 #
-%define summary_static Basic Local Alignment Search Tool (BLAST) is used to search query sequences against a sequence database
+%define summary_static A module that represents a large list of individual Perl modules
 Summary: %{summary_static}
 
 #
@@ -45,7 +48,7 @@ Summary: %{summary_static}
 # suffix if applicable
 #
 #http://...FIXME...
-Source: %{name}-%{version}-src.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -63,14 +66,23 @@ Prefix: %{_prefix}
 
 
 #
+# The list of modules installed via cpan
+#
+%define MODULES ExtUtils-MakeMaker-6.98 IO-String-1.08 Test-Deep-0.112 Tree-DAG_Node-1.20 Test-Warn-0.24 Class-Data-Inheritable-0.08 Algorithm-Diff-1.1902 Scalar-List-Utils-1.38 Parse-CPAN-Meta-1.4409 CPAN-Meta-YAML-0.010 CPAN-Meta-Requirements-2.125 CPAN-Meta-2.133380 Module-Metadata-1.000019 version-0.9907 Sub-Uplevel-0.24 Test-Exception-0.32 Test-Simple-1.001002 Data-Dumper-2.145 Carp-1.32 File-Slurp-9999.19 ExtUtils-CBuilder-0.280212 ExtUtils-ParseXS-3.22 Perl-OSType-1.007 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41 DBI-1.631 Devel-StackTrace-1.31 Exception-Class-1.37 GD-2.50 JSON-PP-2.27203 Data-Stag-0.14 URI-1.60 Module-Build-0.4204 DBD-SQLite-1.40 IPC-Run-0.92 Graph-0.96 GraphViz-2.15 XML-NamespaceSupport-1.11 XML-SAX-Base-1.08 XML-Parser-2.41 XML-SAX-0.99 XML-Simple-2.20 XML-Twig-3.44 XML-SAX-Writer-0.54 XML-Filter-BufferText-1.01 Acme-Damn-0.02 Bit-Vector-7.3 DBD-Pg-3.0.0 Clone-0.36 Class-Load-0.20 Task-Weaken-1.04 Sub-Exporter-Progressive-0.001011 Devel-GlobalDestruction-0.12 Sub-Name-0.05 Eval-Closure-0.11 Dist-CheckConflicts-0.10 Data-OptList-0.109 Moose-2.1202 Module-Runtime-0.013 Params-Util-1.07 Sub-Install-0.927 Module-Implementation-0.07 Try-Tiny-0.19 List-MoreUtils-0.33 Package-Stash-0.36 Package-DeprecationManager-0.13 MRO-Compat-0.12 Sub-Exporter-0.987 Compress-Raw-Zlib-2.065 Compress-Raw-Bzip2-2.064 Convert-Binary-C-0.76 Mozilla-CA-20130114 WWW-RobotRules-6.02 HTTP-Cookies-6.01 HTTP-Daemon-6.01 HTML-Tagset-3.20 HTML-Parser-3.71 HTTP-Negotiate-6.01 File-Listing-6.04 HTTP-Date-6.02 IO-HTML-1.00 HTTP-Message-6.06 Encode-Locale-1.03 LWP-MediaTypes-6.02 libwww-perl-6.05 Net-HTTP-6.06 Net-SSLeay-1.58 IO-Socket-SSL-1.966 LWP-Protocol-https-6.04 MIME-Base64-3.14 Crypt-SSLeay-0.64 Math-Random-0.71 Perl-Unsafe-Signals-0.02 Socket6-0.25 Storable-2.45 String-Approx-3.26 Tk-804.032 Sys-SigAction-0.21 XML-LibXML-2.0110 Data-Utilities-0.04 Time-HiRes-1.9726 Time-Piece-1.27 Want-0.22 DIYA-1.0 YAML-0.95 local-lib-2.000012 Statistics-Descriptive-3.0607 File-Copy-Link-0.113 Math-Matrix-0.8 Math-MatrixReal-1.9 PDL-2.007 ExtUtils-F77-1.16 SVG-2.28 Text-Glob-0.09
+
+%define BUILDPL BioPerl-1.6.923 Class-Load-XS-0.06 
+
+# Module-Build-0.4204 Tree-DAG_Node-1.20 Test-Warn-0.24 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41
+
+#
 # FIXME
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Basic Local Alignment Search Tool (BLAST) (1, 2) is the tool most frequently used for calculating sequence similarity. BLAST comes in variations for use with different query sequences against different databases. 
-
+There is a lot of stuff here including the following:
+%{MODULES} %{BUILDPL}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -85,31 +97,61 @@ Basic Local Alignment Search Tool (BLAST) (1, 2) is the tool most frequently use
 #
 
 # %%setup
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}-%{version}-src.tar.*
-
 
 #------------------- %%build (~ configure && make) ----------------------------
-
 %build
 
-#
-# FIXME
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
-#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-module load perl-modules
+module load perl/5.10.1-fasrc01
 
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
-./configure --prefix=%{_prefix} --with-mt --without-debug
-make -j 4
+export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
+export PERL_MM_USE_DEFAULT=true
 
+for m in %{MODULES}; do 
+  cd %{_topdir}/BUILD
+  tar xvf %{_topdir}/SOURCES/$m.tar.*
+
+  cd %{_topdir}/BUILD/$m
+  case $m in 
+    XML-Twig*)
+      perl Makefile.PL -y PREFIX=%{_prefix}
+      ;;
+    IO-Compress*)
+      perl Makefile.PL INSTALL_BASE=%{_prefix}
+      ;;
+    PDL*)
+      sed -i -e 's?sub MY::postamble {.*?sub MY::postamble {\
+        return "";? ' Makefile.PL
+      perl Makefile.PL PREFIX=%{_prefix}
+      ;;
+    *)
+      perl Makefile.PL PREFIX=%{_prefix} 
+      ;;
+  esac
+  make
+  echo %{buildroot} | grep -q $m && rm -rf %{buildroot}
+  mkdir -p %{buildroot}/%{_prefix}
+  make install DESTDIR=%{buildroot}
+done
+
+
+for m in %{BUILDPL}; do
+  cd %{_topdir}/BUILD
+  tar xvf %{_topdir}/SOURCES/$m.tar.*
+
+  cd %{_topdir}/BUILD/$m
+  case $m in 
+    BioPerl*)
+      perl Build.PL --install_base %{_prefix} --accept
+      ;;
+    *) 
+      perl Build.PL --install_base %{_prefix} 
+      ;;
+   esac
+  ./Build
+  ./Build install --destdir %{buildroot}
+done
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -126,13 +168,20 @@ make -j 4
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# %%make_install
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++/ReleaseMT
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_prefix}
-# sudo install -o akitzmiller -g rc_admin -m 755 -d %{_prefix}
-cp -r {bin,inc,lib} %{buildroot}%{_prefix}
+# %%makeinstall
+export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
 
+for m in %{MODULES}; do 
+  cd %{_topdir}/BUILD/$m
+  make install DESTDIR=%{buildroot}
+done
+
+for m in %{BUILDPL}; do
+  cd %{_topdir}/BUILD/$m
+  ./Build install --destdir %{buildroot}
+done
+
+test -e '%{buildroot}/%{_prefix}' || mkdir -p '%{buildroot}/%{_prefix}' 
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -155,14 +204,6 @@ done
 	echo
 	
 	tree '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
 
 	echo
 	echo
@@ -203,19 +244,30 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("perl") then
+		load("perl/5.10.1-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
-setenv("BLAST_HOME",                "%{_prefix}")
-setenv("BLAST_INCLUDE",             "%{_prefix}/include")
-setenv("BLAST_LIB",                 "%{_prefix}/lib")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("PERL5LIB",              "%{_prefix}/lib")
+prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")
+prepend_path("PERL5LIB",              "%{_prefix}/lib/perl5")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 

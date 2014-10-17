@@ -1,51 +1,44 @@
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
-Name: ncbi-blast
+Name: %{getenv:NAME}
 
-#
-# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 2.2.29+
+Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Aaron Kitzmiller <aaron_kitzmiller@harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# FIXME
-#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static Basic Local Alignment Search Tool (BLAST) is used to search query sequences against a sequence database
+%define summary_static Bio++ is a set of C++ libraries for Bioinformatics, including sequence analysis, phylogenetics, molecular evolution and population genetics.
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#http://...FIXME...
-Source: %{name}-%{version}-src.tar.gz
+URL: http://biopp.univ-montp2.fr/repos/sources/bpp-popgen-2.1.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -63,52 +56,68 @@ Prefix: %{_prefix}
 
 
 #
-# FIXME
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Basic Local Alignment Search Tool (BLAST) (1, 2) is the tool most frequently used for calculating sequence similarity. BLAST comes in variations for use with different query sequences against different databases. 
-
+Bio++ is a set of C++ libraries for Bioinformatics, including sequence analysis, phylogenetics, molecular evolution and population genetics.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-# %%setup
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}-%{version}-src.tar.*
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
-#
-# FIXME
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-module load perl-modules
 
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
-./configure --prefix=%{_prefix} --with-mt --without-debug
-make -j 4
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+module load cmake
+module load bpp-core/2.1.0-fasrc01
+module load bpp-seq/2.1.0-fasrc01
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+mkdir build
+cd build
+
+export CMAKE_INCLUDE_PATH=$BPPSEQ_INCLUDE:$BPPCORE_INCLUDE
+export CMAKE_LIBRARY_PATH=$BPPSEQ_LIB:$BPPCORE_LIB
+
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -116,32 +125,43 @@ make -j 4
 
 %install
 
-#
-# FIXME
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# %%make_install
-cd %{_topdir}/BUILD/%{name}-%{version}-src/c++/ReleaseMT
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_prefix}
-# sudo install -o akitzmiller -g rc_admin -m 755 -d %{_prefix}
-cp -r {bin,inc,lib} %{buildroot}%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -179,9 +199,13 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# - uncomment any applicable prepend_path things
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
 #
-# - do any other customizing of the module, e.g. load dependencies
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -191,6 +215,8 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -202,20 +228,15 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
 
 ---- environment changes (uncomment what's relevant)
-setenv("BLAST_HOME",                "%{_prefix}")
-setenv("BLAST_INCLUDE",             "%{_prefix}/include")
-setenv("BLAST_LIB",                 "%{_prefix}/lib")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",     "%{_prefix}/lib")
+setenv("BPPPOPGEN_HOME",             "%{_prefix}")
+setenv("BPPPOPGEN_INCLUDE",          "%{_prefix}/include")
+setenv("BPPPOPGEN_LIB",              "%{_prefix}/lib")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 
