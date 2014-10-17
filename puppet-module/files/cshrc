@@ -1,0 +1,42 @@
+#!/bin/csh
+# -*- shell-script -*-
+########################################################################
+#  This is the system wide source file for setting up
+#  modules:
+#
+########################################################################
+
+set MY_NAME="/n/sw/fasrcsw/apps/lmod/lmod/init/cshrc"
+
+
+
+if ( ! $?MODULEPATH_ROOT ) then
+    if ( $?USER) then
+        setenv USER $LOGNAME
+    endif
+
+    set UNAME = `uname`
+    setenv LMOD_sys    $UNAME
+
+    setenv LMOD_arch   `uname -m`
+    if ( "x$UNAME" == xAIX ) then
+        setenv LMOD_arch   rs6k
+    endif
+
+    setenv TARG_TITLE_BAR_PAREN " "
+    setenv LMOD_FULL_SETTARG_SUPPORT no
+    setenv LMOD_SETTARG_CMD     :
+    setenv LMOD_COLORIZE        yes
+    setenv LMOD_PREPEND_BLOCK   normal
+    setenv MODULEPATH_ROOT      "/n/sw/fasrcsw/modulefiles"
+    setenv MODULEPATH           `/n/sw/fasrcsw/apps/lmod/lmod/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/Core`
+    #setenv MODULEPATH           `/n/sw/fasrcsw/apps/lmod/lmod/libexec/addto --append MODULEPATH /n/sw/fasrcsw/apps/lmod/lmod/modulefiles/Core`
+    setenv BASH_ENV /n/sw/fasrcsw/apps/lmod/lmod/init/bash
+
+    setenv FASRCSW_PROD /n/sw/fasrcsw
+    setenv LMOD_PACKAGE_PATH "$FASRCSW_PROD"/modulehook
+endif
+
+if ( -f  /n/sw/fasrcsw/apps/lmod/lmod/init/csh  ) then
+  source /n/sw/fasrcsw/apps/lmod/lmod/init/csh
+endif

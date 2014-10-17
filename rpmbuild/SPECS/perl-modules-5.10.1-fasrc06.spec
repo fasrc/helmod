@@ -30,7 +30,7 @@ Version: 5.10.1
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Aaron Kitzmiller <aaron_kitzmiller@harvard.edu>
+Packager: Harvard FAS Research Computing -- Bob Freeman <robert_freeman@harvard.edu>
 
 #
 # FIXME

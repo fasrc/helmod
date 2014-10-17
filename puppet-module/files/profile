@@ -1,0 +1,41 @@
+#!/bin/sh
+# -*- shell-script -*-
+########################################################################
+#  This is the system wide source file for setting up
+#  modules:
+#
+########################################################################
+
+if [ -z "$USER_IS_ROOT" ]; then
+
+  if [ -z "$MODULEPATH_ROOT" ]; then
+    USER=${USER-${LOGNAME}}  # make sure $USER is set
+    export USER
+
+    LMOD_sys=`uname`; export LMOD_sys
+
+    LMOD_arch=`uname -m`
+    if [ "x$LMOD_sys" = xAIX ]; then
+      LMOD_arch=rs6k
+    fi
+    export LMOD_arch
+
+
+    MODULEPATH_ROOT="/n/sw/fasrcsw/modulefiles"
+    export MODULEPATH_ROOT
+    export LMOD_SETTARG_CMD=":"
+    export LMOD_FULL_SETTARG_SUPPORT=no
+    export LMOD_COLORIZE=yes
+    export LMOD_PREPEND_BLOCK=normal
+    export MODULEPATH=$(/n/sw/fasrcsw/apps/lmod/lmod/libexec/addto --append MODULEPATH $MODULEPATH_ROOT/Core)
+    #export MODULEPATH=$(/n/sw/fasrcsw/apps/lmod/lmod/libexec/addto --append MODULEPATH /n/sw/fasrcsw/apps/lmod/lmod/modulefiles/Core)
+
+    export BASH_ENV=/n/sw/fasrcsw/apps/lmod/lmod/init/bash
+
+    export FASRCSW_PROD=/n/sw/fasrcsw
+    export LMOD_PACKAGE_PATH="$FASRCSW_PROD"/modulehook
+  fi
+
+  . /n/sw/fasrcsw/apps/lmod/lmod/init/bash >/dev/null # Module Support
+
+fi
