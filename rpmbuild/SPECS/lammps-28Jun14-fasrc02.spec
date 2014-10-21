@@ -106,11 +106,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
+module load fftw/2.1.5-fasrc01
+
 make yes-user-reaxc
-make yes-user-cuda
-make yes-gpu
 make yes-kokkos
-make yes-user-omp
 
 sed -i -e 's?^FFT_INC .*?FFT_INC = -DFFT_NONE?' MAKE/Makefile.cuda
 sed -i -e 's?^FFT_LIB .*?FFT_LIB =?' MAKE/Makefile.cuda
@@ -120,7 +119,7 @@ sed -i -e 's?^MPI_PATH .*?MPI_PATH = -L\${MPI_LIB}?' MAKE/Makefile.cuda
 test %{mpi_name} == 'mvapich2' && sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpich -lpthread?' MAKE/Makefile.cuda ||  sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpi -lpthread?' MAKE/Makefile.cuda
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make cuda -j 4
+make cuda CUDA=yes
 
 
 
@@ -153,7 +152,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/{lib64,bin}
-cp lmp_openmpi %{buildroot}%{_prefix}/bin
+cp lmp_cuda %{buildroot}%{_prefix}/bin
 # cp {liblammps_openmpi.a,liblammps_openmpi.so,liblammps.so} %{buildroot}%{_prefix}/lib64
 
 
@@ -233,15 +232,14 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if mode()=="load" then
+	if not isloaded("fftw") then
+		load("fftw/2.1.5-fasrc01")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
 setenv("LAMMPS_HOME",                 "%{_prefix}")
-setenv("LAMMPS_LIB",                 "%{_prefix}/lib64")
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
