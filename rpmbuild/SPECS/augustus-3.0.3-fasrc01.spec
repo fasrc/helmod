@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Tabix genome indexer
+%define summary_static ...FIXME...
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/samtools/tabix/tabix-0.2.6.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://...FIXME...
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +60,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Tabix indexes a TAB-delimited genome position file in.tab.bgz and creates an index file in.tab.bgz.tbi when region is absent from the command-line.
+...FIXME...
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -102,16 +103,46 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
+module load boost/1.55.0-fasrc01
+module load zlib/1.2.8-fasrc02
+#module load mysql++/3.2.1-fasrc01
+#module load gsl/1.16-fasrc02
+module load bamtools/2.3.0-fasrc01
+module load samtools/0.1.19-fasrc01
+module load htslib/1.1-fasrc01
+module load bcftools/1.0-fasrc01
+module load tabix/0.2.6-fasrc01
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-sed -i -e 's?^CC.*??' Makefile
+# Clean up the object files
+find auxprogs -name "*.o" | xargs rm -f
+rm auxprogs/checkTargetSortedness/checkTargetSortedness
+rm bin/*
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+# Update variables in auxprogs Makefiles
+sed -i -e 's?^BAMTOOLS.*?BAMTOOLS = $(BAMTOOLS_HOME)?' \
+        -e 's?^INCLUDES.*?INCLUDES = $(BAMTOOLS_INCLUDE)/bamtools?' \
+        -e 's?libbamtools.a?bamtools/libbamtools.a?' auxprogs/bam2hints/Makefile
+sed -i -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/checkTargetSortedness/Makefile
+sed -i  -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?^BCFTOOLS.*?BCFTOOLS = $(BCFTOOLS_HOME)?' \
+        -e 's?^TABIX.*?TABIX = $(TABIX_INCLUDE)?' \
+        -e 's?^HTSLIB.*?HTSLIB = $(HTSLIB_LIB)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/bam2wig/Makefile
 
+sed -i  -e 's?^INCLUDES.*?INCLUDES = -I$(BAMTOOLS_HOME)/include/bamtools -Iheaders -I$(BAMTOOLS_HOME)/src/toolkit?' \
+        -e 's?^LIBS.*?LIBS = -L$(ZLIB_LIB) $(BAMTOOLS_HOME)/lib/bamtools/libbamtools.a -lz?' auxprogs/filterBam/src/Makefile
+sed -i -e 's?^# ZIPINPUT?ZIPINPUT?' common.mk
+       
+make -j 4
+(cd auxprogs/checkTargetSortedness && make)
+(cd auxprogs/bam2hints && make)
+(cd auxprogs/bam2wig && make)
+export BAMTOOLS=$BAMTOOLS_HOME
+(cd auxprogs/filterBam && make)
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -142,10 +173,9 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-mkdir -p %{buildroot}/%{_prefix}/include
-cp tabix bgzip %{buildroot}/%{_prefix}/bin
-cp *.h %{buildroot}/%{_prefix}/include
+mkdir -p %{buildroot}/%{_prefix}
+cp -a config bin scripts %{buildroot}%{_prefix}
+cp auxprogs/bam2hints/bam2hints auxprogs/bam2wig/bam2wig auxprogs/checkTargetSortedness/checkTargetSortedness auxprogs/filterBam/bin/filterBam  %{buildroot}%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -223,11 +253,24 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+if mode()=="load" then
+	if not isloaded("boost/1.55.0-fasrc01") then
+		load("boost/1.55.0-fasrc01")
+	end
+	if not isloaded("gsl") then
+		load("gsl/1.16-fasrc02")
+	end
+	if not isloaded("mysql++") then
+		load("mysql++/3.2.1-fasrc01")
+	end
+	if not isloaded("zlib") then
+		load("zlib/1.2.8-fasrc02")
+	end
+end
 
 ---- environment changes (uncomment what's relevant)
-setenv("TABIX_HOME",                  "%{_prefix}")
-setenv("TABIX_INCLUDE",               "%{_prefix}/include")
-prepend_path("PATH",                  "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/scripts")
 EOF
 
 
