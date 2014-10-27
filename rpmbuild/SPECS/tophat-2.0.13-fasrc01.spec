@@ -1,13 +1,3 @@
-#
-# See also: misc/make_bib_wrapper_modules
-#
-
-# The spec involves the hack that allows the app to write directly to the 
-# production location.  The following allows the production location path to be 
-# used in files that the rpm builds.
-%define __arch_install_post %{nil}
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -40,17 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static the cross-platform package manager for command-line bioinformatics tools
+%define summary_static Tophat v2.0.13
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://bib.bitbucket.org/
-#Source: %{name}-%{version}.tar.gz
-#wget https://bitbucket.org/mhowison/bib/raw/master/install.sh -O bib-2014.05.16-install.sh
-#chmod a+x bib-2014.05.16-install.sh
+URL: http://ccb.jhu.edu/software/tophat/downloads/tophat-2.0.13.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -72,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-BiB is a cross-platform manager for command-line bioinformatics tools. This
-For more information and examples of how to use BiB, see http://bib.bitbucket.org.
+TopHat is a fast splice junction mapper for RNA-Seq reads. It aligns RNA-Seq reads to mammalian-sized genomes using the ultra high-throughput short read aligner Bowtie, and then analyzes the mapping results to identify splice junctions between exons. 
 
 
 
@@ -83,6 +70,7 @@ For more information and examples of how to use BiB, see http://bib.bitbucket.or
 
 
 #
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -91,9 +79,8 @@ For more information and examples of how to use BiB, see http://bib.bitbucket.or
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
-cp "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-install.sh .
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -107,6 +94,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -116,8 +104,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+module load boost/1.55.0-fasrc01
+module load bowtie2/2.2.2-fasrc01
+
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+./configure --prefix=%{_prefix} \
+    --with-boost=/n/sw/fasrcsw/apps/Core/boost/1.55.0-fasrc01 \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
+make
 
 
 
@@ -130,13 +142,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
+# FIXME
+#
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
 #
 # Note that DESTDIR != %{prefix} -- this is not the final installation.  
 # Rpmbuild does a temporary installation in the %{buildroot} and then 
 # constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:/etc/profile.d/modules.sh
+# does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
 #
@@ -144,87 +158,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-
-#
-# This app insists on writing directly to the prefix.  Acquiesce, and hack a 
-# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
-# to install in our build environment, and then remove the symlink.  Note that 
-# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE 
-# combination.
-#
-
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-
-#base installation
-bash ./%{name}-%{version}-install.sh "%{_prefix}"
-
-#install everything possible; see:
-#https://bitbucket.org/mhowison/bib/src/6628788b026160af254725b43fae9e48c6647e39/recipes/?at=master
-export BIB_PREFIX="%{_prefix}"
-export PATH="%{_prefix}/active/bin:$PATH"
-yes | bib install abyss
-yes | bib install bamtools
-yes | bib install biolite-tools
-yes | bib install blast
-yes | bib install bowtie
-yes | bib install bowtie2
-yes | bib install bwa
-yes | bib install fasta
-yes | bib install fastqc
-yes | bib install fermi
-yes | bib install gblocks
-yes | bib install google-sparsehash
-yes | bib install gsl
-yes | bib install hmmer
-yes | bib install jellyfish
-yes | bib install macse
-yes | bib install mafft
-yes | bib install mcl
-yes | bib install mummer
-yes | bib install oases
-yes | bib install oma
-yes | bib install parallel
-yes | bib install raxml
-yes | bib install rsem
-yes | bib install samtools
-yes | bib install spimap
-yes | bib install sratoolkit
-yes | bib install swipe
-yes | bib install transdecoder
-yes | bib install trinity
-yes | bib install velvet
-#note:  you'll still see a lot of the following lines:
-#   Ready to install.  Press ENTER to continue with the install.
-#followed by a pause, but it's actually doing stuff
-
-#this was NOT done for bib-2014.05.19-fasrc01; staging for next time
-#to fix this:
-#	$ pwd
-#	/n/sw/fasrcsw/apps/Core/bib/2014.05.19-fasrc01
-#	$ find . >/dev/null
-#	find: `./install/samtools/0.1.19': Permission denied
-#	find: `./install/gblocks/0.91b': Permission denied
-#	find: `./install/bowtie/1.0.0': Permission denied
-#	$ ls -alFd ./install/samtools/0.1.19 ./install/gblocks/0.91b ./install/bowtie/1.0.0
-#	drwxrwx--- 8 root root 3149 2014-05-19 14:06:30 ./install/bowtie/1.0.0/
-#	drwx------ 4 root root  138 2014-05-19 14:06:41 ./install/gblocks/0.91b/
-#	drwxr-x--- 7 root root 2822 2014-05-19 14:07:31 ./install/samtools/0.1.19/
-
-chmod -R go+rX "%{_prefix}"/install
-chmod -R go-w  "%{_prefix}"/install
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -309,20 +247,35 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
--- environment changes (uncomment what's relevant)
-setenv("BIB_PREFIX", "%{_prefix}")
-prepend_path("PATH", "%{_prefix}/active/bin")
+if mode()=="load" then
+	if not isloaded("boost") then
+		load("boost/1.55.0-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("bowtie2") then
+		load("bowtie2/2.2.2-fasrc01")
+	end
+end
 
--- added 10/21/14, rmf to include relevant library paths
-prepend_path("CPATH", "%{_prefix}/active/include")
-prepend_path("FPATH", "%{_prefix}/active/include")
-prepend_path("LD_LIBRARY_PATH", "%{_prefix}/active/lib")
-prepend_path("LIBRARY_PATH", "%{_prefix}/active/lib")
-prepend_path("MANPATH", "%{_prefix}/active/man")
--- end add
 
--- (there are lots of other standard looking dirs, but the directions say only 
--- a PATH update is needed)
+---- environment changes (uncomment what's relevant)
+setenv("TOPHAT_HOME",                 "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 
@@ -334,8 +287,6 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-%{_prefix}/.git
-%{_prefix}/.gitignore
 
 
 
