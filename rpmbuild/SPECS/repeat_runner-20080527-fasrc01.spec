@@ -109,6 +109,8 @@ module load perl-modules/5.10.1-fasrc07
 module load Datastore/0.11-fasrc01
 module load CGL/0.08-fasrc01
 module load RepeatMasker/4.0.5-fasrc01
+module load legacy
+module load hpc/wu-blast-2.0
 
 
 umask 022
@@ -133,9 +135,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #percent sign) to build in parallel
 
 #make
+
+# change the repeat_runner config file to reflect where we have Odyssey software...
 sed -i 's@/usr/local/RepeatMasker/@/n/sw/fasrcsw/apps/Core/RepeatMasker/4.0.5-fasrc01/@' config/parameters.cfg
 sed -i 's@/Users/myandell/repeat_runner/@/n/sw/fasrcsw/apps/Core/repeat_runner/20080527-fasrc01/@' config/parameters.cfg
-sed -i 's@/usr/local/wu-blast/@/n/sw/fasrcsw/apps/Core/ncbi-rmblastn/2.2.28-fasrc01/bin/@' config/parameters.cfg
+sed -i 's@/usr/local/wu-blast/@/n/sw/wu-blast-2.0/linux2.4/@' config/parameters.cfg
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -269,6 +273,12 @@ end
 if mode()=="load" then
 	if not isloaded("RepeatMasker") then
 		load("RepeatMasker/4.0.5-fasrc01")
+	end
+end
+if mode()=="load" then
+	if not isloaded("legacy") then
+		load("legacy")
+		load("hpc/wu-blast-2.0")
 	end
 end
 
