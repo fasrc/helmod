@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static cufflinks v2.2.2
+%define summary_static HDF-EOS libraries are software libraries built on HDF libraries. HDF-EOS libraries support the construction of data structures: Grid, Point and Swath.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://cufflinks.cbcb.umd.edu/downloads/cufflinks-2.2.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/HDF-EOS5.1.15.tar.Z
+Source: HDF-EOS5.1.15.tar.Z
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Cufflinks assembles transcripts, estimates their abundances, and tests for differential expression and regulation in RNA-Seq samples. It accepts aligned RNA-Seq reads and assembles the alignments into a parsimonious set of transcripts. Cufflinks then estimates the relative abundances of these transcripts based on how many reads support each one, taking into account biases in library preparation protocols. 
+...FIXME...
 
 
 
@@ -78,18 +78,9 @@ Cufflinks assembles transcripts, estimates their abundances, and tests for diffe
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-
-## download Eigen, as required by source install
-#wget --no-clobber http://bitbucket.org/eigen/eigen/get/3.2.2.tar.gz
-#tar xvf 3.2.2.tar.gz
-##mkdir -p eigen-eigen-1306d75b4a21/Eigen/include
-#mkdir -p eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/Eigen/* eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/tmp_include eigen-eigen-1306d75b4a21/Eigen/include
-
+rm -rf hdfeos5
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS5.1.15.tar.Z
+cd hdfeos5
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -111,22 +102,27 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-module load boost/1.55.0-fasrc01
-module load samtools/1.1-fasrc02
-module load htslib/1.1-fasrc01
-
-module load eigen/3.2.2-fasrc01
-export CFLAGS="-L$SAMTOOLS_HOME/lib -I$HTSLIB_INCLUDE -L$HTSLIB_LIB -lhts $CFLAGS -I$EIGEN_INCLUDE/eigen3 $CFLAGS"
-
+module load hdf5/1.8.12-fasrc04
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+
+export CC="$HDF5_HOME/bin/h5cc -Df2cFortran"
 
 ./configure --prefix=%{_prefix} \
-    --with-boost=$BOOST_HOME \
-    --with-bam=$SAMTOOLS_HOME
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -160,7 +156,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -242,23 +238,15 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-
 if mode()=="load" then
-	if not isloaded("boost") then
-		load("boost/1.55.0-fasrc01")
-	end
-	if not isloaded("samtools") then
-		load("samtools/1.1-fasrc02")
-	end
-	if not isloaded("htslib") then
-		load("htslib/1.1-fasrc01")
+	if not isloaded("hdf5") then
+		load("hdf5/1.8.12-fasrc04")
 	end
 end
 
-
 ---- environment changes (uncomment what's relevant)
-setenv("CUFFLINKS_HOME",                 "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 EOF
 
 

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static cufflinks v2.2.2
+%define summary_static LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://cufflinks.cbcb.umd.edu/downloads/cufflinks-2.2.1.tar.gz
+URL: http://lammps.sandia.gov/download.html#tar
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Cufflinks assembles transcripts, estimates their abundances, and tests for differential expression and regulation in RNA-Seq samples. It accepts aligned RNA-Seq reads and assembles the alignments into a parsimonious set of transcripts. Cufflinks then estimates the relative abundances of these transcripts based on how many reads support each one, taking into account biases in library preparation protocols. 
-
+LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.  LAMMPS has potentials for solid-state materials (metals, semiconductors) and soft matter (biomolecules, polymers) and coarse-grained or mesoscopic systems. It can be used to model atoms or, more generically, as a parallel particle simulator at the atomic, meso, or continuum scale.  LAMMPS runs on single processors or in parallel using message-passing techniques and a spatial-decomposition of the simulation domain. The code is designed to be easy to modify or extend with new functionality.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -81,15 +80,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
-
-## download Eigen, as required by source install
-#wget --no-clobber http://bitbucket.org/eigen/eigen/get/3.2.2.tar.gz
-#tar xvf 3.2.2.tar.gz
-##mkdir -p eigen-eigen-1306d75b4a21/Eigen/include
-#mkdir -p eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/Eigen/* eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/tmp_include eigen-eigen-1306d75b4a21/Eigen/include
-
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -113,24 +103,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-module load boost/1.55.0-fasrc01
-module load samtools/1.1-fasrc02
-module load htslib/1.1-fasrc01
-
-module load eigen/3.2.2-fasrc01
-export CFLAGS="-L$SAMTOOLS_HOME/lib -I$HTSLIB_INCLUDE -L$HTSLIB_LIB -lhts $CFLAGS -I$EIGEN_INCLUDE/eigen3 $CFLAGS"
-
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
-./configure --prefix=%{_prefix} \
-    --with-boost=$BOOST_HOME \
-    --with-bam=$SAMTOOLS_HOME
+module load fftw/2.1.5-fasrc01
 
+make yes-user-reaxc
+make yes-kokkos
+make yes-user-misc
+
+sed -i -e 's?^FFT_INC .*?FFT_INC = -DFFT_NONE?' MAKE/Makefile.cuda
+sed -i -e 's?^FFT_LIB .*?FFT_LIB =?' MAKE/Makefile.cuda
+sed -i -e 's?^MPI_INC .*?MPI_INC =?' MAKE/Makefile.cuda
+sed -i -e 's?^MPI_PATH .*?MPI_PATH = -L\${MPI_LIB}?' MAKE/Makefile.cuda
+
+test %{mpi_name} == 'mvapich2' && sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpich -lpthread?' MAKE/Makefile.cuda ||  sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpi -lpthread?' MAKE/Makefile.cuda
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make cuda CUDA=yes
 
 
 
@@ -160,10 +150,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/{lib64,bin}
+cp lmp_cuda %{buildroot}%{_prefix}/bin
+# cp {liblammps_openmpi.a,liblammps_openmpi.so,liblammps.so} %{buildroot}%{_prefix}/lib64
 
 
 #(this should not need to be changed)
@@ -242,23 +233,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-
 if mode()=="load" then
-	if not isloaded("boost") then
-		load("boost/1.55.0-fasrc01")
-	end
-	if not isloaded("samtools") then
-		load("samtools/1.1-fasrc02")
-	end
-	if not isloaded("htslib") then
-		load("htslib/1.1-fasrc01")
+	if not isloaded("fftw") then
+		load("fftw/2.1.5-fasrc01")
 	end
 end
 
-
 ---- environment changes (uncomment what's relevant)
-setenv("CUFFLINKS_HOME",                 "%{_prefix}")
+setenv("LAMMPS_HOME",                 "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 EOF
 
 

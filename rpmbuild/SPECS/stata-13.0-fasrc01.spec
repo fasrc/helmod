@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static cufflinks v2.2.2
+%define summary_static Stata: Stata is a general-purpose statistical software package : version MP 13.0 (64 core)
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://cufflinks.cbcb.umd.edu/downloads/cufflinks-2.2.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.stata.com
+Source: Stata13Linux64.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Cufflinks assembles transcripts, estimates their abundances, and tests for differential expression and regulation in RNA-Seq samples. It accepts aligned RNA-Seq reads and assembles the alignments into a parsimonious set of transcripts. Cufflinks then estimates the relative abundances of these transcripts based on how many reads support each one, taking into account biases in library preparation protocols. 
-
+Stata is a general-purpose statistical software package : version MP 13.0 (64 core)
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -76,21 +75,6 @@ Cufflinks assembles transcripts, estimates their abundances, and tests for diffe
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-
-## download Eigen, as required by source install
-#wget --no-clobber http://bitbucket.org/eigen/eigen/get/3.2.2.tar.gz
-#tar xvf 3.2.2.tar.gz
-##mkdir -p eigen-eigen-1306d75b4a21/Eigen/include
-#mkdir -p eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/Eigen/* eigen-eigen-1306d75b4a21/tmp_include
-#mv eigen-eigen-1306d75b4a21/tmp_include eigen-eigen-1306d75b4a21/Eigen/include
-
-chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -109,28 +93,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-module load boost/1.55.0-fasrc01
-module load samtools/1.1-fasrc02
-module load htslib/1.1-fasrc01
-
-module load eigen/3.2.2-fasrc01
-export CFLAGS="-L$SAMTOOLS_HOME/lib -I$HTSLIB_INCLUDE -L$HTSLIB_LIB -lhts $CFLAGS -I$EIGEN_INCLUDE/eigen3 $CFLAGS"
-
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-./configure --prefix=%{_prefix} \
-    --with-boost=$BOOST_HOME \
-    --with-bam=$SAMTOOLS_HOME
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -159,11 +121,6 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -241,24 +198,10 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
-
-if mode()=="load" then
-	if not isloaded("boost") then
-		load("boost/1.55.0-fasrc01")
-	end
-	if not isloaded("samtools") then
-		load("samtools/1.1-fasrc02")
-	end
-	if not isloaded("htslib") then
-		load("htslib/1.1-fasrc01")
-	end
-end
-
 
 ---- environment changes (uncomment what's relevant)
-setenv("CUFFLINKS_HOME",                 "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("STATA_HOME",                  "/n/sw/stata-13")
+prepend_path("PATH",                  "/n/sw/stata-13")
 EOF
 
 
