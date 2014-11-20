@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.
+%define summary_static DETONATE: DE novo TranscriptOme rNa-seq Assembly with or without the Truth Evaluation
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://lammps.sandia.gov/download.html#tar
+URL: http://deweylab.biostat.wisc.edu/detonate/detonate-1.8.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.  LAMMPS has potentials for solid-state materials (metals, semiconductors) and soft matter (biomolecules, polymers) and coarse-grained or mesoscopic systems. It can be used to model atoms or, more generically, as a parallel particle simulator at the atomic, meso, or continuum scale.  LAMMPS runs on single processors or in parallel using message-passing techniques and a spatial-decomposition of the simulation domain. The code is designed to be easy to modify or extend with new functionality.
+DETONATE (DE novo TranscriptOme rNa-seq Assembly with or without the Truth Evaluation) consists of two component packages, RSEM-EVAL and REF-EVAL. Both packages are mainly intended to be used to evaluate de novo transcriptome assemblies, although REF-EVAL can be used to compare sets of any kinds of genomic sequences.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -101,27 +101,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+module load mpc/1.0.2-fasrc01
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-module load fftw/2.1.5-fasrc01
 
-make yes-user-reaxc
-make yes-kokkos
-make yes-misc
-make yes-user-misc
-
-sed -i -e 's?^FFT_INC .*?FFT_INC = -DFFT_NONE?' MAKE/Makefile.cuda
-sed -i -e 's?^FFT_LIB .*?FFT_LIB =?' MAKE/Makefile.cuda
-sed -i -e 's?^MPI_INC .*?MPI_INC =?' MAKE/Makefile.cuda
-sed -i -e 's?^MPI_PATH .*?MPI_PATH = -L\${MPI_LIB}?' MAKE/Makefile.cuda
-
-test %{mpi_name} == 'mvapich2' && sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpich -lpthread?' MAKE/Makefile.cuda ||  sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpi -lpthread?' MAKE/Makefile.cuda
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make cuda CUDA=yes
+make
 
 
 
@@ -151,11 +139,14 @@ make cuda CUDA=yes
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/{lib64,bin}
-cp lmp_cuda %{buildroot}%{_prefix}/bin
-# cp {liblammps_openmpi.a,liblammps_openmpi.so,liblammps.so} %{buildroot}%{_prefix}/lib64
+mkdir -p %{buildroot}/%{_prefix}/bin
+cd rsem-eval
+cp extract-transcript-to-gene-map-from-trinity rsem-bam2readdepth rsem-bam2wig rsem-build-read-index rsem-calculate-credibility-intervals rsem-eval-calculate-score rsem-eval-estimate-transcript-length-distribution rsem-extract-reference-transcripts rsem-gen-transcript-plots rsem-get-unique rsem-parse-alignments rsem-plot-model rsem-plot-transcript-wiggles rsem-preref rsem-run-em rsem-run-gibbs rsem-sam-validator rsem-scan-for-paired-end-reads rsem-simulate-reads rsem-synthesis-reference-transcripts rsem-tbam2gbam %{buildroot}/%{_prefix}/bin
+cd ../ref-eval
+cp ref-eval ref-eval-estimate-true-assembly %{buildroot}/%{_prefix}/bin 
+cd ..
 
 
 #(this should not need to be changed)
@@ -235,16 +226,14 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 if mode()=="load" then
-	if not isloaded("fftw") then
-		load("fftw/2.1.5-fasrc01")
+	if not isloaded("mpc") then
+		load("mpc/1.0.2-fasrc01")
 	end
 end
 
 ---- environment changes (uncomment what's relevant)
-setenv("LAMMPS_HOME",                 "%{_prefix}")
+setenv("DETONATE_HOME",             "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 EOF
 
 
