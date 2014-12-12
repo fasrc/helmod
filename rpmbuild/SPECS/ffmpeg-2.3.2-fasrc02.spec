@@ -258,76 +258,11 @@ whatis("Description: %{summary_static}")
 -- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch(%{rundependencies},"%%S+") do 
     if mode()=="load" then
-       	if not isloaded(i) then
-	        load(i)
-	    end
+        if not isloaded(i) then
+            load(i)
+        end
     end
 end
---if mode()=="load" then
---	if not isloaded("xvidcore") then
---		load("xvidcore/1.3.3-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("libtheora") then
---		load("libtheora/1.1.1-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("yasm") then
---		load("yasm/1.3.0-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("opus") then
---		load("opus/1.0.3-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("fdk-aac") then
---		load("fdk-aac/0.1.3-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("lame") then
---		load("lame/3.99.5-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("x264") then
---		load("x264/20140814-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("faac") then
---		load("faac/1.28-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("libvpx") then
---		load("libvpx/v1.3.0-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("opencore-amr") then
---		load("opencore-amr/0.1.3-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("libass") then
---		load("libass/0.11.2-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("fribidi") then
---		load("fribidi/0.19.1-fasrc01")
---	end
---end
---if mode()=="load" then
---	if not isloaded("enca") then
---		load("enca/1.15-fasrc01")
---	end
---end
 
 ---- environment changes (uncomment what's relevant)
 setenv("FFMPEG_HOME",              "%{_prefix}")

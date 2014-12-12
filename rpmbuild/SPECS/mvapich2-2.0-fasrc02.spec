@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
+URL: http://mvapich.cse.ohio-state.edu/download/mvapich2/mvapich2-2.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -59,10 +59,8 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-...FIXME...
+MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 
 
 #
@@ -86,6 +84,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -101,7 +100,7 @@ Prefix: %{_prefix}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -129,14 +128,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+##we are no longer a fan of these
+#--with-slurm-include=/usr/include/slurm --with-slurm-lib=/usr/lib64/slurm --with-pmi=slurm
 
+#w/o this, lots of undefined references to log2 and pow, from lots of *_osu.c (e.g allgather_osu.c, allreduce_osu.c, scatter_osu.c, etc.)
+export LDFLAGS='-lm'
 
-
-./configure --prefix=%{_prefix} \
+./configure --enable-fc --enable-f77 --enable-cxx --with-device=ch3:nemesis:ib --with-pm=no \
+    --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -153,7 +152,7 @@ done
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -265,31 +264,31 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch(%{rundependencies},"%%S+") do 
-    if mode()=="load" then
-        if not isloaded(i) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
----- environment changes (uncomment what's relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
+-- environment changes (uncomment what's relevant)
+setenv("MPI_HOME",                 "%{_prefix}")
+setenv("MPI_INCLUDE",              "%{_prefix}/include")
+setenv("MPI_LIB",                  "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 #------------------- App data file
@@ -313,6 +312,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
