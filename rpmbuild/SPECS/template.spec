@@ -61,7 +61,25 @@ Prefix: %{_prefix}
 #
 %description
 ...FIXME...
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
 
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+%define apptags %{nil}
+%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -259,6 +277,27 @@ whatis("Description: %{summary_static}")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+---
+appname     		: %{appname}
+appversion  		: %{appversion}
+description 		: %{appdescription}
+module      		: %{modulename}
+tags        		: %{apptags}
+publication 		: %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------

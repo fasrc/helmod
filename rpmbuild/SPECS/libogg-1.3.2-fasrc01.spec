@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+%define summary_static Ogg Vorbis is a completely open, patent-free, professional audio encoding and streaming technology
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz
+URL: http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,9 +60,46 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+Audio library
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1 
 
+#
+# These may need some input.  Replace %{nil} with an actual value.
+#
+
+# builddependencies should be a space separated list of the modules that must be loaded during build phase
+%define builddependencies %{nil}
+
+# rundependencies is the list of modules that must be loaded at run time.  May or may not be the same
+# as the builddependencies list
+%define rundependencies %{builddependencies}
+
+# any comments you'd like to add about how the software was built
+%define buildcomments %{nil}
+
+# login of the person requesting the software
+%define requestor %{nil}
+
+# reference to the request.  This may be a ticket id (e.g. RCRT:123456).  
+%define requestref %{nil}
+
+# publication reference
+%define apppublication %{nil}
+
+# list of tags for the application. Use a suitable OWL ontology like namespace.
+%define apptags aci-ref-app-category:Utilities aci-ref-app-tag:Audio
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -102,15 +139,28 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-mkdir build
-cd build
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
-
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 make
 
 
@@ -141,11 +191,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-cp -r ../src %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -231,16 +280,41 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what's relevant)
-setenv("BAMTOOLS_HOME",            "%{_prefix}")
-setenv("BAMTOOLS_INCLUDE",         "%{_prefix}/include")
-setenv("BAMTOOLS_LIB",             "%{_prefix}/lib/bamtools")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/bamtools")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/bamtools")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+---
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+module              : %{modulename}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------

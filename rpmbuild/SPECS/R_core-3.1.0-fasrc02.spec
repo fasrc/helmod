@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+%define summary_static a free software environment for statistical computing and graphics
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.r-project.org/
+#http://cran.at.r-project.org/src/base/R-3/R-3.1.0.tar.gz
+Source: R-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +61,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
+R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
 
 
 
@@ -70,7 +72,6 @@ BamTools provides both a programmer's API and an end-user's toolkit for handling
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -78,9 +79,9 @@ BamTools provides both a programmer's API and an end-user's toolkit for handling
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf R-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
+cd R-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -94,7 +95,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -102,16 +102,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 
-mkdir build
-cd build
+#w/ mkl, dynamic:
+#	--with-blas="-L$MKLPATH -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread" --with-lapack="-L$MKLPATH -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread"
+#w/ mkl, static :
+#	--with-blas="$MKLPATH/libmkl_solver_lp64_sequential.a -Wl,--start-group $MKLPATH/libmkl_intel_lp64.a $MKLPATH/libmkl_sequential.a $MKLPATH/libmkl_core.a -Wl,--end-group -lpthread" --with-lapack="$MKLPATH/libmkl_solver_lp64_sequential.a -Wl,--start-group  $MKLPATH/libmkl_intel_lp64.a $MKLPATH/libmkl_sequential.a $MKLPATH/libmkl_core.a -Wl,--end-group -lpthread"
+#w/ custom tcltk:
+#	--with-tcltk=/n/sw/centos6/tcl8.5.14 --with-tcl-config=/n/sw/centos6/tcl8.5.14/lib/tclConfig.sh --with-tk-config=/n/sw/centos6/tk8.5.14/lib/tkConfig.sh
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+./configure CC=gcc F77=gfortran CXX=g++ --enable-R-shlib --with-tcltk \
+	--prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
-make
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
 
 
 
@@ -124,7 +145,6 @@ make
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -141,11 +161,12 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-cp -r ../src %{buildroot}/%{_prefix}
+export R_HOME=%{buildroot}/%{_prefix}
+%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
 
 #(this should not need to be changed)
@@ -192,7 +213,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -230,15 +250,19 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
-setenv("BAMTOOLS_HOME",            "%{_prefix}")
-setenv("BAMTOOLS_INCLUDE",         "%{_prefix}/include")
-setenv("BAMTOOLS_LIB",             "%{_prefix}/lib/bamtools")
+-- environment changes (uncomment what's relevant)
+prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/bamtools")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/bamtools")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 

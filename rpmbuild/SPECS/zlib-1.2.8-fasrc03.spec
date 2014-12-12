@@ -1,5 +1,4 @@
 #------------------- package info ----------------------------------------------
-
 #
 # enter the simple app name, e.g. myapp
 #
@@ -26,18 +25,21 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static zlib version 1.2.8
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+#http://hivelocity.dl.sourceforge.net/project/libpng/zlib/1.2.8/zlib-1.2.8.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,32 +58,46 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+zlib is a software library used for data compression. zlib was written by Jean-Loup Gailly and Mark Adler and 
+is an abstraction of the DEFLATE compression algorithm used in their gzip file compression program.
 
 
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1 
+
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+%define apppublication %{nil}
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Compression
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+%setup
 
 
 
@@ -89,74 +105,50 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+##prerequisite apps (uncomment and tweak if necessary)
+#module load NAME/VERSION-RELEASE
 
-mkdir build
-cd build
+#%%configure
+#make
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
-
+cd %{_topdir}/BUILD/%{name}-%{version}
+./configure --prefix=%{_prefix}
 make
-
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../src %{buildroot}/%{_prefix}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
 
+%make_install
 
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -173,14 +165,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -194,13 +178,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -210,8 +190,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -224,23 +202,40 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
 
 ---- environment changes (uncomment what's relevant)
-setenv("BAMTOOLS_HOME",            "%{_prefix}")
-setenv("BAMTOOLS_INCLUDE",         "%{_prefix}/include")
-setenv("BAMTOOLS_LIB",             "%{_prefix}/lib/bamtools")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/bamtools")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/bamtools")
+setenv("ZLIB_INCLUDE",                "%{_prefix}/include")
+setenv("ZLIB_LIB",                    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
+--This is because the samtools makefile is dumb
+setenv("ZLIBFORSAMTOOLS",	      "-L%{_prefix}/lib -I%{_prefix}/include")
 EOF
 
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+---
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+module              : %{modulename}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------

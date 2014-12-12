@@ -1,3 +1,9 @@
+#
+# R_packages-3.1.0-fasrc01, with 192 packages built, takes about 40 minutes
+#
+
+
+
 #------------------- package info ----------------------------------------------
 
 #
@@ -30,15 +36,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+%define summary_static a bunch of R packages from CRAN
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/pezmaster31/bamtools/archive/v2.3.0.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +66,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-BamTools provides both a programmer's API and an end-user's toolkit for handling BAM files.
+This is the set of most popular packages added on to R that originate from CRAN.
+It's meant to be paired with an R_core module.
 
 
 
@@ -70,18 +77,330 @@ BamTools provides both a programmer's API and an end-user's toolkit for handling
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+mkdir %{name}-%{version}
 cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+
+
+#--- name all the packages to install
+#
+# this is the union of:
+#	* what's in our old centos6/R-3.0.2 (most popular R module)
+#	* what's in our old math/R-3.0.1 (2nd most popular R module)
+#	* top 100 most popular packages by downloads for part of 2013:
+#	  http://www.r-statistics.com/2013/06/top-100-r-packages-for-2013-jan-may/
+#
+# minus built-in stuff
+#	KernSmooth
+#	MASS
+#	Matrix
+#	base
+#	boot
+#	class
+#	cluster
+#	codetools
+#	compiler
+#	datasets
+#	foreign
+#	grDevices
+#	graphics
+#	grid
+#	lattice
+#	methods
+#	mgcv
+#	nlme
+#	nnet
+#	parallel
+#	rpart
+#	spatial
+#	splines
+#	stats
+#	stats4
+#	survival
+#	tcltk
+#	tools
+#	utils
+#
+# minus these that failed (grepping output for `ERROR'):
+#	RODBC
+#	RWeka
+#	RWekajars
+#	RcppGSL
+#	Rmpi
+#	WGCNA
+#	XLConnect
+#	copula
+#	diversitree
+#	gsl
+#	impute
+#	isva
+#	ncdf
+#	qvalue
+#	rJava
+#	rgdal
+#	topicmodels
+#	xlsx
+#	xlsxjars
+#
+# minus these that ended up not building (e.g. not in CRAN)
+#	AnnotationDbi
+#	BSgenome
+#	BayesTree
+#	Biobase
+#	BiocGenerics
+#	BiocInstaller
+#	Biostrings
+#	DESeq
+#	DiffBind
+#	GenomicFeatures
+#	GenomicRanges
+#	Gviz
+#	IRanges
+#	IlluminaHumanMethylation450kanno.ilmn12.hg19
+#	Models
+#	Proportional-Odds
+#	Rsamtools
+#	ShortRead
+#	Snowball
+#	XVector
+#	annotate
+#	biomaRt
+#	biovizBase
+#	bumphunter
+#	ctc
+#	cummeRbund
+#	edgeR
+#	genefilter
+#	geneplotter
+#	genomes
+#	hopach
+#	illuminaio
+#	int64
+#	limma
+#	manipulate
+#	marray
+#	methylumi
+#	minfi
+#	multtest
+#	pcaMethods
+#	peer
+#	preprocessCore
+#	rstan
+#	rstudio
+#	rtracklayer
+#	siggenes
+#	slider
+#	spp
+#	zlibbioc
+#
+# and these packages show up, too (pulled in a dependencies I guess)
+#	DEoptimR
+#	Defaults
+#	NLP
+#	TH.data
+#	expm
+#	fastmatch
+#	fracdiff
+#	gss
+#	highr
+#	httr
+#	mime
+#	permute
+#	tcltk2
+#	whisker
+
+cat > package_list <<EOF
+ADGofTest
+AnDE
+BB
+Brobdingnag
+CpGassoc
+DBI
+FNN
+Formula
+GSA
+GWAF
+GenABEL
+GenABEL.data
+Hmisc
+MCMCpack
+MatchIt
+MetaSKAT
+R.methodsS3
+R2WinBUGS
+RColorBrewer
+RCurl
+RJSONIO
+RSQLite
+RSQLite.extfuns
+RSiena
+Rcmdr
+Rcpp
+RcppArmadillo
+RcppEigen
+Rserve
+SKAT
+SnowballC
+SparseM
+TTR
+XML
+abind
+akima
+amap
+aod
+ape
+aplpack
+arm
+base64
+bdsmatrix
+beanplot
+bitops
+caTools
+car
+chron
+coda
+colorspace
+corpcor
+coxme
+cubature
+data.table
+deSolve
+devtools
+dichromat
+digest
+discretization
+doParallel
+doRNG
+doSNOW
+dynamicTreeCut
+e1071
+effects
+evaluate
+fBasics
+fastICA
+fastcluster
+fields
+flashClust
+foreach
+forecast
+formatR
+formula.tools
+functional
+gdata
+geepack
+ggplot2
+glmnet
+gplots
+gridExtra
+grplasso
+gsubfn
+gtable
+gtools
+hwriter
+igraph
+inline
+intervals
+iterators
+itertools
+kernlab
+knitr
+labeling
+lasso2
+latticeExtra
+lda
+leaps
+lhs
+lme4
+lmtest
+locfit
+maps
+maptools
+markdown
+matrixStats
+matrixcalc
+mclust
+memoise
+meta
+mi
+minqa
+mlbench
+mlegp
+modeltools
+msm
+multcomp
+multicore
+munsell
+mvtnorm
+nleqslv
+nor1mix
+numDeriv
+operator.tools
+optmatch
+pROC
+penalized
+penalizedSVM
+phangorn
+pkgmaker
+plotrix
+plyr
+proto
+pspline
+psych
+quadprog
+quantmod
+quantreg
+rJava
+randomForest
+raster
+registry
+relimp
+reshape
+reshape2
+rgl
+rngtools
+robustbase
+rootSolve
+sandwich
+sas7bdat
+scales
+scatterplot3d
+sem
+slam
+snow
+sp
+spam
+sqldf
+stabledist
+statmod
+stringr
+strucchange
+subplex
+svmpath
+texreg
+tgp
+timeDate
+timeSeries
+tm
+tree
+truncnorm
+tseries
+vcd
+vegan
+xtable
+xts
+zoo
+RWekajars
+RWeka
+XLConnect
+xlsx
+xlsxjars
+EOF
 
 
 
@@ -94,7 +413,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -102,16 +420,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-mkdir build
-cd build
-
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
-
-make
+#(n/a -- build and install done in the same step below)
 
 
 
@@ -124,7 +435,6 @@ make
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -140,12 +450,42 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+module load R_core/3.1.0-fasrc01
+
+#
+# This app insists* on writing directly to the prefix.  Acquiesce, and hack a 
+# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
+# to install in our build environment, and then remove the symlink.  Note that 
+# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE 
+# combination.
+#
+# * Well, with R here, maybe there's a way; I just don't know it.
+#
+
+# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../src %{buildroot}/%{_prefix}
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+
+##can't use a symlink -- R canonicalizes it and includes the buildroot in the files
+#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+sudo install -o "$USER" -m 700 -d "%{_prefix}"
+
+
+echo 'install.packages(scan("package_list", what="", sep="\n"), lib="%{_prefix}", repos="http://cran.us.r-project.org")' | R --vanilla
+#NOTE: some may fail
+rm -rf %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}
+cp -r "%{_prefix}"/* %{buildroot}/%{_prefix}
+
+##can't use a symlink -- R canonicalizes it and includes the buildroot in the files
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm -rf "%{_prefix}"
 
 
 #(this should not need to be changed)
@@ -223,22 +563,15 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+-- prerequisite apps (uncomment and tweak if necessary)
+if mode()=="load" then
+	if not isloaded("R_core") then
+		load("R_core/3.1.0-fasrc01")
+	end
+end
 
----- environment changes (uncomment what's relevant)
-setenv("BAMTOOLS_HOME",            "%{_prefix}")
-setenv("BAMTOOLS_INCLUDE",         "%{_prefix}/include")
-setenv("BAMTOOLS_LIB",             "%{_prefix}/lib/bamtools")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/bamtools")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/bamtools")
+-- environment changes (uncomment what's relevant)
+prepend_path("R_LIBS_USER",         "%{_prefix}")
 EOF
 
 
