@@ -68,6 +68,8 @@ Prefix: %{_prefix}
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -76,13 +78,19 @@ Prefix: %{_prefix}
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
+%define buildhostversion 1
+
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -265,7 +273,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch(%{rundependencies},"%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
         if not isloaded(i) then
             load(i)

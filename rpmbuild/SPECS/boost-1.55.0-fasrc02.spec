@@ -73,13 +73,14 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
+%define buildhostversion 1
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags %{nil}
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
 %define apppublication %{nil}
 
 

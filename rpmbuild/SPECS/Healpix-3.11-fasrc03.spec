@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
+%define summary_static Data Analysis, Simulations and Visualization on the Sphere
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/boost/boost/1.54.0/boost_1_54_0.tar.bz2
-Source: %{name}_1_54_0.tar.bz2
+URL:  http://downloads.sourceforge.net/project/healpix/Healpix_3.11/Healpix_3.11_2013Apr24.tar.gz
+Source: %{name}_%{version}_2013Apr24.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,11 +60,13 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+Software for pixelization, hierarchical indexation, synthesis, analysis, and visualization of data on the sphere.
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -75,14 +77,18 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhost %(hostname)
 %define buildhostversion 1
 
-%define builddependencies %{nil}
+
+%define builddependencies cfitsio/3360-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
-%define apppublication %{nil}
 
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Applications;  aci-ref-app-tag:Image analysis
+%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -99,9 +105,9 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_1_54_0
-tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_54_0.tar.*
-cd %{name}_1_54_0
+rm -rf %{name}_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}_2013Apr24.tar.*
+cd %{name}_%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -123,23 +129,144 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
+for m in %{builddependencies}
+do
+    module load ${m}
+done
 
-# Build based on instructions from this page
-# https://svn.boost.org/trac/boost/ticket/1811
+
+%define cfitsiohome ${CFITSIO_HOME}
+%define cfitsioinclude ${CFITSIO_INCLUDE}
+%define cfitsiolib ${CFITSIO_LIB}
+%define builddir ${FASRCSW_DEV}/rpmbuild/BUILD/%{name}_%{version}
+
+export healpixtarget=basic_gcc
+test "%{comp_name}" == "intel" && healpixtarget=linux_icc
+
+test -z $CC && CC=gcc
+test -z $FC && FC=gfortran
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 
+cat > Makefile.patch <<EOF
+7,11c7,11
+< ALL       = c-void cpp-void f90-void healpy-void 
+< TESTS     = c-void cpp-void f90-void healpy-void 
+< CLEAN     = c-void cpp-void f90-void healpy-void 
+< TIDY      = c-void cpp-void f90-void healpy-void 
+< DISTCLEAN = c-void cpp-void f90-void healpy-void 
+---
+> ALL       = c-all cpp-void f90-all healpy-void 
+> TESTS     = c-test cpp-void f90-test healpy-void 
+> CLEAN     = c-clean cpp-void f90-clean healpy-void 
+> TIDY      = c-tidy cpp-void f90-tidy healpy-void 
+> DISTCLEAN = c-distclean cpp-void f90-distclean healpy-void 
+16,21c16,21
+< HEALPIX=
+< F90_BINDIR	=
+< F90_INCDIR	=
+< F90_LIBDIR	=
+< FITSDIR	= 
+< LIBFITS	= 
+---
+> HEALPIX   = %builddir
+> F90_BINDIR    =  %builddir/bin
+> F90_INCDIR    =  %builddir/include
+> F90_LIBDIR    =  %builddir/lib
+> FITSDIR   = $CFITSIO_LIB
+> LIBFITS   = cfitsio
+23,24c23,24
+< F90_FFTSRC  = 
+< F90_ADDUS   = 
+---
+> F90_FFTSRC    = healpix_fft
+> F90_ADDUS =  
+28,35c28,35
+< F90_FC	= 
+< F90_FFLAGS	= 
+< F90_CC	= 
+< F90_CFLAGS	= 
+< F90_LDFLAGS	=
+< F90_AR      = 
+< F90_PPFLAGS =
+< F90_I8FLAG  = 
+---
+> F90_FC    = $FC
+> F90_FFLAGS    = -O3 -I\$(F90_INCDIR) -DGFORTRAN -fno-second-underscore -fopenmp -fPIC
+> F90_CC    = $CC
+> F90_CFLAGS    = -O3 -std=c99 -DgFortran -fopenmp -fPIC
+> F90_LDFLAGS   = -L\$(F90_LIBDIR) -L\$(FITSDIR) -lhealpix -lhpxgif -l\$(LIBFITS) -Wl,-R\$(FITSDIR)
+> F90_AR        = ar -rsv
+> F90_PPFLAGS   = 
+> F90_I8FLAG  = -fdefault-integer-8
+37,38c37,38
+< F90_PGFLAG  =
+< F90_PGLIBS  =
+---
+> F90_PGFLAG  = 
+> F90_PGLIBS  = 
+40c40
+< F90_MOD	=
+---
+> F90_MOD   = mod
+42c42
+< F90_OS	=
+---
+> F90_OS    = Linux
+54,56c54,56
+< C_CC  = 
+< C_PIC = 
+< C_OPT = 
+---
+> C_CC        = $CC
+> C_PIC       = -fPIC
+> C_OPT       = -O2 -Wall
+59,61c59,61
+< C_LIBDIR = 
+< C_INCDIR = 
+< C_AR     = 
+---
+> C_LIBDIR      = %builddir/lib
+> C_INCDIR      = %builddir/include
+> C_AR        = ar -rsv
+64,66c64,66
+< C_CFITSIO_INCDIR = 
+< C_CFITSIO_LIBDIR = 
+< C_WLRPATH = 
+---
+> C_CFITSIO_INCDIR = $CFITSIO_INCLUDE
+> C_CFITSIO_LIBDIR = $CFITSIO_LIB
+> C_WLRPATH = -Wl,-R${CFITSIO_LIB}
+69c69
+< C_ALL =
+---
+> C_ALL     = c-static
+76c76
+< HEALPIX_TARGET =
+---
+> HEALPIX_TARGET = %healpixtarget
+78,79c78,79
+< CFITSIO_EXT_LIB=
+< CFITSIO_EXT_INC=
+---
+> CFITSIO_EXT_LIB = -L%cfitsiolib -lcfitsio
+> CFITSIO_EXT_INC = -I%cfitsioinclude
+EOF
 
+patch -o Makefile Makefile.in Makefile.patch
 
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
-%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
+#Fix screwed up Makefile
+sed -i -e 's?@cp -p libsharp_healpix_f.a $(LIBDIR)/?@cp -p libsharp_healpix_f.a $(LIBDIR)?' src/f90/sharp/Makefile
 
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
---with-toolset=%{toolset_name}
+#Create include, bin, and lib dirs
+for d in %builddir/lib %builddir/include %builddir/bin
+do
+    mkdir -p $d || echo "Directory $d exists"
+done
 
-test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
-# the cc toolset makes use of CC, CFLAGS, etc.
+make
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,11 +295,10 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
-echo %{buildroot} | grep -q %{name}_1_54_0 && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
-
+cp -r {bin,include,lib}  %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -250,16 +376,20 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what's relevant)
-setenv("BOOST_HOME",                 "%{_prefix}")
-setenv("BOOST_INCLUDE",              "%{_prefix}/include")
-setenv("BOOST_LIB",                  "%{_prefix}/lib")
+
+---- environment changes (uncomment what is relevant)
+setenv("HEALPIX_HOME",              "%{_prefix}")
+setenv("HEALPIX_INCLUDE",           "%{_prefix}/include")
+setenv("HEALPIX_LIB",               "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
@@ -287,6 +417,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

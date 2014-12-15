@@ -74,13 +74,14 @@ bcftools
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
+%define buildhostversion 1
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags %{nil}
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
 %define apppublication %{nil}
 
 

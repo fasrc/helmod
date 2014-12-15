@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
+%define summary_static A program for detecting natural selection in the presence of recombination.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/boost/boost/1.54.0/boost_1_54_0.tar.bz2
-Source: %{name}_1_54_0.tar.bz2
+URL: http://www.danielwilson.me.uk/omegaMap/omegaMap.zip
+Source: %{name}.zip
 
 #
 # there should be no need to change the following
@@ -59,8 +59,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+omegaMap is a program for detecting natural selection and recombination in DNA or RNA sequences. It is based on a model of population genetics and molecular evolution. The signature of natural selection is detected using the dN/dS ratio (which measures the relative excess of non-synonymous to synonymous polymorphism) and the signature of recombination is detected from the patterns of linkage disequilibrium.
 
 #
 # Macros for setting app data 
@@ -78,11 +80,10 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-%define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
-%define apppublication %{nil}
-
+%define requestor sedwards
+%define requestref RCRT:77629
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
+%define apppublication Wilson, D. J. and G. McVean (2006) Estimating diversifying selection and functional constraint in the presence of recombination.  Genetics doi:10.1534/genetics.105.044917
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -99,9 +100,9 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_1_54_0
-tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_54_0.tar.*
-cd %{name}_1_54_0
+rm -rf %{name}
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.zip
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -123,23 +124,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
+#module load NAME/VERSION-RELEASE
 
-# Build based on instructions from this page
-# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
+for m in %{builddependencies}
+do
+    module load ${m}
+done
 
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
-%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
-
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
---with-toolset=%{toolset_name}
-
-test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
-# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,11 +166,10 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
-echo %{buildroot} | grep -q %{name}_1_54_0 && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp omegaMap omegaMapTP summarize decode order permute %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -250,21 +247,19 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
 ---- environment changes (uncomment what's relevant)
-setenv("BOOST_HOME",                 "%{_prefix}")
-setenv("BOOST_INCLUDE",              "%{_prefix}/include")
-setenv("BOOST_LIB",                  "%{_prefix}/lib")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-EOF
+setenv("OMEGAMAP_HOME",             "%{_prefix}")
 
+prepend_path("PATH",                "%{_prefix}/bin")
+EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

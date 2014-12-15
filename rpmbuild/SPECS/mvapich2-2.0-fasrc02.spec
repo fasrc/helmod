@@ -74,13 +74,14 @@ MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
+%define buildhostversion 1
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags %{nil}
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
 %define apppublication %{nil}
 
 

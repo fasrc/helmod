@@ -85,6 +85,34 @@ Prefix: %{_prefix}
 Built against the fasrc02 release of perl-5.10, which includes threads.  There is a lot of stuff here including the following:
 %{MODULES} %{BUILDPL}
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+
+
+%define builddependencies  perl/5.10.1-fasrc02 
+%define rundependencies %{builddependencies}
+%define buildcomments "Module list: %{MODULES}"
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Perl
+%define apppublication %{nil}
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -104,7 +132,11 @@ Built against the fasrc02 release of perl-5.10, which includes threads.  There i
 
 %include fasrcsw_module_loads.rpmmacros
 
-module load perl/5.10.1-fasrc02
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
 export PERL_MM_USE_DEFAULT=true
@@ -251,7 +283,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch(%{rundependencies},"%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
         if not isloaded(i) then
             load(i)
@@ -259,7 +291,7 @@ for i in string.gmatch(%{rundependencies},"%%S+") do
     end
 end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("PERL5LIB",              "%{_prefix}/lib")
 prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")

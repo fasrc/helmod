@@ -93,6 +93,7 @@ Perl interpreter
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
+%define buildhostversion %(hostname)
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}

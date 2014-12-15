@@ -18,6 +18,9 @@ Version: %{getenv:VERSION}
 # and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
+# fasrc02 includes the links to sparsehash and bam
+# sparsehash must be installed on the build host- not needed when deployed
+#
 %define release_short %{getenv:RELEASE}
 
 #
@@ -30,15 +33,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
+%define summary_static Burroughs-Wheeler Aligner for short reads
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/boost/boost/1.54.0/boost_1_54_0.tar.bz2
-Source: %{name}_1_54_0.tar.bz2
+URL: http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.9a.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -60,11 +63,13 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+BWA is a software package for mapping low-divergent sequences against a large reference genome, such as the human genome. It consists of three algorithms: BWA-backtrack, BWA-SW and BWA-MEM. The first algorithm is designed for Illumina sequence reads up to 100bp, while the rest two for longer sequences ranged from 70bp to 1Mbp. BWA-MEM and BWA-SW share similar features such as long-read support and split alignment, but BWA-MEM, which is the latest, is generally recommended for high-quality queries as it is faster and more accurate. BWA-MEM also has better performance than BWA-backtrack for 70-100bp Illumina reads.
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -75,14 +80,18 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhost %(hostname)
 %define buildhostversion 1
 
-%define builddependencies %{nil}
+
+%define builddependencies zlib/1.2.8-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
-%define apppublication %{nil}
 
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence alignment & comparison
+%define apppublication Li H. and Durbin R. (2009) Fast and accurate short read alignment with Burrows-Wheeler Transform. Bioinformatics, 25:1754-60. [PMID: 19451168]
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -91,17 +100,15 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_1_54_0
-tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_54_0.tar.*
-cd %{name}_1_54_0
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -115,31 +122,29 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
 
-# Build based on instructions from this page
-# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
 
 
+sed -i -e 's/^CC=.*//' Makefile
+sed -i -e 's/^CFLAGS=\s\(.*\)/CFLAGS= -I$(ZLIB_INCLUDE) -L$(ZLIB_LIB)\1/' Makefile
 
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
-%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
 
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
---with-toolset=%{toolset_name}
-
-test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
-# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -150,8 +155,6 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -168,10 +171,10 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
-echo %{buildroot} | grep -q %{name}_1_54_0 && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -250,19 +253,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what's relevant)
-setenv("BOOST_HOME",                 "%{_prefix}")
-setenv("BOOST_INCLUDE",              "%{_prefix}/include")
-setenv("BOOST_LIB",                  "%{_prefix}/lib")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 
@@ -287,6 +288,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

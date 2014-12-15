@@ -1,33 +1,30 @@
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
-Name: mpc
+Name: %{getenv:NAME}
 
-#
-# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
-Version: 1.0.1
+Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
-%define release_short fasrc01
+%define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- John Brunelle <john_brunelle@harvard.edu>
+Packager: %{getenv:FASRCSW_AUTHOR}
+
 
 #
 # FIXME
@@ -72,6 +69,34 @@ Prefix: %{_prefix}
 Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result. It extends the principles of the IEEE-754 standard for fixed precision real floating point numbers to complex numbers, providing well-defined semantics for every operation. At the same time, speed of operation at high precision is a major design goal.
 
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+
+
+%define builddependencies gmp/6.0.0-fasrc01 mpfr/3.1.2-fasrc02
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags  aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apppublication %{nil}
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -103,8 +128,11 @@ Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily hi
 %include fasrcsw_module_loads.rpmmacros
 
 #prerequisite apps (uncomment and tweak if necessary)
-module load gmp/5.1.3-fasrc01
-module load mpfr/3.1.2-fasrc01
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 %configure
 make
@@ -188,14 +216,14 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("gmp") then
-		load("gmp/5.1.3-fasrc01")
-	end
-	if not isloaded("mpfr") then
-		load("mpfr/3.1.2-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
 end
+
 
 ---- environment changes (uncomment what's relevant)
 --prepend_path("PATH",                "%{_prefix}/bin")
@@ -212,6 +240,28 @@ prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+---
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+module              : %{modulename}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 
