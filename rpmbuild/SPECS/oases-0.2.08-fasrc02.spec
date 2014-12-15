@@ -1,45 +1,49 @@
 #------------------- package info ----------------------------------------------
 
 #
+# FIXME
+#
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
+
+#
+# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
+
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
+# FIXME
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
 %define release_short %{getenv:RELEASE}
 
+
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-#
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
-#
-%define summary_static PolSpice (aka Spice) is a tool to statistically analyze Cosmic Microwave Background (CMB) data, as well as any other diffuse data pixelized on the sphere.
+%define summary_static 
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: ftp://ftp.iap.fr/pub/from_users/hivon/PolSpice/PolSpice_v03-00-01.tar.gz
-Source: %{name}_v03-00-01.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+URL: http://www.ebi.ac.uk/~zerbino/oases/oases_0.2.08.tgz
 
+Source: oases_0.2.08.tgz
 #
 # there should be no need to change the following
 #
@@ -56,11 +60,13 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This Fortran90 program measures the 2 point auto (or cross-) correlation functions w(θ) and the angular auto- (or cross-) power spectra C(l) from one or (two) sky map(s) of Stokes parameters (intensity I and linear polarisation Q and U). It is based on the fast Spherical Harmonic Transforms allowed by isolatitude pixelisations such as HEALPix [for Npix pixels over the whole sky, and a C(l) computed up to l=lmax, PolSpice complexity scales like Npix1/2 lmax2 instead of Npix lmax2]. It corrects for the effects of the masks and can deal with inhomogeneous weights given to the pixels of the map. In the case of polarised data, the mixing of the E and B modes due to the cut sky and pixel weights can be corrected for to provide an unbiased estimate of the "magnetic" (B) component of the polarisation power spectrum. Most of the code is parallelized for shared memory (SMP) architecture using OpenMP.
+Oases is a de novo transcriptome assembler designed to produce transcripts from short read sequencing technologies, such as Illumina, SOLiD, or 454 in the absence of any genomic assembly. It was developed by Marcel Schulz (MPI for Molecular Genomics) and Daniel Zerbino (previously at the European Bioinformatics Institute (EMBL-EBI), now at UC Santa Cruz).  Oases uploads a preliminary assembly produced by Velvet, and clusters the contigs into small groups, called loci. It then exploits the paired-end read and long read information, when available, to construct transcript isoforms.
 
 #
 # Macros for setting app data 
@@ -78,8 +84,8 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 %define buildhostversion 1
 
 
-%define builddependencies Healpix/3.11-fasrc03
-%define rundependencies %{nil}
+%define builddependencies %{nil}
+%define rundependencies velvet/1.2.10-fasrc02
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,28 +93,38 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
 %define apppublication %{nil}
+
+
+#
+# Velvet dependencies
+#
+# Oases depends on velvet for some processing.  The following variables
+# allow Oases to find velvet during build and set module dependencies
+#
+%define _velvet_version 1.2.10
+%define _velvet_builddir ../velvet_%{_velvet_version} 
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_v03-00-01
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v03-00-01.tar.*
-cd %{name}_v03-00-01
-chmod -Rf a+rX,u+w,g-w,o-w .
+# %setup
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}_%{version}.tgz
+%define _bd oases_0.2.8
+stat %{_bd}
+cd %{_bd}
 
 
 
@@ -116,39 +132,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
 
+##prerequisite apps (uncomment and tweak if necessary)
+#module load NAME/VERSION-RELEASE
 
-
-export HEALPIX=${HEALPIX_HOME}
-
-test "%comp_name" == "intel" && FC="ifort -openmp"
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-
-sed -e 's?^FC =.*??' \
-    -e 's?-lcfitsio?-lcfitsio -lgomp -lpthread?' \
-    -e 's?^FITSLIB.*?FITSLIB = $(CFITSIO_LIB)?' \
-    < Makefile_template > Makefile
-sed -i '1102s?^?!?' deal_with_options.F90
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+cd %{_topdir}/BUILD/%{_bd}
+# Substitute hard coded gcc when intel is in session
+test "%{comp_name}" == "intel" && sed -i 's/gcc/icc/' Makefile
+# Add VELVET_DIR 
+sed -i 's#../velvet#%{_velvet_builddir}#' Makefile
 make
 
 
@@ -157,42 +158,29 @@ make
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/bin
-cp spice %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{_bd}/oases %{buildroot}/%{_prefix}/bin
 
-#(this should not need to be changed)
+
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -209,14 +197,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -230,13 +210,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -246,8 +222,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -260,10 +234,20 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what's relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -286,7 +270,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

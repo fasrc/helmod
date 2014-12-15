@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static bcftools
+%define summary_static Utilities for variant calling and manipulating VCFs and BCFs.
 Summary: %{summary_static}
 
 #
@@ -77,7 +77,7 @@ bcftools
 %define buildhostversion 1
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define rundependencies perl/5.10.1-fasrc02
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -246,10 +246,12 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("perl") then
-		load("perl/5.10.1-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
 end
 
 ---- environment changes (uncomment what's relevant)

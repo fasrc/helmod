@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PolSpice (aka Spice) is a tool to statistically analyze Cosmic Microwave Background (CMB) data, as well as any other diffuse data pixelized on the sphere.
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.iap.fr/pub/from_users/hivon/PolSpice/PolSpice_v03-00-01.tar.gz
-Source: %{name}_v03-00-01.tar.gz
+URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-fortran-4.4.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This Fortran90 program measures the 2 point auto (or cross-) correlation functions w(θ) and the angular auto- (or cross-) power spectra C(l) from one or (two) sky map(s) of Stokes parameters (intensity I and linear polarisation Q and U). It is based on the fast Spherical Harmonic Transforms allowed by isolatitude pixelisations such as HEALPix [for Npix pixels over the whole sky, and a C(l) computed up to l=lmax, PolSpice complexity scales like Npix1/2 lmax2 instead of Npix lmax2]. It corrects for the effects of the masks and can deal with inhomogeneous weights given to the pixels of the map. In the case of polarised data, the mixing of the E and B modes due to the cut sky and pixel weights can be corrected for to provide an unbiased estimate of the "magnetic" (B) component of the polarisation power spectrum. Most of the code is parallelized for shared memory (SMP) architecture using OpenMP.
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. This is the fortran distribution.
 
 #
 # Macros for setting app data 
@@ -78,8 +78,8 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 %define buildhostversion 1
 
 
-%define builddependencies Healpix/3.11-fasrc03
-%define rundependencies %{nil}
+%define builddependencies netcdf/4.3.2-fasrc03
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,7 +87,7 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
 
@@ -105,9 +105,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_v03-00-01
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v03-00-01.tar.*
-cd %{name}_v03-00-01
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -129,24 +129,36 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+# module load hdf5
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
 
+export FC=mpif90
+export F90=mpif90
 
-export HEALPIX=${HEALPIX_HOME}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-test "%comp_name" == "intel" && FC="ifort -openmp"
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
 
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-
-sed -e 's?^FC =.*??' \
-    -e 's?-lcfitsio?-lcfitsio -lgomp -lpthread?' \
-    -e 's?^FITSLIB.*?FITSLIB = $(CFITSIO_LIB)?' \
-    < Makefile_template > Makefile
-sed -i '1102s?^?!?' deal_with_options.F90
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
@@ -179,10 +191,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp spice %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -260,10 +273,29 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
+setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PolSpice (aka Spice) is a tool to statistically analyze Cosmic Microwave Background (CMB) data, as well as any other diffuse data pixelized on the sphere.
+%define summary_static OpenMM is a toolkit for molecular simulation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
+# Requires account
 #
-URL: ftp://ftp.iap.fr/pub/from_users/hivon/PolSpice/PolSpice_v03-00-01.tar.gz
-Source: %{name}_v03-00-01.tar.gz
+URL: https://simtk.org/frs/download.php?file_id=4026
+Source: %{name}%{version}-Source.zip
 
 #
 # there should be no need to change the following
@@ -60,7 +61,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This Fortran90 program measures the 2 point auto (or cross-) correlation functions w(θ) and the angular auto- (or cross-) power spectra C(l) from one or (two) sky map(s) of Stokes parameters (intensity I and linear polarisation Q and U). It is based on the fast Spherical Harmonic Transforms allowed by isolatitude pixelisations such as HEALPix [for Npix pixels over the whole sky, and a C(l) computed up to l=lmax, PolSpice complexity scales like Npix1/2 lmax2 instead of Npix lmax2]. It corrects for the effects of the masks and can deal with inhomogeneous weights given to the pixels of the map. In the case of polarised data, the mixing of the E and B modes due to the cut sky and pixel weights can be corrected for to provide an unbiased estimate of the "magnetic" (B) component of the polarisation power spectrum. Most of the code is parallelized for shared memory (SMP) architecture using OpenMP.
+OpenMM is a toolkit for molecular simulation. It can be used either as a stand-alone application for running simulations, or as a library you call from your own code. It provides a combination of extreme flexibility (through custom forces and integrators), openness, and high performance (especially on recent GPUs) that make it truly unique among simulation codes
 
 #
 # Macros for setting app data 
@@ -78,16 +79,16 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 %define buildhostversion 1
 
 
-%define builddependencies Healpix/3.11-fasrc03
+%define builddependencies cmake/2.8.12.2-fasrc02 python/2.7.6-fasrc02
 %define rundependencies %{nil}
-%define buildcomments %{nil}
+%define buildcomments Built with cmake and python.  However, python functionality is not required, so it's not a runtime dependency.
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications;  aci-ref-app-tag:Molecular simulation
 %define apppublication %{nil}
 
 
@@ -105,9 +106,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_v03-00-01
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v03-00-01.tar.*
-cd %{name}_v03-00-01
+rm -rf %{name}%{version}-Source
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}-Source.zip
+cd %{name}%{version}-Source
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -128,28 +129,26 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # 
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##make sure to add them to modulefile.lua below, too!  
+
+
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
+
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
 
+test -d build || mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 
-export HEALPIX=${HEALPIX_HOME}
-
-test "%comp_name" == "intel" && FC="ifort -openmp"
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-
-sed -e 's?^FC =.*??' \
-    -e 's?-lcfitsio?-lcfitsio -lgomp -lpthread?' \
-    -e 's?^FITSLIB.*?FITSLIB = $(CFITSIO_LIB)?' \
-    < Makefile_template > Makefile
-sed -i '1102s?^?!?' deal_with_options.F90
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make -j 4
 
 
 
@@ -177,12 +176,17 @@ make
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp spice %{buildroot}/%{_prefix}/bin
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
+echo %{buildroot} | grep -q %{name}%{version}-Source && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/python
+cd build
+make DESTDIR=%{buildroot} install
+cd python
+module load OpenMM
+export OPENMM_INCLUDE_PATH=$OPENMM_INCLUDE
+export OPENMM_LIB_PATH=$OPENMM_LIB
+python setup.py install --root=%{buildroot} --prefix=%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -260,10 +264,24 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("OPENMM_HOME",              "%{_prefix}")
+setenv("OPENMM_LIB",               "%{_prefix}/lib")
+setenv("OPENMM_INCLUDE",           "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.6/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -286,7 +304,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

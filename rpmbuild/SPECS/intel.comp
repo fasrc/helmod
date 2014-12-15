@@ -19,7 +19,7 @@ mpc
 MUMmer
 mvapich2
 ncbi-blast
-netcdf
+netcdf/3.6.2-fasrc0??
 oases
 openexr
 OpenMM

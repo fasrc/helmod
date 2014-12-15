@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PolSpice (aka Spice) is a tool to statistically analyze Cosmic Microwave Background (CMB) data, as well as any other diffuse data pixelized on the sphere.
+%define summary_static MUMmer is a system for rapidly aligning entire genomes, whether in complete or draft form.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.iap.fr/pub/from_users/hivon/PolSpice/PolSpice_v03-00-01.tar.gz
-Source: %{name}_v03-00-01.tar.gz
+URL: http://downloads.sourceforge.net/project/mummer/mummer/3.23/MUMmer3.23.tar.gz
+Source: %{name}%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This Fortran90 program measures the 2 point auto (or cross-) correlation functions w(θ) and the angular auto- (or cross-) power spectra C(l) from one or (two) sky map(s) of Stokes parameters (intensity I and linear polarisation Q and U). It is based on the fast Spherical Harmonic Transforms allowed by isolatitude pixelisations such as HEALPix [for Npix pixels over the whole sky, and a C(l) computed up to l=lmax, PolSpice complexity scales like Npix1/2 lmax2 instead of Npix lmax2]. It corrects for the effects of the masks and can deal with inhomogeneous weights given to the pixels of the map. In the case of polarised data, the mixing of the E and B modes due to the cut sky and pixel weights can be corrected for to provide an unbiased estimate of the "magnetic" (B) component of the polarisation power spectrum. Most of the code is parallelized for shared memory (SMP) architecture using OpenMP.
+MUMmer is a system for rapidly aligning entire genomes, whether in complete or draft form. For example, MUMmer 3.0 can find all 20-basepair or longer exact matches between a pair of 5-megabase genomes in 13.7 seconds, using 78 MB of memory, on a 2.4 GHz Linux desktop computer. MUMmer can also align incomplete genomes; it can easily handle the 100s or 1000s of contigs from a shotgun sequencing project, and will align them to another set of contigs or a genome using the NUCmer program included with the system. If the species are too divergent for a DNA sequence alignment to detect similarity, then the PROmer program can generate alignments based upon the six-frame translations of both input sequences.
 
 #
 # Macros for setting app data 
@@ -78,8 +78,8 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 %define buildhostversion 1
 
 
-%define builddependencies Healpix/3.11-fasrc03
-%define rundependencies %{nil}
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,8 +87,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications;  aci-ref-app-tag:Sequence alignment & comparison
 %define apppublication %{nil}
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,9 +106,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_v03-00-01
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v03-00-01.tar.*
-cd %{name}_v03-00-01
+rm -rf %{name}%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
+cd %{name}%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -129,27 +130,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}
+
+# Replace the CC and CXX lines in the Makefile to get the right compiler
+sed -i -e 's/^CC.*//' -e 's/^CXX.*//' Makefile
 
 
-
-export HEALPIX=${HEALPIX_HOME}
-
-test "%comp_name" == "intel" && FC="ifort -openmp"
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-
-sed -e 's?^FC =.*??' \
-    -e 's?-lcfitsio?-lcfitsio -lgomp -lpthread?' \
-    -e 's?^FITSLIB.*?FITSLIB = $(CFITSIO_LIB)?' \
-    < Makefile_template > Makefile
-sed -i '1102s?^?!?' deal_with_options.F90
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make install
 
 
 
@@ -179,10 +171,26 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp spice %{buildroot}/%{_prefix}/bin
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}
+echo %{buildroot} | grep -q %{name}%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+
+# Substitute hardcoded paths
+for p in mapview mummerplot nucmer promer; do
+    sed -i -e 's?#!/usr/bin/perl?#!/usr/bin/env perl?' $p
+    sed -i -e 's?my $SCRIPT_DIR.*?my $SCRIPT_DIR = "%{_prefix}/scripts";?' $p
+    sed -i -e 's?my $BIN_DIR.*?my $BIN_DIR = "%{_prefix}";?' $p
+    sed -i -e 's?my $AUX_BIN_DIR.*?my $AUX_BIN_DIR = "%{_prefix}/aux_bin";?' $p
+    sed -i -e 's?use lib.*?use lib "%{_prefix}/scripts";?' $p
+done
+
+for c in run-mummer3 run-mummer1 exact-tandems; do 
+    sed -i -e 's?^\(set bindir.*\)?#\1?' -e 's?$bindir/??' $c
+    sed -i -e 's?^set scriptdir.*?set scriptdir = %{_prefix}/scripts?' $c
+done
+
+# copy to new location
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -260,9 +268,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -286,6 +302,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 

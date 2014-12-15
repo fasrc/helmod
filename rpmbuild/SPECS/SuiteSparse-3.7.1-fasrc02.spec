@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PolSpice (aka Spice) is a tool to statistically analyze Cosmic Microwave Background (CMB) data, as well as any other diffuse data pixelized on the sphere.
+%define summary_static SuiteSparse is a meta-package of sparse matrix packages.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.iap.fr/pub/from_users/hivon/PolSpice/PolSpice_v03-00-01.tar.gz
-Source: %{name}_v03-00-01.tar.gz
+URL: http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-4.2.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -60,7 +60,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-This Fortran90 program measures the 2 point auto (or cross-) correlation functions w(θ) and the angular auto- (or cross-) power spectra C(l) from one or (two) sky map(s) of Stokes parameters (intensity I and linear polarisation Q and U). It is based on the fast Spherical Harmonic Transforms allowed by isolatitude pixelisations such as HEALPix [for Npix pixels over the whole sky, and a C(l) computed up to l=lmax, PolSpice complexity scales like Npix1/2 lmax2 instead of Npix lmax2]. It corrects for the effects of the masks and can deal with inhomogeneous weights given to the pixels of the map. In the case of polarised data, the mixing of the E and B modes due to the cut sky and pixel weights can be corrected for to provide an unbiased estimate of the "magnetic" (B) component of the polarisation power spectrum. Most of the code is parallelized for shared memory (SMP) architecture using OpenMP.
+A package of sparse matrix packages including AMD: symmetric approximate minimum degree,BTF: permutation to block triangular form, CAMD: symmetric approximate minimum degree, CCOLAMD: constrained column approximate minimum degree, COLAMD: column approximate minimum degree, CHOLMOD: sparse supernodal Cholesky factorization and update/downdate, CSparse: a concise sparse matrix package, CXSparse: an extended version of CSparse, KLU: sparse LU factorization, for circuit simulation, LDL: a simple LDL^T factorization, UMFPACK: sparse multifrontal LU factorization, RBio: MATLAB toolbox for reading/writing sparse matrices, UFconfig: common configuration for all but CSparse, SuiteSparseQR: multifrontal sparse QR
+
 
 #
 # Macros for setting app data 
@@ -78,8 +79,8 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 %define buildhostversion 1
 
 
-%define builddependencies Healpix/3.11-fasrc03
-%define rundependencies %{nil}
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,8 +88,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Utility
 %define apppublication %{nil}
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,9 +107,9 @@ This Fortran90 program measures the 2 point auto (or cross-) correlation functio
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_v03-00-01
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v03-00-01.tar.*
-cd %{name}_v03-00-01
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -129,26 +131,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+#module load NAME/VERSION-RELEASE
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-
-export HEALPIX=${HEALPIX_HOME}
-
-test "%comp_name" == "intel" && FC="ifort -openmp"
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
-
-sed -e 's?^FC =.*??' \
-    -e 's?-lcfitsio?-lcfitsio -lgomp -lpthread?' \
-    -e 's?^FITSLIB.*?FITSLIB = $(CFITSIO_LIB)?' \
-    < Makefile_template > Makefile
-sed -i '1102s?^?!?' deal_with_options.F90
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
 make
 
 
@@ -179,10 +166,14 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v03-00-01/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp spice %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}%{_prefix}/lib
+mkdir -p %{buildroot}%{_prefix}/include
+sed -i -e 's?^INSTALL_LIB.*?INSTALL_LIB = %{buildroot}%{_prefix}/lib?' \
+       -e 's?^INSTALL_INCLUDE.*?INSTALL_INCLUDE = %{buildroot}%{_prefix}/include?' \
+       UFconfig/UFconfig.mk
+make install
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -261,9 +252,11 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 
----- environment changes (uncomment what's relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+---- environment changes (uncomment what is relevant)
+setenv("SUITESPARSE_HOME",              "%{_prefix}")
+prepend_path("CPATH",                   "%{_prefix}/include")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -286,7 +279,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
