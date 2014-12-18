@@ -30,15 +30,17 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
+%define summary_static A package of molecular simulation programs.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.bz2
-Source: %{name}_1_55_0.tar.bz2
+# Need both Amber14 and AmberTools14
+#
+URL: http://ambermd.org/Amber14-get.html
+Source: Amber14.tar.bz2
 
 #
 # there should be no need to change the following
@@ -60,11 +62,14 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+A set of molecular mechanical force fields for the simulation of biomolecules (which are in the public domain, and are used in a variety of simulation programs); and a package of molecular simulation programs which includes source code and demos.
+
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -75,12 +80,17 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhost %(hostname)
 %define buildhostversion 1
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Had to unset CPATH for intel 15.0.0 because it threw an error with std::complex for some reason.
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; jaci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Chemistry; aci-ref-app-tag:Molecular dynamics; aci-ref-app-tag:Molecular mechanics
 %define apppublication %{nil}
 
 
@@ -99,9 +109,10 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_1_55_0
-tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_55_0.tar.*
-cd %{name}_1_55_0
+rm -rf amber14
+tar xjvf "$FASRCSW_DEV"/rpmbuild/SOURCES/AmberTools14.tar.bz2
+tar xjvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Amber14.tar.bz2
+cd amber14
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -123,23 +134,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python/2.7.6-fasrc01
+#module load NAME/VERSION-RELEASE
 
-# Build based on instructions from this page
-# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/amber14
 
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpifort
+export F90=mpifort
+export AMBERHOME="${FASRCSW_DEV}/rpmbuild/BUILD/amber14"
 
+test "%{comp_name}" == "intel" &&  ./configure -mpi intel
 
-%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
-%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
+test "%{comp_name}" == "gcc" && ./configure -mpi gnu
 
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x \
---with-toolset=%{toolset_name}
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make install
 
-test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
-# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,14 +181,10 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
-echo %{buildroot} | grep -q %{name}_1_55_0 && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/amber14
+echo %{buildroot} | grep -q amber14 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
-
-# I get an error about std::complex if the intel includes are used
-test "%{toolset_name}" == "intel-linux" && unset CPATH
-./b2 install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} 
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -260,25 +269,15 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
-setenv("BOOST_HOME",                 "%{_prefix}")
-setenv("BOOST_INCLUDE",              "%{_prefix}/include")
-setenv("BOOST_LIB",                  "%{_prefix}/lib")
---prepend_path("PATH",                "%{_prefix}/bin")
+---- environment changes (uncomment what is relevant)
+setenv("AMBERHOME",                 "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
+prepend_path("FPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -301,7 +300,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

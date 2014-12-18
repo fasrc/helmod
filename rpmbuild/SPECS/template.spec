@@ -283,7 +283,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 --setenv("TEMPLATE_HOME",       "%{_prefix}")
 
 --prepend_path("PATH",                "%{_prefix}/bin")
