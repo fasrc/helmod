@@ -76,7 +76,7 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhostversion 1
 
 %define builddependencies  python/2.7.6-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies  %{nil} 
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -140,7 +140,7 @@ done
 %define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
 %define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
 
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x \
+./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
 --with-toolset=%{toolset_name}
 
 test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
@@ -158,8 +158,8 @@ test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in 
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
+# 'make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it will just work as-is.
 #
 # Note that DESTDIR != %{prefix} -- this is not the final installation.  
 # Rpmbuild does a temporary installation in the %{buildroot} and then 
@@ -176,7 +176,10 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_50_0
 echo %{buildroot} | grep -q %{name}_1_50_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./b2 install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} 
 
 
 #(this should not need to be changed)
@@ -255,16 +258,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch(%{rundependencies},"%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
 end
 
-
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BOOST_HOME",                 "%{_prefix}")
 setenv("BOOST_INCLUDE",              "%{_prefix}/include")
 setenv("BOOST_LIB",                  "%{_prefix}/lib")

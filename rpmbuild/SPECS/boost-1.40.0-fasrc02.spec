@@ -77,7 +77,7 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhostversion 1
 
 %define builddependencies python/2.7.6-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -176,7 +176,10 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
 echo %{buildroot} | grep -q %{name}_1_40_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./bjam install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./bjam install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
 
 
 #(this should not need to be changed)
@@ -255,16 +258,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch(%{rundependencies},"%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
 end
 
-
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BOOST_HOME",                 "%{_prefix}")
 setenv("BOOST_INCLUDE",              "%{_prefix}/include")
 setenv("BOOST_LIB",                  "%{_prefix}/lib")
@@ -272,6 +275,7 @@ prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

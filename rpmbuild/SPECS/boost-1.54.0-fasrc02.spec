@@ -75,9 +75,9 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhost %(hostname)
 %define buildhostversion 1
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define builddependencies python/2.7.6-fasrc01 
+%define rundependencies  %{nil} 
+%define buildcomments Had to unset CPATH for intel 15.0.0 because it threw an error with std::complex for some reason.
 %define requestor %{nil}
 %define requestref %{nil}
 %define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
@@ -123,7 +123,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 # Build based on instructions from this page
 # https://svn.boost.org/trac/boost/ticket/1811
@@ -171,7 +175,10 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
 echo %{buildroot} | grep -q %{name}_1_54_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./b2 install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} 
 
 
 #(this should not need to be changed)
@@ -250,13 +257,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment what is relevant)
 setenv("BOOST_HOME",                 "%{_prefix}")
 setenv("BOOST_INCLUDE",              "%{_prefix}/include")
 setenv("BOOST_LIB",                  "%{_prefix}/lib")

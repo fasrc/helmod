@@ -75,8 +75,8 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define buildhost %(hostname)
 %define buildhostversion 1
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies python/2.7.6-fasrc01
+%define rundependencies  %{nil} 
 %define buildcomments Had to unset CPATH for intel 15.0.0 because it threw an error with std::complex for some reason.
 %define requestor %{nil}
 %define requestref %{nil}
@@ -123,7 +123,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load python/2.7.6-fasrc01
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 # Build based on instructions from this page
 # https://svn.boost.org/trac/boost/ticket/1811
@@ -135,7 +140,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_55_0
 %define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
 %define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
 
-./bootstrap.sh --prefix=%{_prefix} --with-python-root=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x \
+./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
 --with-toolset=%{toolset_name}
 
 test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
@@ -254,31 +259,24 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BOOST_HOME",                 "%{_prefix}")
 setenv("BOOST_INCLUDE",              "%{_prefix}/include")
 setenv("BOOST_LIB",                  "%{_prefix}/lib")
---prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
