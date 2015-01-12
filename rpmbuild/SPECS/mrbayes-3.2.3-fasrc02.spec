@@ -268,7 +268,7 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MRBAYES_HOME"               "%{_prefix}")
+setenv("MRBAYES_HOME",               "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
