@@ -78,8 +78,8 @@ FreeFem++ is a partial differential equation solver. It has its own language. fr
 %define buildhostversion 1
 
 
-%define builddependencies gsl/1.16-fasrc03 fftw/3.3.4-fasrc06  SuiteSparse/3.7.1-fasrc02
-%define rundependencies gsl/1.16-fasrc03 fftw/3.3.4-fasrc06 
+%define builddependencies gsl/1.16-fasrc03 
+%define rundependencies gsl/1.16-fasrc03
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -141,14 +141,17 @@ done
 test -z $CC && export CC=gcc
 test -z $CXX && export CXX=g++
 
-CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
-CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
-export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
+#CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
+#CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
+#export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
 
 ./configure --prefix=%{_prefix} \
     --enable-download \
     --disable-parms
 
+download/getall -a -f 
+sed -i -e "s?CPP='gcc -E'?CPP=\"\$(CC) -E\"?" download/*/Makefile
+sed -i -e "s?CP=\"\$(CXXCPP)\"?CPP=\"\$(CC) -E\"?" download/nlopt/Makefile
 make
 
 

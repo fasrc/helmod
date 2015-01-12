@@ -101,7 +101,7 @@ Built against the fasrc02 release of perl-5.10, which includes threads.  There i
 %define buildhostversion 1
 
 
-%define builddependencies  perl/5.10.1-fasrc02 
+%define builddependencies  perl/5.10.1-fasrc03 gd/2.0.28-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments "Module list: %{MODULES}"
 %define requestor %{nil}
@@ -139,7 +139,7 @@ done
 
 
 export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
-export PERL_MM_USE_DEFAULT=true
+#export PERL_MM_USE_DEFAULT=true
 
 for m in %{MODULES}; do 
   cd %{_topdir}/BUILD

@@ -79,7 +79,7 @@ Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily hi
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies gmp/6.0.0-fasrc03 mpfr/3.1.2-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -134,6 +134,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -264,13 +270,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment what is relevant)
 setenv("MPC_HOME",                  "%{_prefix}")
 setenv("MPC_LIB",                   "%{_prefix}/lib64")
 setenv("MPC_INCLUDE",               "%{_prefix}/include")

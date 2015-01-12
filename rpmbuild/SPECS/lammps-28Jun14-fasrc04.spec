@@ -78,7 +78,7 @@ LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale At
 %define buildhostversion 1
 
 
-%define builddependencies fftw/2.1.5-fasrc01
+%define builddependencies fftw/2.1.5-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments This is a CUDA build that creates the lmp_cuda executable.  It includes the misc, user-misc, kokkos, and user-reaxc sub packages
 %define requestor %{nil}

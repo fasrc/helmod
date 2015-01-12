@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static OpenMM is a toolkit for molecular simulation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
+# Requires account
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://simtk.org/frs/download.php?file_id=4026
+Source: %{name}%{version}-Source.zip
 
 #
 # there should be no need to change the following
@@ -60,7 +61,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
+OpenMM is a toolkit for molecular simulation. It can be used either as a stand-alone application for running simulations, or as a library you call from your own code. It provides a combination of extreme flexibility (through custom forces and integrators), openness, and high performance (especially on recent GPUs) that make it truly unique among simulation codes
 
 #
 # Macros for setting app data 
@@ -78,18 +79,17 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define builddependencies cmake/2.8.12.2-fasrc01 python/2.7.6-fasrc01
+%define rundependencies %{nil}
+%define buildcomments Built with cmake.  Python functionality is not required, so it's not a runtime dependency.
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Applications;  aci-ref-app-tag:Molecular simulation
 %define apppublication %{nil}
-
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -106,9 +106,9 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}%{version}-Source
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}-Source.zip
+cd %{name}%{version}-Source
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -129,33 +129,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # 
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+##make sure to add them to modulefile.lua below, too!  
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared
+for m in %{builddependencies}
+do
+    module load ${m}
+done
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make
+CXX="$CXX -std=c++0x"
+
+test -d build || mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make -j 4
 
 
 
@@ -185,36 +177,15 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make
-make install DESTDIR=%{buildroot}
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
+echo %{buildroot} | grep -q %{name}%{version}-Source && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/python
+cd build
+make DESTDIR=%{buildroot} install
+pwd
+ls -l
+cd python
+cp -r simtk %{buildroot}%{_prefix}/python
 
 
 #(this should not need to be changed)
@@ -300,19 +271,16 @@ whatis("Description: %{summary_static}")
 --end
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
+setenv("OPENMM_HOME",              "%{_prefix}")
+setenv("OPENMM_LIB",               "%{_prefix}/lib")
+setenv("OPENMM_INCLUDE",           "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/python")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

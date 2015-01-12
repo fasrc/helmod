@@ -177,6 +177,24 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
 echo %{buildroot} | grep -q %{name}_1_40_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
+# Apply patch so that boost can properly detect thread support
+cat <<'EOF' | patch boost/config/stdlib/libstdcpp3.hpp
+Index: boost/config/stdlib/libstdcpp3.hpp
+===================================================================
+--- boost/config/stdlib/libstdcpp3.hpp (revision 75635)
++++ boost/config/stdlib/libstdcpp3.hpp (working copy)
+@@ -33,7 +33,8 @@
+ 
+ #ifdef __GLIBCXX__ // gcc 3.4 and greater:
+ #  if defined(_GLIBCXX_HAVE_GTHR_DEFAULT) \
+-        || defined(_GLIBCXX__PTHREADS)
++        || defined(_GLIBCXX__PTHREADS) \
++        || defined(_GLIBCXX_HAS_GTHREADS)
+       //
+       // If the std lib has thread support turned on, then turn it on in Boost
+       // as well.  We do this because some gcc-3.4 std lib headers define _REENTANT
+EOF
+
 # I get an error about std::complex if the intel includes are used
 test "%{toolset_name}" == "intel-linux" && unset CPATH
 ./bjam install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib

@@ -135,9 +135,7 @@ do
     module load ${m}
 done
 
-
-export FC=mpif90
-export F90=mpif90
+test "%{type}" == "MPI" && export FC=mpif90 F90=mpif90
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -156,7 +154,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
     --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
@@ -283,7 +280,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
 setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
 setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib64")

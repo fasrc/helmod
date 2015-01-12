@@ -30,8 +30,8 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static RAxML (Randomized Axelerated Maximum Likelihood) is a program for sequential and parallel
-Maximum Likelihood based inference of large phylogenetic trees.
+%define summary_static RAxML (Randomized Axelerated Maximum Likelihood) is a program for sequential and parallel Maximum Likelihood based inference of large phylogenetic trees.
+
 Summary: %{summary_static}
 
 #

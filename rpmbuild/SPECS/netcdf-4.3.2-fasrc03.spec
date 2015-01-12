@@ -78,7 +78,7 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define buildhostversion 1
 
 
-%define builddependencies hdf5/1.8.12-fasrc05 zlib/1.2.8-fasrc04
+%define builddependencies hdf5/1.8.12-fasrc05 zlib/1.2.8-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -134,11 +134,7 @@ do
     module load ${m}
 done
 
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpifort
-export F90=mpifort
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpifort F90=mpifort
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}

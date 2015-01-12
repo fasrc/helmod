@@ -139,6 +139,7 @@ done
 
 
 cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
+test -e ReleaseMT/inc/ncbiconf_unix.h && rm -f ReleaseMT/inc/ncbiconf_unix.h
 ./configure --prefix=%{_prefix} --with-mt --without-debug
 make -j 4
 

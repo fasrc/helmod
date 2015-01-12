@@ -139,6 +139,10 @@ do
 done
 
 
+export CONFIGOPTS="--enable-fortran --enable-shared --enable-static"
+test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel"
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -153,9 +157,8 @@ done
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" \
-	--enable-fortran --enable-shared --enable-static
-
+	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
+	
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make -j 4

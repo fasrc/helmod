@@ -5,7 +5,7 @@
 #
 # enter the simple app name, e.g. myapp
 #
-Name: beagle
+Name: %{getenv:NAME}
 
 #
 # FIXME
@@ -13,7 +13,8 @@ Name: beagle
 # enter the app version, e.g. 0.0.1
 #
 # beagle source is a checkout of trunk
-Version: 2.1.trunk
+Version:  %{getenv:VERSION}
+
 
 #
 # FIXME
@@ -21,14 +22,16 @@ Version: 2.1.trunk
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short fasrc01
+%define release_short  %{getenv:RELEASE}
+
 
 #
 # FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: Harvard FAS Research Computing -- Aaron Kitzmiller <aaron_kitzmiller@harvard.edu>
+Packager:  %{getenv:FASRCSW_AUTHOR}
+
 
 #
 # FIXME

@@ -79,9 +79,9 @@ OpenMM is a toolkit for molecular simulation. It can be used either as a stand-a
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc02 python/2.7.6-fasrc02
+%define builddependencies cmake/2.8.12.2-fasrc01 python/2.7.6-fasrc01
 %define rundependencies %{nil}
-%define buildcomments Built with cmake and python.  However, python functionality is not required, so it's not a runtime dependency.
+%define buildcomments Built with cmake.  Python must be built in a separate step.  Python functionality is not required, so it's not a runtime dependency.
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -144,6 +144,7 @@ done
 
 test -d build || mkdir build
 cd build
+export CMAKE_CXX_FLAGS="-std=c++0x"
 cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
@@ -182,11 +183,11 @@ echo %{buildroot} | grep -q %{name}%{version}-Source && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/python
 cd build
 make DESTDIR=%{buildroot} install
-cd python
-module load OpenMM
-export OPENMM_INCLUDE_PATH=$OPENMM_INCLUDE
-export OPENMM_LIB_PATH=$OPENMM_LIB
-python setup.py install --root=%{buildroot} --prefix=%{_prefix}
+#cd python
+#module load OpenMM
+#export OPENMM_INCLUDE_PATH=%{buildroot}/%{_prefix}/include
+#export OPENMM_LIB_PATH=%{buildroot}/%{_prefix}/lib
+#python setup.py install --root=%{buildroot} --prefix=%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -270,7 +271,7 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("OPENMM_HOME",              "%{_prefix}")
 setenv("OPENMM_LIB",               "%{_prefix}/lib")
 setenv("OPENMM_INCLUDE",           "%{_prefix}/include")

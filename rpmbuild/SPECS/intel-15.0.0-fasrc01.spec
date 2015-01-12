@@ -215,7 +215,9 @@ setenv("FC" , "ifort")
 setenv("F77", "ifort")
 
 setenv("INTEL_HOME",                "/n/sw/intel-cluster-studio-2015")
+setenv("INTEL_LIB",                 "/n/sw/intel-cluster-studio-2015/lib/intel64")
 setenv("INTEL_LICENSE_FILE",        "/n/sw/intel-cluster-studio-2015/license")
+setenv("INTEL_COMPOSER_INCLUDE",    "/n/sw/intel-cluster-studio-2015/composerxe/include")
 setenv("MKL_HOME",                  "/n/sw/intel-cluster-studio-2015/mkl")
 setenv("TBB_HOME",                  "/n/sw/intel-cluster-studio-2015/tbb")
 prepend_path("PATH",                "/n/sw/intel-cluster-studio-2015/bin")
@@ -226,10 +228,6 @@ prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2015/lib/intel64
 prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2015/mkl/lib/intel64")
 prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2015/tbb/lib/intel64")
 prepend_path("MANPATH",             "/n/sw/intel-cluster-studio-2015/man/en_US")
-prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2015/composerxe/include")
-prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2015/composerxe/include/intel64")
-prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2015/composerxe/include")
-prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2015/composerxe/include/intel64")
 
 ---- Support for starting vtune, etc.  Just source the appropriate vars.sh
 prepend_path("PATH",                "/n/sw/intel-cluster-studio-2015/vtune_amplifier_xe")

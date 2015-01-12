@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static Scientific image processing suite with a primary focus on processing data from transmission electron microscopes
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
+URL: http://ncmi.bcm.edu/ncmi/software/counter_222/software_104/manage_addProduct/NCMI/attendee_factory?myname=eman-source-2.0RC3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,7 +60,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
+EMAN2 is the successor to EMAN1. It is a broadly based greyscale scientific image processing suite with a primary focus on processing data from transmission electron microscopes. EMAN's original purpose was performing single particle reconstructions (3-D volumetric models from 2-D cryo-EM images) at the highest possible resolution, but the suite now also offers support for single particle cryo-ET, and tools useful in many other subdisciplines such as helical reconstruction, 2-D crystallography and whole-cell tomography. EMAN2 is capable of processing very large data sets (>100,000 particle) very efficiently (up to 20x faster than EMAN1).
+
 
 #
 # Macros for setting app data 
@@ -78,7 +79,7 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies python/2.7.6-fasrc01 fftw/3.3.4-fasrc06 gsl/1.16-fasrc03 hdf5/1.8.12-fasrc05 ftgl/2.1.3rc5-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -87,10 +88,8 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
-
-
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -106,13 +105,10 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf EMAN2
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
-
+cd EMAN2
+chmod -Rf a+rX,u+w,g-w,o-w .  
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -130,31 +126,35 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/EMAN2/src
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared
+CPATH=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.1-fasrc04/include
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
+export PYTHON_ROOT=$PYTHON_HOME
+export PYTHON_VERSION=2.7.6
+export FFTW3DIR=$FFTW_HOME
+export GSLDIR=$GSL_HOME
+export HDF5DIR=$HDF5_HOME
+export FTGLDIR=$FTGL_HOME
+
+# Fix missing header
+sed -i -e 's?\(#include <map>.*\)?#include <stdio.h>\n\1?' eman2/libEM/emobject.h
+sed -i -e 's?dir=forward?dir=gsl_wavelet_forward?' -e 's?dir=backward?dir=gsl_wavelet_backward?'  eman2/libEM/processor.cpp
+sed -i -e 's?^ADD_EXECUTABLE(e2speedtest speedtest.cpp)?# ADD_EXECUTABLE(e2speedtest speedtest.cpp)?' -e 's?^INSTALL_TARGETS(/bin e2speedtest)?# INSTALL_TARGETS(/bin e2speedtest)?' eman2/utils/CMakeLists.txt 
+test -d build && rm -rf build
+
+mkdir build
+cd build
+
+cmake ../eman2 -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix}
 make
 
 
@@ -185,35 +185,14 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-make clean
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/EMAN2/src/build
+echo %{buildroot} | grep -q EMAN2 && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/lib
+mkdir -p %{buildroot}/%{_prefix}/include
+make install
+cp -r $HOME/EMAN2/{bin,lib,include} %{buildroot}/%{_prefix}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make
-make install DESTDIR=%{buildroot}
 
 
 
@@ -293,47 +272,24 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
+---- environment changes (uncomment what's relevant)
+setenv("EMAN2_HOME",                "%{_prefix}")
+setenv("EMAN2_INCLUDE",             "%{_prefix}/include")
+setenv("EMAN2_LIB",                 "%{_prefix}/lib")
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-EOF
-
-
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-module              : %{modulename}
-tags                : %{apptags}
-publication         : %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("PYTHONPATH",          "%{_prefix}/lib")
 EOF
 
 

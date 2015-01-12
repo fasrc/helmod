@@ -78,7 +78,7 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define buildhostversion 1
 
 
-%define builddependencies hdf5/1.8.12-fasrc05 zlib/1.2.8-fasrc04
+%define builddependencies hdf5/1.8.12-fasrc05 zlib/1.2.8-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -137,6 +137,8 @@ done
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+autoreconf
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -279,7 +281,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("NETCDF_HOME",              "%{_prefix}")
 setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
 setenv("NETCDF_LIB",               "%{_prefix}/lib64")
