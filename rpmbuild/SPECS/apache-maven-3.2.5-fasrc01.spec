@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Bowtie is an ultrafast, memory-efficient short read aligner.
+%define summary_static Maven is a tool that can be used for building and managing any Java-based project.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.1/bowtie-1.1.1-src.zip
-Source: %{name}-%{version}-src.zip
+URL: http://apache.mirrors.hoobly.com/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz
+Source: %{name}-%{version}-bin.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA sequences (reads) to the human genome at a rate of over 25 million 35-bp reads per hour. Bowtie indexes the genome with a Burrows-Wheeler index to keep its memory footprint small: typically about 2.2 GB for the human genome (2.9 GB for paired-end).
+Apache Maven is a software project management and comprehension tool. Based on the concept of a project object model (POM), Maven can manage a project's build, reporting and documentation from a central piece of information.
 
 #
 # Macros for setting app data 
@@ -80,16 +80,16 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies jdk/1.7.0_60-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-
+%define requestor Jinyan Huang <jhuang@hsph.harvard.edu> 
+%define requestref RCRT:78731
+ 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags  aci-ref-app-category:Applications; aci-ref-app-tag:Sequence alignment & comparison
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Build tools
 %define apppublication %{nil}
 
 
@@ -108,7 +108,7 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-src.zip
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-bin.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -132,22 +132,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-sed -i -e 's?^CPP = .*?CPP = \$(CXX)?' \
-       -e 's?^CC = .*??' \
-       -e 's?^CXX = .*??' Makefile
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -270,10 +254,11 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("BOWTIE_HOME",                "%{_prefix}")
+setenv("APACHEMAVEN_HOME",            "%{_prefix}")
+setenv("M2_HOME",                     "%{_prefix}")
+setenv("M2",                          "%{_prefix}/bin")
 
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/scripts")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Bowtie is an ultrafast, memory-efficient short read aligner.
+%define summary_static The Chandra Calibration Database
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.1/bowtie-1.1.1-src.zip
-Source: %{name}-%{version}-src.zip
+URL: ftp://cda.harvard.edu/pub/arcftp/caldb/caldb_4.6.5_main.tar.gz
+Source: %{name}_%{version}_main.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA sequences (reads) to the human genome at a rate of over 25 million 35-bp reads per hour. Bowtie indexes the genome with a Burrows-Wheeler index to keep its memory footprint small: typically about 2.2 GB for the human genome (2.9 GB for paired-end).
+The Chandra Calibration Database
 
 #
 # Macros for setting app data 
@@ -82,14 +82,14 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments This is part of the CIAO installation.  Additional tarballs are important to the installation.
+%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
+%define requestref RCRT:78701
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags  aci-ref-app-category:Applications; aci-ref-app-tag:Sequence alignment & comparison
+%define apptags aci-ref-app-category: Databases; aci-ref-app-tag: Cosmological data
 %define apppublication %{nil}
 
 
@@ -108,8 +108,12 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-src.zip
+mkdir %{name}-%{version}
 cd %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}_main.tar.*
+wget ftp://cda.harvard.edu/pub/arcftp/caldb/acis_bkgrnd_4.6.5.tar.gz
+tar xvf acis_bkgrnd_4.6.5.tar.gz
+rm acis_bkgrnd_4.6.5.tar.gz
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,20 +138,33 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-sed -i -e 's?^CPP = .*?CPP = \$(CXX)?' \
-       -e 's?^CC = .*??' \
-       -e 's?^CXX = .*??' Makefile
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#
+#for m in %{builddependencies}
+#do
+#    module load ${m}
+#done
+#
+#
+#
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
+##if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+##percent sign) to build in parallel
+#make
 
 
 
@@ -270,10 +287,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("BOWTIE_HOME",                "%{_prefix}")
+setenv("CALDB_HOME",                  "%{_prefix}")
 
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/scripts")
 EOF
 
 #------------------- App data file

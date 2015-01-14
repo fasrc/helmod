@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Bowtie is an ultrafast, memory-efficient short read aligner.
+%define summary_static STELLS is a program for finding the maximum likelihood estimate of the species tree for the given gene trees, which undergo incomplete lineage sorting
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/bowtie-bio/bowtie/1.1.1/bowtie-1.1.1-src.zip
-Source: %{name}-%{version}-src.zip
+URL: http://www.engr.uconn.edu/~ywu/STELLS/STELLS-v1.6.1.tar.gz
+Source: %{name}-v%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA sequences (reads) to the human genome at a rate of over 25 million 35-bp reads per hour. Bowtie indexes the genome with a Burrows-Wheeler index to keep its memory footprint small: typically about 2.2 GB for the human genome (2.9 GB for paired-end).
+STELLS is a program for finding the maximum likelihood estimate of the species tree for the given gene trees, which undergo incomplete lineage sorting. STELLS can also compute the gene tree probability for a given species tree.
 
 #
 # Macros for setting app data 
@@ -83,14 +83,14 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor "Edwards, Scott" <sedwards@fas.harvard.edu>
+%define requestref RCRT:78506
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags  aci-ref-app-category:Applications; aci-ref-app-tag:Sequence alignment & comparison
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic analysis
+%define apppublication Yufeng Wu, "Coalescent-based Species Tree Inference from Gene Tree Topologies Under Incomplete Lineage Sorting by Maximum Likelihood", Evolution, v. 66 (3), p. 763-775, 2012. 
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -107,9 +107,9 @@ Bowtie is an ultrafast, memory-efficient short read aligner. It aligns short DNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-src.zip
-cd %{name}-%{version}
+rm -rf %{name}v%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.*
+cd %{name}v%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,16 +134,13 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}v%{version}
 
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-sed -i -e 's?^CPP = .*?CPP = \$(CXX)?' \
-       -e 's?^CC = .*??' \
-       -e 's?^CXX = .*??' Makefile
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -177,10 +174,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}v%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp stells %{buildroot}%{_prefix}/bin
 
 
 #(this should not need to be changed)
@@ -270,10 +267,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("BOWTIE_HOME",                "%{_prefix}")
+setenv("STELLS_HOME",                 "%{_prefix}")
 
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/scripts")
+prepend_path("PATH",                  "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
