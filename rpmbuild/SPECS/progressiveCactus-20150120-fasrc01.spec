@@ -1,4 +1,8 @@
 #------------------- package info ----------------------------------------------
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
 
 #
 # enter the simple app name, e.g. myapp
@@ -30,23 +34,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.
+%define summary_static Progressive Cactus is a whole-genome alignment package.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-%define sourcefiles ciao-4.7-bin-chips-Linux64.tar.gz ciao-4.7-bin-core-Linux64.tar.gz ciao-4.7-bin-graphics-Linux64.tar.gz ciao-4.7-bin-obsvis-Linux64.tar.gz ciao-4.7-bin-prism-Linux64.tar.gz ciao-4.7-bin-sherpa-Linux64.tar.gz ciao-4.7-bin-tools-Linux64.tar.gz ciao-4.7-contrib-1.tar.gz
-URL: ftp://cxc.harvard.edu/pub/ciao4.7/Linux64/
-Source0: ciao-4.7-bin-chips-Linux64.tar.gz 
-Source1: ciao-4.7-bin-core-Linux64.tar.gz 
-Source2: ciao-4.7-bin-graphics-Linux64.tar.gz
-Source3: ciao-4.7-bin-obsvis-Linux64.tar.gz
-Source4: ciao-4.7-bin-prism-Linux64.tar.gz
-Source5: ciao-4.7-bin-sherpa-Linux64.tar.gz
-Source6: ciao-4.7-bin-tools-Linux64.tar.gz
-Source7: ciao-4.7-contrib-1.tar.gz
+URL: https://github.com/glennhickey/progressiveCactus
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -70,7 +66,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.  The application should be run by creating a ciao alias as follows: alias ciao="source $CIAO_HOME/bin/ciao.bash".  CIAO_HOME is set by this module.
+Progressive Cactus is a whole-genome alignment package.
 
 #
 # Macros for setting app data 
@@ -88,16 +84,16 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
-%define rundependencies cfitsio/3360-fasrc02 python/2.7.6-fasrc01
-%define buildcomments This spec file currently only creates the module file.  The packages that are downloaded contain a number of prebuilt third party tools like libfortran and libjpeg.  Presumably because these *.so files have file references in them, rpm complains about prelink errors and then dies with a checksum problem.  Therefore, it has to be built in situ. No PATH is setup; the user is supposed to create an alias. Manual install instructions were followed (see http://cxc.harvard.edu/ciao/threads/ciao_install)
-%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
-%define requestref RCRT:78701
+%define builddependencies python/2.7.6-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments Tarball was created on 1/20/2015 based on the github code and submodules were pulled.  The jobTree submodule is switched to the harvardinformatics fork.  Could not make a relocatable build
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Cosmological data analysis
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly 
 %define apppublication %{nil}
 
 
@@ -115,13 +111,9 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-#for s in %{sourcefiles}
-#do
-#    tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${s}
-#done
-mkdir %{name}-%{version}
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -145,24 +137,21 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 #
 #for m in %{builddependencies}
 #do
 #    module load ${m}
 #done
 #
+#cd submodules/jobTree
+#git remote set-url origin https://github.com/harvardinformatics/jobTree.git
+#cd ../..
+#sed -i -e 's?git://github.com/benedictpaten/jobTree.git?https://github.com/harvardinformatics/jobTree.git?' .gitmodules
+#git submodule update --init
 #
-#
-#./configure --prefix=%{_prefix}
-#
-#bash bin/ciao-python-fix
-#make clean
-#make
-#ln -s ${CALDB_HOME} CALDB
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+#export LD_LIBRARY_PATH=$PYTHON_HOME/lib:$LD_LIBRARY_PATH
 #make
 
 
@@ -193,10 +182,9 @@ umask 022
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#cp -r * %{buildroot}%{_prefix}
 
 
 #(this should not need to be changed)
@@ -286,7 +274,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CIAO_HOME",       "%{_prefix}")
+setenv("PROGRESSIVECACTUS_HOME",      "%{_prefix}/progressiveCactus")
+prepend_path("PATH",                "%{_prefix}/progressiveCactus/bin")
 EOF
 
 #------------------- App data file

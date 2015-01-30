@@ -30,23 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.
+%define summary_static Automatically optimise three of Velvet's assembly parameters.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-%define sourcefiles ciao-4.7-bin-chips-Linux64.tar.gz ciao-4.7-bin-core-Linux64.tar.gz ciao-4.7-bin-graphics-Linux64.tar.gz ciao-4.7-bin-obsvis-Linux64.tar.gz ciao-4.7-bin-prism-Linux64.tar.gz ciao-4.7-bin-sherpa-Linux64.tar.gz ciao-4.7-bin-tools-Linux64.tar.gz ciao-4.7-contrib-1.tar.gz
-URL: ftp://cxc.harvard.edu/pub/ciao4.7/Linux64/
-Source0: ciao-4.7-bin-chips-Linux64.tar.gz 
-Source1: ciao-4.7-bin-core-Linux64.tar.gz 
-Source2: ciao-4.7-bin-graphics-Linux64.tar.gz
-Source3: ciao-4.7-bin-obsvis-Linux64.tar.gz
-Source4: ciao-4.7-bin-prism-Linux64.tar.gz
-Source5: ciao-4.7-bin-sherpa-Linux64.tar.gz
-Source6: ciao-4.7-bin-tools-Linux64.tar.gz
-Source7: ciao-4.7-contrib-1.tar.gz
+URL: https://github.com/Victorian-Bioinformatics-Consortium/VelvetOptimiser/archive/2.2.5.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -70,7 +62,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.  The application should be run by creating a ciao alias as follows: alias ciao="source $CIAO_HOME/bin/ciao.bash".  CIAO_HOME is set by this module.
+The VelvetOptimiser is designed to run as a wrapper script for the Velvet assembler (Daniel Zerbino, EBI UK) and to assist with optimising the assembly.  It searches a supplied hash value range for the optimum, estimates the expected coverage and then searches for the optimum coverage cutoff.  It uses Velvet's internal mechanism for estimating insert lengths for paired end libraries.  It can optimise the assemblies by either the default optimisation condition or by a user supplied one.  It outputs the results to a subdirectory and records all its operations in a logfile.
+
 
 #
 # Macros for setting app data 
@@ -89,15 +82,15 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 
 
 %define builddependencies %{nil}
-%define rundependencies cfitsio/3360-fasrc02 python/2.7.6-fasrc01
-%define buildcomments This spec file currently only creates the module file.  The packages that are downloaded contain a number of prebuilt third party tools like libfortran and libjpeg.  Presumably because these *.so files have file references in them, rpm complains about prelink errors and then dies with a checksum problem.  Therefore, it has to be built in situ. No PATH is setup; the user is supposed to create an alias. Manual install instructions were followed (see http://cxc.harvard.edu/ciao/threads/ciao_install)
-%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
-%define requestref RCRT:78701
+%define rundependencies velvet/1.2.10-fasrc02 perl-modules/5.10.1-fasrc08
+%define buildcomments %{nil}
+%define requestor Holly Elmore <m.holly.elmore@gmail.com>
+%define requestref RCRT:79401
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Cosmological data analysis
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
 %define apppublication %{nil}
 
 
@@ -116,11 +109,7 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#for s in %{sourcefiles}
-#do
-#    tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${s}
-#done
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -145,26 +134,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 #for m in %{builddependencies}
 #do
 #    module load ${m}
 #done
-#
-#
-#
-#./configure --prefix=%{_prefix}
-#
-#bash bin/ciao-python-fix
-#make clean
-#make
-#ln -s ${CALDB_HOME} CALDB
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
 
+sed -i -e 's?^#!/usr/bin/perl?#!/usr/bin/env perl?' *.pl
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -196,7 +174,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#cp -r * %{buildroot}%{_prefix}
+cp -r * %{buildroot}%{_prefix}
 
 
 #(this should not need to be changed)
@@ -286,7 +264,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CIAO_HOME",       "%{_prefix}")
+setenv("VELVETOPTIMIZER_HOME",       "%{_prefix}") 
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file

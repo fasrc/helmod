@@ -30,23 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.
+%define summary_static Windowed Adaptive Trimming for fastq files using quality
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-%define sourcefiles ciao-4.7-bin-chips-Linux64.tar.gz ciao-4.7-bin-core-Linux64.tar.gz ciao-4.7-bin-graphics-Linux64.tar.gz ciao-4.7-bin-obsvis-Linux64.tar.gz ciao-4.7-bin-prism-Linux64.tar.gz ciao-4.7-bin-sherpa-Linux64.tar.gz ciao-4.7-bin-tools-Linux64.tar.gz ciao-4.7-contrib-1.tar.gz
-URL: ftp://cxc.harvard.edu/pub/ciao4.7/Linux64/
-Source0: ciao-4.7-bin-chips-Linux64.tar.gz 
-Source1: ciao-4.7-bin-core-Linux64.tar.gz 
-Source2: ciao-4.7-bin-graphics-Linux64.tar.gz
-Source3: ciao-4.7-bin-obsvis-Linux64.tar.gz
-Source4: ciao-4.7-bin-prism-Linux64.tar.gz
-Source5: ciao-4.7-bin-sherpa-Linux64.tar.gz
-Source6: ciao-4.7-bin-tools-Linux64.tar.gz
-Source7: ciao-4.7-contrib-1.tar.gz
+URL: https://github.com/ucdavis-bioinformatics/sickle.git
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -70,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.  The application should be run by creating a ciao alias as follows: alias ciao="source $CIAO_HOME/bin/ciao.bash".  CIAO_HOME is set by this module.
+Sickle is a tool that uses sliding windows along with quality and length thresholds to determine when quality is sufficiently low to trim the 3'-end of reads and also determines when the quality is sufficiently high enough to trim the 5'-end of reads. It will also discard reads based upon the length threshold. It takes the quality values and slides a window across them whose length is 0.1 times the length of the read. If this length is less than 1, then the window is set to be equal to the length of the read. Otherwise, the window slides along the quality values until the average quality in the window rises above the threshold, at which point the algorithm determines where within the window the rise occurs and cuts the read and quality there for the 5'-end cut. Then when the average quality in the window drops below the threshold, the algorithm determines where in the window the drop occurs and cuts both the read and quality strings there for the 3'-end cut. However, if the length of the remaining sequence is less than the minimum length threshold, then the read is discarded entirely (or replaced with an "N" record). 5'-end trimming can be disabled.
 
 #
 # Macros for setting app data 
@@ -89,15 +81,15 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 
 
 %define builddependencies %{nil}
-%define rundependencies cfitsio/3360-fasrc02 python/2.7.6-fasrc01
-%define buildcomments This spec file currently only creates the module file.  The packages that are downloaded contain a number of prebuilt third party tools like libfortran and libjpeg.  Presumably because these *.so files have file references in them, rpm complains about prelink errors and then dies with a checksum problem.  Therefore, it has to be built in situ. No PATH is setup; the user is supposed to create an alias. Manual install instructions were followed (see http://cxc.harvard.edu/ciao/threads/ciao_install)
-%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
-%define requestref RCRT:78701
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor <pgorring@fas.harvard.edu>
+%define requestref RCRT:78764
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Cosmological data analysis
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
 %define apppublication %{nil}
 
 
@@ -116,11 +108,7 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#for s in %{sourcefiles}
-#do
-#    tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${s}
-#done
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -146,24 +134,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#
-#for m in %{builddependencies}
-#do
-#    module load ${m}
-#done
-#
-#
-#
-#./configure --prefix=%{_prefix}
-#
-#bash bin/ciao-python-fix
-#make clean
-#make
-#ln -s ${CALDB_HOME} CALDB
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
 
 
@@ -195,8 +176,9 @@ umask 022
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#cp -r * %{buildroot}%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp sickle %{buildroot}/%{_prefix}/bin 
+
 
 
 #(this should not need to be changed)
@@ -286,7 +268,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CIAO_HOME",       "%{_prefix}")
+setenv("SICKLE_HOME",                 "%{_prefix}")
+
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

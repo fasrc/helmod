@@ -30,23 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.
+%define summary_static Open and free 64-bit multithreaded tool for processing metagenomic sequences, including searching, clustering, chimera detection, dereplication, sorting, masking and shuffling
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-%define sourcefiles ciao-4.7-bin-chips-Linux64.tar.gz ciao-4.7-bin-core-Linux64.tar.gz ciao-4.7-bin-graphics-Linux64.tar.gz ciao-4.7-bin-obsvis-Linux64.tar.gz ciao-4.7-bin-prism-Linux64.tar.gz ciao-4.7-bin-sherpa-Linux64.tar.gz ciao-4.7-bin-tools-Linux64.tar.gz ciao-4.7-contrib-1.tar.gz
-URL: ftp://cxc.harvard.edu/pub/ciao4.7/Linux64/
-Source0: ciao-4.7-bin-chips-Linux64.tar.gz 
-Source1: ciao-4.7-bin-core-Linux64.tar.gz 
-Source2: ciao-4.7-bin-graphics-Linux64.tar.gz
-Source3: ciao-4.7-bin-obsvis-Linux64.tar.gz
-Source4: ciao-4.7-bin-prism-Linux64.tar.gz
-Source5: ciao-4.7-bin-sherpa-Linux64.tar.gz
-Source6: ciao-4.7-bin-tools-Linux64.tar.gz
-Source7: ciao-4.7-contrib-1.tar.gz
+URL: https://github.com/torognes/vsearch/archive/v1.0.7.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -70,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.  The application should be run by creating a ciao alias as follows: alias ciao="source $CIAO_HOME/bin/ciao.bash".  CIAO_HOME is set by this module.
+VSEARCH stands for vectorized search, as the tool takes advantage of parallelism in the form of SIMD vectorization as well as multiple threads to perform accurate alignments at high speed. VSEARCH uses an optimal global aligner (full dynamic programming Needleman-Wunsch), in contrast to USEARCH which by default uses a heuristic seed and extend aligner. This results in more accurate alignments and overall improved sensitivity (recall) with VSEARCH, especially for alignments with gaps.
 
 #
 # Macros for setting app data 
@@ -89,15 +81,15 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 
 
 %define builddependencies %{nil}
-%define rundependencies cfitsio/3360-fasrc02 python/2.7.6-fasrc01
-%define buildcomments This spec file currently only creates the module file.  The packages that are downloaded contain a number of prebuilt third party tools like libfortran and libjpeg.  Presumably because these *.so files have file references in them, rpm complains about prelink errors and then dies with a checksum problem.  Therefore, it has to be built in situ. No PATH is setup; the user is supposed to create an alias. Manual install instructions were followed (see http://cxc.harvard.edu/ciao/threads/ciao_install)
-%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
-%define requestref RCRT:78701
+%define rundependencies %{builddependencies}
+%define buildcomments Renamed source tarball.  Built for pyRAD
+%define requestor Bruno Souza de Medeiros <souzademedeiros@fas.harvard.edu>
+%define requestref RCRT:79174
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Cosmological data analysis
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
 %define apppublication %{nil}
 
 
@@ -116,11 +108,7 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#for s in %{sourcefiles}
-#do
-#    tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${s}
-#done
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -146,24 +134,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#
-#for m in %{builddependencies}
-#do
-#    module load ${m}
-#done
-#
-#
-#
-#./configure --prefix=%{_prefix}
-#
-#bash bin/ciao-python-fix
-#make clean
-#make
-#ln -s ${CALDB_HOME} CALDB
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
 
 
@@ -193,10 +174,10 @@ umask 022
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#cp -r * %{buildroot}%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp vsearch %{buildroot}%{_prefix}/bin
 
 
 #(this should not need to be changed)
@@ -286,7 +267,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CIAO_HOME",       "%{_prefix}")
+setenv("VSEARCH_HOME",                "%{_prefix}")
+
+prepend_path("PATH",                  "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

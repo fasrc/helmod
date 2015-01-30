@@ -30,23 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.
+%define summary_static Open Babel is a chemical toolbox designed to speak the many languages of chemical data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-%define sourcefiles ciao-4.7-bin-chips-Linux64.tar.gz ciao-4.7-bin-core-Linux64.tar.gz ciao-4.7-bin-graphics-Linux64.tar.gz ciao-4.7-bin-obsvis-Linux64.tar.gz ciao-4.7-bin-prism-Linux64.tar.gz ciao-4.7-bin-sherpa-Linux64.tar.gz ciao-4.7-bin-tools-Linux64.tar.gz ciao-4.7-contrib-1.tar.gz
-URL: ftp://cxc.harvard.edu/pub/ciao4.7/Linux64/
-Source0: ciao-4.7-bin-chips-Linux64.tar.gz 
-Source1: ciao-4.7-bin-core-Linux64.tar.gz 
-Source2: ciao-4.7-bin-graphics-Linux64.tar.gz
-Source3: ciao-4.7-bin-obsvis-Linux64.tar.gz
-Source4: ciao-4.7-bin-prism-Linux64.tar.gz
-Source5: ciao-4.7-bin-sherpa-Linux64.tar.gz
-Source6: ciao-4.7-bin-tools-Linux64.tar.gz
-Source7: ciao-4.7-contrib-1.tar.gz
+URL: http://downloads.sourceforge.net/project/openbabel/openbabel/2.3.2/openbabel-2.3.2.tar.gz 
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -70,7 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray Observatory data.  The application should be run by creating a ciao alias as follows: alias ciao="source $CIAO_HOME/bin/ciao.bash".  CIAO_HOME is set by this module.
+Open Babel is a project to facilitate the interconversion of chemical data from one format to another – including file formats of various types.
 
 #
 # Macros for setting app data 
@@ -88,16 +80,16 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
-%define rundependencies cfitsio/3360-fasrc02 python/2.7.6-fasrc01
-%define buildcomments This spec file currently only creates the module file.  The packages that are downloaded contain a number of prebuilt third party tools like libfortran and libjpeg.  Presumably because these *.so files have file references in them, rpm complains about prelink errors and then dies with a checksum problem.  Therefore, it has to be built in situ. No PATH is setup; the user is supposed to create an alias. Manual install instructions were followed (see http://cxc.harvard.edu/ciao/threads/ciao_install)
-%define requestor Alex Krolewski <akrolewski@college.harvard.edu>
-%define requestref RCRT:78701
+%define builddependencies cmake/2.8.12.2-fasrc01 libxml2/2.7.8-fasrc02 eigen/3.2.2-fasrc01 
+%define rundependencies libxml2/2.7.8-fasrc02 eigen/3.2.2-fasrc01
+%define buildcomments %{nil}
+%define requestor Rafa Gómez Bombarelli <rgbombarelli@chemistry.harvard.edu>
+%define requestref RCRT:79266
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Cosmological data analysis
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:File Handling 
 %define apppublication %{nil}
 
 
@@ -116,11 +108,7 @@ CIAO is flexible, multi-dimensional software for the analysis of Chandra X-Ray O
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#for s in %{sourcefiles}
-#do
-#    tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${s}
-#done
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -146,24 +134,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#
-#for m in %{builddependencies}
-#do
-#    module load ${m}
-#done
-#
-#
-#
-#./configure --prefix=%{_prefix}
-#
-#bash bin/ciao-python-fix
-#make clean
-#make
-#ln -s ${CALDB_HOME} CALDB
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
+test -d build && rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_INCLUDE_PATH=$EIGEN_INCLUDE -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+make -j 4
 
 
 
@@ -193,10 +175,10 @@ umask 022
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#cp -r * %{buildroot}%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -286,7 +268,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CIAO_HOME",       "%{_prefix}")
+setenv("OPENBABEL_HOME",           "%{_prefix}")
+setenv("OPENBABEL_INCLUDE",        "%{_prefix}/include")
+setenv("OPENBABEL_LIB",            "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
