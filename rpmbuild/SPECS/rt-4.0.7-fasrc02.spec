@@ -76,7 +76,12 @@ RequestTracker (RT) is a battle-tested issue tracking system which thousands of 
 # style things
 #
 
-
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
+rm -rf "%{name}-%{version}"
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz "%{name}-%{version}"/bin/rt
+cd rt-4.0.7
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 #------------------- %%build (~ configure && make) ----------------------------
 
@@ -106,6 +111,11 @@ RequestTracker (RT) is a battle-tested issue tracking system which thousands of 
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+cp -a bin/rt %{buildroot}/%{_prefix}
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
