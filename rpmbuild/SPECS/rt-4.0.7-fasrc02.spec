@@ -193,7 +193,7 @@ if mode()=="load" then
 end
 
 -- environment changes (uncomment what's relevant)
-prepend_path("PATH", "/n/sw/rt-4.0.7/bin")
+prepend_path("PATH", "%{_prefix}")
 EOF
 
 
