@@ -1,9 +1,3 @@
-#
-# staging some updates for next build, specifically --enable-mpi-java
-#
-
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -36,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static an open source MPI-2 implementation
+%define summary_static Rapid haploid SNP calling
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: https://github.com/Victorian-Bioinformatics-Consortium/snippy.git
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -65,12 +59,16 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+Snippy finds SNPs between a haploid reference genome and your NGS sequence reads (handles reads >500bp long). It will find both substitutions and insertions/deletions (indels). It will use as many CPUs and RAM as you can give it on a single computer (tested to 64 cores). It is designed with speed in mind, and it may occasionally miss some complicated SNPs.
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -81,26 +79,38 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 %define buildhost %(hostname)
 %define buildhostversion 1
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
-%define apppublication %{nil}
 
+%define builddependencies %{nil}
+%define rundependencies perl-modules/5.10.1-fasrc08
+%define buildcomments Checked out source from github on Feb 18th 2015
+%define requestor Lori Shapiro <lshapiro@fas.harvard.edu>
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-%setup
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -108,45 +118,93 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 
 %build
 
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-%configure --enable-mpi-thread-multiple --enable-static --enable-mpi-java
-make %{?_smp_mflags}
-
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#
+#for m in %{builddependencies}
+#do
+#    module load ${m}
+#done
+#
+#
+#
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
+##if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+##percent sign) to build in parallel
+#make
+#
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# FIXME (or maybe it's fine)
-%make_install
 
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+cp -r bin %{buildroot}%{_prefix}
+
+
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -182,9 +240,15 @@ done
 %endif
 
 # 
-# - uncomment any applicable prepend_path things
+# FIXME (but the above is enough for a "trial" build)
 #
-# - do any other customizing of the module, e.g. load dependencies
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
+#
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -194,8 +258,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-# FIXME (but the above is enough for a "trial" build)
 
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
@@ -210,42 +272,30 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
--- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+---- environment changes (uncomment what is relevant)
+setenv("SNIPPY_HOME",       "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
 ---
-appname     		: %{appname}
-appversion  		: %{appversion}
-description 		: %{appdescription}
-module      		: %{modulename}
-tags        		: %{apptags}
-publication 		: %{apppublication}
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+module              : %{modulename}
+tags                : %{apptags}
+publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
 specauthor          : %{specauthor}
@@ -258,7 +308,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

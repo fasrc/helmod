@@ -1,50 +1,55 @@
-#
-# staging some updates for next build, specifically --enable-mpi-java
-#
-
-
-
 #------------------- package info ----------------------------------------------
+#
+# In order for this spec file to work, you need to have Perl on the build machine and have
+# the Perl::Configure module installed.
+#
 
+#
+# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
+# FIXME
+#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
+# FIXME
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short %{getenv:RELEASE}
+%define release_short  %{getenv:RELEASE}
 
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static an open source MPI-2 implementation
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static Perl interpreter
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+#http://...FIXME...
+Source: http://www.cpan.org/src/5.0/perl-5.10.1.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,11 +67,20 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+Perl interpreter
+
+
+
+#
+# Disable stripping.  Seems to be causing permission failures.
+%define __os_install_post %{nil}
+
 
 #
 # Macros for setting app data 
@@ -79,22 +93,23 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
-%define buildhostversion 1
+%define buildhostversion %(hostname)
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
 %define apppublication %{nil}
-
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
@@ -109,6 +124,8 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 %build
 
 #
+# FIXME
+#
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
 # 
@@ -116,11 +133,46 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-#module load NAME/VERSION-RELEASE
+#
+# Perl uses it's own configure like script (Configure) that prompts for 
+# various options (and, inexplicably, does not allow you to set the values 
+# from the command line.  The script below uses a module called Perl::Configure
+# to answer those questions.
+#
+# The compiler binary needs to be set here.  It's default is 'cc', not $CC
+# and so it doesn't pick up the change to icc.
+#
+%define compilerbin $CC
 
-%configure --enable-mpi-thread-multiple --enable-static --enable-mpi-java
-make %{?_smp_mflags}
+cd %{_topdir}/BUILD/%{name}-%{version}
+cat > runconfig.pl <<EOF
+use Perl::Configure;
+
+my \$questions = Perl::Configure::Questions->new();
+
+\$questions->add( "gethostbyaddr-first",              
+                 "What is the type for the 1st argument to gethostbyaddr?", 
+                  "char *",
+               );
+\$questions->add( "gethostbyaddr-second",
+                 "What is the type for the 2nd argument to gethostbyaddr?",
+                  "size_t",
+               );
+
+my \$cfg = Perl::Configure->new(questions => \$questions);
+\$cfg->define('prefix' => '%{_prefix}',
+             'dir-check' => 'y',
+             'compiler' => '%{compilerbin}',
+             'threads'  => 'y',
+             'ithreads' => 'y',
+             'ccflags'  => '-fPIC',
+);
+\$cfg->run();
+
+EOF
+
+/usr/bin/perl runconfig.pl
+make
 
 
 
@@ -129,6 +181,8 @@ make %{?_smp_mflags}
 %install
 
 #
+# FIXME
+#
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
 #
@@ -136,8 +190,11 @@ make %{?_smp_mflags}
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# FIXME (or maybe it's fine)
-%make_install
+cd %{_topdir}/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -163,14 +220,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -182,6 +231,8 @@ done
 %endif
 
 # 
+# FIXME (but the above is enough for a "trial" build)
+#
 # - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
@@ -194,10 +245,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-# FIXME (but the above is enough for a "trial" build)
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -209,43 +256,24 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
 
--- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+---- environment changes (uncomment what's relevant)
+setenv("PERL_HOME",                   "%{_prefix}")
+setenv("HTTPS_CA_FILE",             "/etc/ssl/certs/ca-bundle.crt")
+prepend_path("PATH",                  "%{_prefix}/bin")
+prepend_path("PERL5LIB",              "%{_prefix}/lib")
+prepend_path("MANPATH",             "%{_prefix}/man")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
 ---
-appname     		: %{appname}
-appversion  		: %{appversion}
-description 		: %{appdescription}
-module      		: %{modulename}
-tags        		: %{apptags}
-publication 		: %{apppublication}
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+module              : %{modulename}
+tags                : %{apptags}
+publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
 specauthor          : %{specauthor}

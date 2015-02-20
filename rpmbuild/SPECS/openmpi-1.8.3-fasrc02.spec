@@ -1,9 +1,3 @@
-#
-# staging some updates for next build, specifically --enable-mpi-java
-#
-
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -43,8 +37,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.3.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -98,7 +92,7 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
-#
+#
 
 %setup
 
@@ -119,7 +113,9 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-%configure --enable-mpi-thread-multiple --enable-static --enable-mpi-java
+
+
+%configure --enable-mpi-thread-multiple --enable-static --enable-mpi-fortran=all -enable-mpi-java
 make %{?_smp_mflags}
 
 
@@ -217,9 +213,6 @@ whatis("Description: %{summary_static}")
 --end
 
 -- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")

@@ -227,7 +227,7 @@ EOF
 # everything in fasrcsw is installed in an app hierarchy in which some 
 # components may need creating, but no single rpm should own them, since parts 
 # are shared; only do this if it looks like an app-specific prefix is indeed 
-# being used (that's the fasrcsw default)
+# being used (that is the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 #

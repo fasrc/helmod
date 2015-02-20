@@ -271,7 +271,7 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
--- environment changes (uncomment what's relevant)
+-- environment changes (uncomment what is relevant)
 setenv("MPI_HOME",                 "%{_prefix}")
 setenv("MPI_INCLUDE",              "%{_prefix}/include")
 setenv("MPI_LIB",                  "%{_prefix}/lib64")

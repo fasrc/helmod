@@ -1,9 +1,3 @@
-#
-# staging some updates for next build, specifically --enable-mpi-java
-#
-
-
-
 #------------------- package info ----------------------------------------------
 
 #
@@ -36,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static an open source MPI-2 implementation
+%define summary_static the Anaconda distribution of the Python programming language
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+#URL: n/a since this is just a wrapper modules
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -66,11 +60,18 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+Python is an interpreted, interactive, object-oriented programming
+language often compared to Tcl, Perl, Scheme or Java. Python includes
+modules, classes, exceptions, very high level dynamic data types and
+dynamic typing. Python supports interfaces to many system calls and
+libraries, as well as to various windowing systems (X11, Motif, Tk,
+Mac and MFC).
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -81,14 +82,18 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 %define buildhost %(hostname)
 %define buildhostversion 1
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
-%define apppublication %{nil}
 
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
+%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -100,7 +105,7 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 # style things
 #
 
-%setup
+#(do nothing)
 
 
 
@@ -119,8 +124,7 @@ The Open MPI Project is an open source MPI-2 implementation that is developed an
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-%configure --enable-mpi-thread-multiple --enable-static --enable-mpi-java
-make %{?_smp_mflags}
+#(do nothing)
 
 
 
@@ -136,8 +140,7 @@ make %{?_smp_mflags}
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# FIXME (or maybe it's fine)
-%make_install
+mkdir -p %{buildroot}/%{_prefix}
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -197,7 +200,6 @@ done
 
 # FIXME (but the above is enough for a "trial" build)
 
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -209,54 +211,7 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
-
--- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
-EOF
-
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
-appname     		: %{appname}
-appversion  		: %{appversion}
-description 		: %{appdescription}
-module      		: %{modulename}
-tags        		: %{apptags}
-publication 		: %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
+load("Anaconda3/2.1.0-fasrc01")
 EOF
 
 
