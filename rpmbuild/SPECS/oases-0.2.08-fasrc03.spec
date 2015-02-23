@@ -1,45 +1,49 @@
 #------------------- package info ----------------------------------------------
 
 #
+# FIXME
+#
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
+
+#
+# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
+
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
+# FIXME
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
 %define release_short %{getenv:RELEASE}
 
+
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-#
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
-#
-%define summary_static OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications. 
+%define summary_static 
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: https://github.com/OpenImageIO/oiio/archive/RB-1.5.zip
-Source: RB-1.5.zip
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+URL: http://www.ebi.ac.uk/~zerbino/oases/oases_0.2.08.tgz
 
+Source: oases_0.2.08.tgz
 #
 # there should be no need to change the following
 #
@@ -56,13 +60,13 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications.  There is a particular emphasis on formats and functionality used in professional, large-scale animation and visual effects work for film.  OpenImageIO is used extensively in animation and VFX studios all over the world, and is also incorporated into several commercial products.
+Oases is a de novo transcriptome assembler designed to produce transcripts from short read sequencing technologies, such as Illumina, SOLiD, or 454 in the absence of any genomic assembly. It was developed by Marcel Schulz (MPI for Molecular Genomics) and Daniel Zerbino (previously at the European Bioinformatics Institute (EMBL-EBI), now at UC Santa Cruz).  Oases uploads a preliminary assembly produced by Velvet, and clusters the contigs into small groups, called loci. It then exploits the paired-end read and long read information, when available, to construct transcript isoforms.
 
 #
 # Macros for setting app data 
@@ -80,37 +84,47 @@ OpenImageIO is a library for reading and writing images, and a bunch of related 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 openexr/1.4.0-fasrc01 boost/1.54.0-fasrc02
-%define rundependencies  openexr/1.4.0-fasrc02 boost/1.54.0-fasrc02
-%define buildcomments %{nil}
-%define requestor Adam West <awest@physics.harvard.edu>
-%define requestref RCRT:80269
+%define builddependencies %{nil}
+%define rundependencies velvet/1.2.10-fasrc03
+%define buildcomments Boosted max kmer length to 127
+%define requestor  Lauren O'Connell <aloconnel@fas.harvard.edu>
+%define requestref  RCRT:81076
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Image analysis
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
 %define apppublication %{nil}
+
+
+#
+# Velvet dependencies
+#
+# Oases depends on velvet for some processing.  The following variables
+# allow Oases to find velvet during build and set module dependencies
+#
+%define _velvet_version 1.2.10
+%define _velvet_builddir ../velvet_%{_velvet_version} 
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf oiio-RB-%{version}
-unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/RB-%{version}.zip
-cd oiio-RB-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+# %setup
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}_%{version}.tgz
+%define _bd oases_0.2.8
+stat %{_bd}
+cd %{_bd}
 
 
 
@@ -118,37 +132,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-RB-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-rm -rf build; mkdir build; cd build
-
-# test "%{comp_name}" == 'intel' && export CC="$CC -diag-disable 177"
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ILMBASE_INCLUDE;$OPENEXR_HOME/include;$BOOST_INCLUDE;$FFMPEG_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ILMBASE_LIB;$OPENEXR_HOME/lib;$BOOST_LIB;$FFMPEG_LIB" ..
-
-# Unused function causes errors for intel
-# sed -i -e '289,293{;s?^?//?}' ../src/libOpenImageIO/exif.cpp
-make
+cd %{_topdir}/BUILD/%{_bd}
+# Substitute hard coded gcc when intel is in session
+test "%{comp_name}" == "intel" && sed -i 's/gcc/icc/' Makefile
+# Add VELVET_DIR 
+sed -i 's#../velvet#%{_velvet_builddir}#' Makefile
+make 'MAXKMERLENGTH=127'
 
 
 
@@ -156,43 +158,29 @@ make
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-RB-%{version}/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{_bd}/oases %{buildroot}/%{_prefix}/bin
 
 
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -209,14 +197,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -230,13 +210,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -246,8 +222,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -270,24 +244,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+---- environment changes (uncomment what's relevant)
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

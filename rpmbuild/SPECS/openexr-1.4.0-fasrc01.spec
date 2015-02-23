@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications. 
+%define summary_static OpenEXR is a high dynamic-range (HDR) image file format developed by Industrial Light & Magic for use in computer imaging applications.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/OpenImageIO/oiio/archive/RB-1.5.zip
-Source: RB-1.5.zip
+URL: http://download.savannah.nongnu.org/releases/openexr/openexr-1.4.0a.tar.gz
+Source: %{name}-%{version}a.tar.gz
 
 #
 # there should be no need to change the following
@@ -59,10 +59,8 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications.  There is a particular emphasis on formats and functionality used in professional, large-scale animation and visual effects work for film.  OpenImageIO is used extensively in animation and VFX studios all over the world, and is also incorporated into several commercial products.
+OpenEXR is a high dynamic-range (HDR) image file format developed by Industrial Light & Magic for use in computer imaging applications.
 
 #
 # Macros for setting app data 
@@ -80,17 +78,18 @@ OpenImageIO is a library for reading and writing images, and a bunch of related 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 openexr/1.4.0-fasrc01 boost/1.54.0-fasrc02
-%define rundependencies  openexr/1.4.0-fasrc02 boost/1.54.0-fasrc02
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Adam West <awest@physics.harvard.edu>
-%define requestref RCRT:80269
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Image analysis
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -107,9 +106,9 @@ OpenImageIO is a library for reading and writing images, and a bunch of related 
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf oiio-RB-%{version}
-unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/RB-%{version}.zip
-cd oiio-RB-%{version}
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}a.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -131,23 +130,39 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-RB-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-rm -rf build; mkdir build; cd build
 
-# test "%{comp_name}" == 'intel' && export CC="$CC -diag-disable 177"
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ILMBASE_INCLUDE;$OPENEXR_HOME/include;$BOOST_INCLUDE;$FFMPEG_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ILMBASE_LIB;$OPENEXR_HOME/lib;$BOOST_LIB;$FFMPEG_LIB" ..
+# Missing cstring include
+sed -i -e 's?\(#include <stdlib.h>\)?\1\n#include <cstring>?' exrmaketiled/main.cpp
+sed -i -e 's?\(#include <stdlib.h>\)?\1\n#include <cstring>?' exrenvmap/main.cpp
 
-# Unused function causes errors for intel
-# sed -i -e '289,293{;s?^?//?}' ../src/libOpenImageIO/exif.cpp
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 make
 
 
@@ -178,7 +193,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-RB-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -270,24 +285,18 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+---- environment changes (uncomment what's relevant)
+setenv("OPENEXR_HOME",             "%{_prefix}")
+setenv("OPENEXR_INCLUDE",          "%{_prefix}/include")
+setenv("OPENEXR_LIB",              "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
