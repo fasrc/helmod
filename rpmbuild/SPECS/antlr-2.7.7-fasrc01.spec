@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static ANTLR (ANother Tool for Language Recognition) is a powerful parser generator for reading, processing, executing, or translating structured text or binary files. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.2.tar.gz
+URL: http://glace.ess.uci.edu/libs/antlr-2.7.7.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -59,8 +59,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
+ANTLR (ANother Tool for Language Recognition) is a powerful parser generator for reading, processing, executing, or translating structured text or binary files. It's widely used to build languages, tools, and frameworks. From a grammar, ANTLR generates a parser that can build and walk parse trees.
 
 #
 # Macros for setting app data 
@@ -78,16 +80,16 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define buildhostversion 1
 
 
-%define builddependencies hdf5/1.8.12-fasrc04 zlib/1.2.8-fasrc03
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Using
+%define requestor Fabio Farinosi <fabio_farinosi@hks.harvard.edu>
+%define requestref RCRT:79448
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Parser generator
 %define apppublication %{nil}
 
 
@@ -129,15 +131,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpifort F90=mpifort
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -152,9 +156,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
-    --with-temp-large=/scratch
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -191,7 +193,11 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+p=`dirname %{_prefix}`
+sudo mkdir -p $p
+sudo ln -s %{buildroot}/%{_prefix}  "$p/%{version}-%{release}"
+make install 
+sudo rm "$p/%{version}-%{release}"
 
 
 #(this should not need to be changed)
@@ -280,19 +286,17 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
+---- environment changes (uncomment what is relevant)
+setenv("ANTLR_HOME",               "%{_prefix}")
+setenv("ANTLR_INCLUDE",            "%{_prefix}/include")
+setenv("ANTLR_LIB",                "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PATH",               "%{_prefix}/sbin")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

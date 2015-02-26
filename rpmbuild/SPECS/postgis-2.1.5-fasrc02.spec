@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static PostGIS is a geospatial extension for PostgreSQL. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.2.tar.gz
+URL: http://download.osgeo.org/postgis/source/postgis-2.1.5.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -59,8 +59,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
+PostGIS is a geospatial extension for PostgreSQL. It allows map data to be stored, queried and analyzed within the database. It is an  OSGeo project. This Trac instance is used for bug, enhancement & task tracking for PostGIS. It also serves as a user and developer wiki, and a view into the subversion code repository. To edit the wiki pages and bug/enhancement/task tickets you'll need to login with an  OSGeo Userid. Read the TracGuide for details about how the site works.
 
 #
 # Macros for setting app data 
@@ -78,16 +80,16 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define buildhostversion 1
 
 
-%define builddependencies hdf5/1.8.12-fasrc04 zlib/1.2.8-fasrc03
+%define builddependencies postgresql/9.4.1-fasrc02 geos/3.4.2-fasrc01 perl/5.10.1-fasrc02 gdal/1.11.1-fasrc01 proj/4.8.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Linh To <linhto@fas.harvard.edu>
+%define requestref RCRT:80486
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Geospatial data
 %define apppublication %{nil}
 
 
@@ -129,15 +131,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 for m in %{builddependencies}
 do
     module load ${m}
 done
-
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpifort F90=mpifort
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -153,8 +155,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
-    --with-temp-large=/scratch
+    --with-pgconfig=$POSTGRESQL_HOME/bin/pg_config
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -186,12 +187,21 @@ make
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p "%{buildroot}%{_prefix}"
+pgroot=`dirname $POSTGRESQL_HOME`
+mkdir -p "%{buildroot}/$pgroot"
+ln -s $POSTGRESQL_HOME "%{buildroot}/$pgroot"
+
+sudo make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -280,19 +290,15 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
+---- environment changes (uncomment what is relevant)
+setenv("POSTGIS_HOME",             "%{_prefix}")
+setenv("POSTGIS_LIB",              "%{_prefix}/lib64")
+setenv("POSTGIS_INCLUDE",          "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -318,6 +324,7 @@ EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
+%define _unpackaged_files_terminate_build 0
 
 %files
 

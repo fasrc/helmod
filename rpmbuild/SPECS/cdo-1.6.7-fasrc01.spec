@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static CDO is a collection of command line Operators to manipulate and analyse Climate and NWP model Data. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.2.tar.gz
+URL: https://code.zmaw.de/attachments/download/9444/cdo-1.6.7.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -59,8 +59,11 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
+CDO is a large tool set for working on climate and NWP model data. NetCDF 3/4, GRIB 1/2 including SZIP and JPEG compression, EXTRA, SERVICE and IEG are supported as IO-formats. Apart from that CDO can be used to analyse any kind of gridded data not related to climate science.
+CDO has very small memory requirements and can process files larger than the physical memory.
 
 #
 # Macros for setting app data 
@@ -78,11 +81,11 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define buildhostversion 1
 
 
-%define builddependencies hdf5/1.8.12-fasrc04 zlib/1.2.8-fasrc03
+%define builddependencies netcdf/4.3.2-fasrc03 proj/4.8.0-fasrc01 udunits/2.2.18-fasrc01 hdf5/1.8.12-fasrc04 libxml2/2.7.8-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Lei Zhu <leizhu@fas.harvard.edu>
+%define requestref RCRT:80098
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -129,15 +132,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpifort F90=mpifort
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -153,8 +158,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
-    --with-temp-large=/scratch
+    --with-netcdf=$NETCDF_HOME \
+    --with-udunits2=$UDUNITS_HOME \
+    --with-proj=$PROJ_HOME \
+    --with-hdf5=$HDF5_HOME \
+    --with-libxml2=$LIBXML2_HOME
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -280,19 +288,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-EOF
+---- environment changes (uncomment what is relevant)
+setenv("CDO_HOME",             "%{_prefix}")
 
+prepend_path("PATH",                "%{_prefix}/bin")
+EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
