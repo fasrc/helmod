@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static PyCuda version 2014.1
+%define summary_static PyOpenCL version 2015.1
 Summary: %{summary_static}
 
 #
@@ -62,9 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PyCuda gives you easy, Pythonic access to the CUDA parallel computation API.
-NOTE: This module will only work on compute nodes with NVIDIA GPUs.
-
+PyOpenCL gives you easy, Pythonic access to the OpenCL parallel computation API.
 
 #
 # Macros for setting app data
@@ -161,6 +159,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #percent sign) to build in parallel
 #make
 python configure.py
+cat >> siteconf.py <<EOF
+CL_INC_DIR = ['/usr/local/cuda/include']
+CL_LIB_DIR = ['/usr/local/cuda/lib64']
+EOF
 python setup.py build
 
 

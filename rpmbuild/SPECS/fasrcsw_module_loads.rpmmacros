@@ -8,3 +8,10 @@ source /usr/local/bin/lmod.sh
 		module load %{mpi_name}/%{mpi_version}-%{mpi_release}
 	%endif
 %endif
+
+%if %{defined builddependencies}
+        for m in %{builddependencies}
+        do
+                module load ${m}
+        done
+%endif
