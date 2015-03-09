@@ -99,6 +99,10 @@ NOTE: This module will only work on compute nodes with NVIDIA GPUs.
 
 %prep
 
+%include fasrcsw_module_loads.rpmmacros
+
+%define python_version $(python -c 'import sys; print "python%s.%s" % sys.version_info[0:2]')
+%define site_packages %{buildroot}/%{_prefix}/lib/%{python_version}/site-packages
 
 #
 # FIXME
@@ -137,13 +141,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-
 
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
@@ -197,9 +194,9 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-%define site_packages %{buildroot}/%{_prefix}/lib/python2.7/site-packages
 mkdir -p %{site_packages}
 export PYTHONPATH=%{site_packages}:$PYTHONPATH
+pip install --target=%{site_packages} mako==1.0.1 six==1.9.0
 python setup.py install --prefix=%{buildroot}/%{_prefix}
 
 
@@ -294,7 +291,7 @@ end
 
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-prepend_path("PYTHONPATH",          "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("PYTHONPATH",          "%{_prefix}/lib/%{python_version}/site-packages")
 EOF
 
 #------------------- App data file
