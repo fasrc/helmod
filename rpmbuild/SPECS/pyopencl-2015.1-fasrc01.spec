@@ -291,9 +291,11 @@ end
 ---- environment changes (uncomment what is relevant)
 --setenv("TEMPLATE_HOME",       "%{_prefix}")
 
+prepend_path("PATH",     "/usr/local/cuda/bin")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda/lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "/usr/local/cuda/lib64")
 prepend_path("PYTHONPATH",          "%{_prefix}/lib/%{python_version}/site-packages")
 EOF
 
