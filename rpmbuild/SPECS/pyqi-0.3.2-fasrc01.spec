@@ -1,3 +1,9 @@
+# The spec involves the hack that allows the app to write directly to the
+# production location.  The following allows the production location path to be
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
+
 #------------------- package info ----------------------------------------------
 
 #
@@ -30,14 +36,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static biom-format version 1.3.1
+%define summary_static pyqi version 0.3.2
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://pypi.python.org/packages/source/b/biom-format/biom-format-1.3.1.tar.gz
+URL: https://pypi.python.org/packages/source/p/pyqi/pyqi-0.3.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -62,7 +68,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Biological Observation Matrix (BIOM) format.
+pyqi (canonically pronounced pie chee) is a Python framework designed to support wrapping general commands in multiple types of interfaces, including at the command line, HTML, and API levels.
 
 #
 # Macros for setting app data 
@@ -205,14 +211,21 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+#sudo mkdir -p "$(dirname %{_prefix})"
+#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
+sudo mkdir -p "%{_prefix}/lib/python2.7/site-packages"
+sudo chown -R pkrastev:rc_admin "/n/sw/fasrcsw/apps/Core/pyqi"
+
+export PYTHONPATH=/n/sw/fasrcsw/apps/Core/pyqi/0.3.2-fasrc01/lib/python2.7/site-packages:${PYTHONPATH}
 python setup.py install --prefix=%{_prefix}
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+#sudo rm "%{_prefix}"
+
+cp -r %{_prefix}/* "%{buildroot}/%{_prefix}"
+rm -r "/n/sw/fasrcsw/apps/Core/pyqi"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -299,7 +312,7 @@ whatis("Description: %{summary_static}")
 ----    end
 ----end
 
-load("numpy/1.5.1-fasrc01")
+load("Python/2.7.8-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")
