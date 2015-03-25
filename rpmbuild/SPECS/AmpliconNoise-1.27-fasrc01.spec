@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PICRUSt version 1.0.0
+%define summary_static AmpliconNoise version 1.27
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/picrust/picrust/releases/download/1.0.0/picrust-1.0.0.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,8 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PICRUSt (pronounced “pie crust”) is a bioinformatics software package designed to predict metagenome 
-functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
+A collection of programs for the removal of noise from 454 sequenced PCR amplicons. This module has been built by Plamen G. Krastev.
 
 #
 # Macros for setting app data 
@@ -106,12 +105,12 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}-%{version}
+#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+#cd %{name}-%{version}
+#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -134,15 +133,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-#module load Python/2.7.8-fasrc01
 
 
 #./configure --prefix=%{_prefix} \
@@ -164,7 +162,7 @@ done
 #percent sign) to build in parallel
 #make
 
-#python setup.py build
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -197,23 +195,6 @@ done
 #mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
 
-# +++ Installing python packages +++
-
-# Standard stuff.
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-#python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -291,23 +272,21 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/site-packages")
+setenv("PYRO_LOOKUP_FILE",          "/n/sw/centos6/AmpliconNoise-1.27/Data/LookUp_E123.dat")
+setenv("SEQ_LOOKUP_FILE",           "/n/sw/centos6/AmpliconNoise-1.27/Data/Tran.dat")
+prepend_path("PATH",                "/n/sw/centos6/AmpliconNoise-1.27/bin")
+prepend_path("PATH",                "/n/sw/centos6/AmpliconNoise-1.27/Scripts")
 EOF
 
 #------------------- App data file
