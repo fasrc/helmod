@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.  This build also contains clang.  Clang is an 'LLVM native' C/C++/Objective-C compiler, which aims to deliver amazingly fast compiles (e.g. about 3x faster than GCC when compiling Objective-C code in a debug configuration), extremely useful error and warning messages and to provide a platform for building great source level tools.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+URL: http://llvm.org/releases/3.5.1/llvm-3.5.1.src.tar.xz
+Source0: %{name}-%{version}.src.tar.xz
+Source1: cfe-3.5.1.src.tar.xz
 
 #
 # there should be no need to change the following
@@ -62,8 +63,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
-
+The LLVM Core libraries provide a modern source- and target-independent optimizer, along with code generation support for many popular CPUs (as well as some less common ones!) These libraries are built around a well specified code representation known as the LLVM intermediate representation ('LLVM IR'). The LLVM Core libraries are well documented, and it is particularly easy to invent your own language (or port an existing compiler) to use LLVM as an optimizer and code generator.
+Clang is an 'LLVM native' C/C++/Objective-C compiler, which aims to deliver amazingly fast compiles (e.g. about 3x faster than GCC when compiling Objective-C code in a debug configuration), extremely useful error and warning messages and to provide a platform for building great source level tools. The Clang Static Analyzer is a tool that automatically finds bugs in your code, and is a great example of the sort of tool that can be built using the Clang frontend as a library to parse C/C++ code.
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -80,16 +81,16 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
+%define builddependencies cmake/2.8.12.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
+%define requestor Yihe Huang <yihehuang@g.harvard.edu>
+%define requestref RCRT:81646
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apppublication %{nil}
 
 
@@ -107,9 +108,15 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}.src
+rm -rf cfe-%{version}.src
+rm -rf compiler-rt-%{version}.src
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/cfe-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/compiler-rt-%{version}.src.tar.*
+cp -r cfe-%{version}.src %{name}-%{version}.src/tools/clang
+cp -r compiler-rt-%{version}.src  %{name}-%{version}.src/projects/compiler-rt
+cd %{name}-%{version}.src
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,61 +141,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}.src
 
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-rm -rf build
 mkdir build
 cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
-
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
-
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
-
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
-
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make -j 4
 
 
 
@@ -218,11 +184,12 @@ mkdir docs/html
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}.src/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
+cd tools/clang
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -312,12 +279,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
+setenv("LLVM_HOME",                "%{_prefix}")
+setenv("LLVM_INCLUDE",             "%{_prefix}/include")
+setenv("LLVM_LIB",                 "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib/clang/3.5.1/include")
 prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+prepend_path("FPATH",              "%{_prefix}/lib/clang/3.5.1/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/clang/3.5.1/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/clang/3.5.1/lib")
+
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF

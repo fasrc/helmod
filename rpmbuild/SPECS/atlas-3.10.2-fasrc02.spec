@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,19 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static Automatically Tuned Linear Algebra Software
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+#wget http://downloads.sourceforge.net/project/math-atlas/Stable/3.10.2/atlas3.10.2.tar.bz2
+#wget http://www.netlib.org/lapack/lapack-3.5.0.tgz
+URL: http://math-atlas.sourceforge.net/
+Source0: %{name}%{version}.tar.bz2
+Source1: lapack-3.5.0.tgz
+%define lapack_version 3.5.0
 
 #
 # there should be no need to change the following
@@ -59,10 +63,8 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
+The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing research effort focusing on applying empirical techniques in order to provide portable performance. At present, it provides C and Fortran77 interfaces to a portably efficient BLAS implementation, as well as a few routines from LAPACK.
 
 #
 # Macros for setting app data 
@@ -80,17 +82,18 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -99,16 +102,16 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -fr ATLAS
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
+mv ATLAS %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -123,8 +126,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
@@ -132,63 +133,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-rm -rf build
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 mkdir build
-cd build
+cd $_
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
+../configure --prefix=%{_prefix} \
+	--with-netlib-lapack-tarfile="$FASRCSW_DEV"/rpmbuild/SOURCES/lapack-%{lapack_version}.tgz \
+	-b 64  -t 0  -Fa alg -fPIC  -D c -DPentiumCPS=2000
 
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
 
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
-
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
-
+#%%{?_smp_mflags} causes this to fail
+make
 
 
 
@@ -218,11 +181,11 @@ mkdir docs/html
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
+make install DESTDIR=%{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -312,11 +275,13 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+setenv("ATLAS_HOME",                "%{_prefix}")
+setenv("ATLAS_LIB",                 "%{_prefix}/lib")
+setenv("ATLAS_INCLUDE",             "%{_prefix}/include")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
@@ -340,6 +305,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

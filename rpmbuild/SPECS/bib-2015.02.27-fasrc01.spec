@@ -1,5 +1,15 @@
-#------------------- package info ----------------------------------------------
 #
+# See also: misc/make_bib_wrapper_modules
+#
+
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
+
+#------------------- package info ----------------------------------------------
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +40,17 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static the cross-platform package manager for command-line bioinformatics tools
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+URL: http://bib.bitbucket.org/
+#Source: %{name}-%{version}.tar.gz
+#wget https://bitbucket.org/mhowison/bib/raw/master/install.sh -O bib-2015.02.27-install.sh
+#chmod a+x bib-2015.02.27-install.sh
 
 #
 # there should be no need to change the following
@@ -59,38 +71,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
+BiB is a cross-platform manager for command-line bioinformatics tools. This
+For more information and examples of how to use BiB, see http://bib.bitbucket.org.
 
-#
-# Macros for setting app data 
-# The first set can probably be left as is
-# the nil construct should be used for empty values
-#
-%define modulename %{name}-%{version}-%{release_short}
-%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
-%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
-%define appdescription %{summary_static}
-%define type %{getenv:TYPE}
-%define specauthor %{getenv:FASRCSW_AUTHOR}
-%define builddate %(date)
-%define buildhost %(hostname)
-%define buildhostversion 1
-
-
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
-%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -99,7 +83,6 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -108,8 +91,9 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
+mkdir %{name}-%{version}
 cd %{name}-%{version}
+cp "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-install.sh .
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -123,7 +107,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -133,62 +116,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-rm -rf build
-mkdir build
-cd build
-
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
-
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
-
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
-
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
-
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 
 
 
@@ -201,15 +130,13 @@ mkdir docs/html
 
 
 #
-# FIXME
-#
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
 #
 # Note that DESTDIR != %{prefix} -- this is not the final installation.  
 # Rpmbuild does a temporary installation in the %{buildroot} and then 
 # constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
+# does not support this:/etc/profile.d/modules.sh
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
 #
@@ -217,12 +144,86 @@ mkdir docs/html
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+
+#
+# This app insists on writing directly to the prefix.  Acquiesce, and hack a 
+# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
+# to install in our build environment, and then remove the symlink.  Note that 
+# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE 
+# combination.
+#
+
+# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+
+#base installation
+bash ./%{name}-%{version}-install.sh "%{_prefix}"
+
+#install everything possible; see:
+#https://bitbucket.org/mhowison/bib/src/6628788b026160af254725b43fae9e48c6647e39/recipes/?at=master
+export BIB_PREFIX="%{_prefix}"
+export PATH="%{_prefix}/active/bin:$PATH"
+yes | bib install abyss
+yes | bib install bamtools
+yes | bib install biolite-tools
+yes | bib install blast
+yes | bib install bowtie
+yes | bib install bowtie2
+yes | bib install bwa
+yes | bib install fasta
+yes | bib install fastqc
+yes | bib install fermi
+yes | bib install gblocks
+yes | bib install google-sparsehash
+yes | bib install gsl
+yes | bib install hmmer
+yes | bib install jellyfish
+yes | bib install macse
+yes | bib install mafft
+yes | bib install mcl
+yes | bib install mummer
+yes | bib install oases
+yes | bib install parallel
+yes | bib install raxml
+yes | bib install rsem
+yes | bib install samtools
+yes | bib install spimap
+yes | bib install sratoolkit
+yes | bib install swipe
+yes | bib install transdecoder
+yes | bib install trinity
+yes | bib install velvet
+#note:  you'll still see a lot of the following lines:
+#   Ready to install.  Press ENTER to continue with the install.
+#followed by a pause, but it's actually doing stuff
+
+#this was NOT done for bib-2014.05.19-fasrc01; staging for next time
+#to fix this:
+#	$ pwd
+#	/n/sw/fasrcsw/apps/Core/bib/2014.05.19-fasrc01
+#	$ find . >/dev/null
+#	find: `./install/samtools/0.1.19': Permission denied
+#	find: `./install/gblocks/0.91b': Permission denied
+#	find: `./install/bowtie/1.0.0': Permission denied
+#	$ ls -alFd ./install/samtools/0.1.19 ./install/gblocks/0.91b ./install/bowtie/1.0.0
+#	drwxrwx--- 8 root root 3149 2014-05-19 14:06:30 ./install/bowtie/1.0.0/
+#	drwx------ 4 root root  138 2014-05-19 14:06:41 ./install/gblocks/0.91b/
+#	drwxr-x--- 7 root root 2822 2014-05-19 14:07:31 ./install/samtools/0.1.19/
+
+chmod -R go+rX "%{_prefix}"/install
+chmod -R go-w  "%{_prefix}"/install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 
 #(this should not need to be changed)
@@ -301,45 +302,28 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
+-- environment changes (uncomment what's relevant)
+setenv("BIB_PREFIX", "%{_prefix}")
+prepend_path("PATH", "%{_prefix}/active/bin")
 
----- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+-- added 10/21/14, rmf to include relevant library paths
+prepend_path("CPATH", "%{_prefix}/active/include")
+prepend_path("FPATH", "%{_prefix}/active/include")
+prepend_path("LD_LIBRARY_PATH", "%{_prefix}/active/lib")
+prepend_path("LIBRARY_PATH", "%{_prefix}/active/lib")
+prepend_path("MANPATH", "%{_prefix}/active/man")
+-- end add
+
+-- (there are lots of other standard looking dirs, but the directions say only 
+-- a PATH update is needed)
 EOF
 
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-module              : %{modulename}
-tags                : %{apptags}
-publication         : %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
-EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
@@ -349,6 +333,8 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+%{_prefix}/.git
+%{_prefix}/.gitignore
 
 
 

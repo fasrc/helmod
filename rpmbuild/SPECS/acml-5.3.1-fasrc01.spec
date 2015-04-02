@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+URL:http://developer.amd.com/tools-and-sdks/cpu-development/amd-core-math-library-acml/acml-downloads-resources/ 
+Source0: %{name}-5-3-1-gfortran-64bit.tgz
+Source1: %{name}-5-3-1-ifort-64bit.tgz
 
 #
 # there should be no need to change the following
@@ -56,15 +57,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -80,17 +72,32 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
+%define buildcomments LD_LIBRARY_PATH and CPATH are updated with the basic libraries.  For fma4 or mp versions, you'll want to manually add those directories using ACML_FMA4_LIB / ACML_FMA4_INCLUDE, ACML_MP_LIB / ACML_MP_INCLUDE, or ACML_FMA4_MP_LIB /ACML_FMA4_MP_INCLUDE
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Build comments: %(buildcomments}
+AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications. ACML is ideal for weather modeling, computational fluid dynamics, financial analysis, oil and gas applications and more. ACML consists of the following main components:
+1) A full implementation of Level 1, 2 and 3 Basic Linear Algebra Subroutines (BLAS), with key routines optimized for high performance on AMD Opteron™ processors.  The BLAS level 3 routines will take advantage of heterogeneous computing through OpenCL if detected.
+2) A full suite of Linear Algebra (LAPACK) routines. As well as taking advantage of the highly-tuned BLAS kernels, a key set of LAPACK routines has been further optimized to achieve considerably higher performance than standard LAPACK implementations.
+3) Beginning version 6 of ACML, a subset of FFTW interfaces are supported for Fourier transform functionality. Heterogeneous compute with GPU/APU and OpenCL is supported through the FFTW interfaces. A comprehensive set of FFTs through ACML specific API (found in version 5 and older) continues to be available in version 6.
+4) Random Number Generators in both single- and double-precision.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,10 +115,9 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+mkdir %{name}-%{version}
 
+# Tarball extraction moved to build phase so that $FC can be used in file name
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -122,73 +128,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+# Move tarball extraction to build phase so that $FC can be used 
+export TARNAME=%{name}-5-3-1-$FC-64bit.tgz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${TARNAME}
+tar xvf contents-${TARNAME}
+chmod -Rf a+rX,u+w,g-w,o-w .
 #
 # FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-rm -rf build
-mkdir build
-cd build
-
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
-
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
-
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
-
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
-
 
 
 
@@ -217,13 +170,16 @@ mkdir docs/html
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
-
+cp -r ${FC}64/* %{buildroot}/%{_prefix}
+cp -r ${FC}64_mp %{buildroot}/%{_prefix}/mp
+cp -r ${FC}64_fma4 %{buildroot}/%{_prefix}/fma4
+cp -r ${FC}64_fma4_mp %{buildroot}/%{_prefix}/fma4_mp
+ 
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -312,11 +268,22 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+setenv("ACML_HOME",                 "%{_prefix}")
+setenv("ACML_LIB",                  "%{_prefix}/lib")
+setenv("ACML_INCLUDE",              "%{_prefix}/include")
+setenv("ACML_MP_HOME",              "%{_prefix}/mp")
+setenv("ACML_MP_LIB",               "%{_prefix}/mp/lib")
+setenv("ACML_MP_INCLUDE",           "%{_prefix}/mp/include")
+setenv("ACML_FMA4_HOME",            "%{_prefix}/fma4") 
+setenv("ACML_FMA4_LIB",             "%{_prefix}/fma4/lib")
+setenv("ACML_FMA4_INCLUDE",         "%{_prefix}/fma4/include")
+setenv("ACML_FMA4_MP_HOME",         "%{_prefix}/fma4_mp") 
+setenv("ACML_FMA4_MP_LIB",          "%{_prefix}/fma4_mp/lib")
+setenv("ACML_FMA4_MP_INCLUDE",      "%{_prefix}/fma4_mp/include")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file

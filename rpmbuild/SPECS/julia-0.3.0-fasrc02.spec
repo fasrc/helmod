@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static a high-level, high-performance dynamic programming language for technical computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+URL: http://julialang.org/
 
 #
 # there should be no need to change the following
@@ -59,38 +58,9 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
+Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
 
-#
-# Macros for setting app data 
-# The first set can probably be left as is
-# the nil construct should be used for empty values
-#
-%define modulename %{name}-%{version}-%{release_short}
-%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
-%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
-%define appdescription %{summary_static}
-%define type %{getenv:TYPE}
-%define specauthor %{getenv:FASRCSW_AUTHOR}
-%define builddate %(date)
-%define buildhost %(hostname)
-%define buildhostversion 1
-
-
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
-%define apppublication %{nil}
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,8 +78,11 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
+
+git clone https://github.com/JuliaLang/julia %{name}-%{version}
 cd %{name}-%{version}
+git checkout b55539a0fb6c39e9001f34b45f059700982754a6  #0.3.0 tag
+
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -136,59 +109,40 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 
-rm -rf build
-mkdir build
-cd build
-
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
-
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
-
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
-
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
-
+#FIXME -- hopefully these openblas issues go away in the future
+#out of the box first failed like so:
+#	make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S: Assembler messages:
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0x1b,%ymm0,%ymm0'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
+#	...tons of those
+#this describes it:
+#	https://github.com/JuliaLang/julia/issues/7240
+#this workaround:
+#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-46168120
+#	$ echo 'OPENBLAS_DYNAMIC_ARCH=0' > Make.user
+#	but still fails:
+#		make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		...tons of those
+#		ar: sgemm_kernel.o: No such file or directory
+#		make[5]: *** [libs] Error 1
+#		make[5]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#		make[4]: *** [libs] Error 1
+#		make[4]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10'
+#		*** Clean the OpenBLAS build with 'make -C deps clean-openblas'. Rebuild with 'make OPENBLAS_USE_THREAD=0 if OpenBLAS had trouble linking libpthread.so, and with 'make OPENBLAS_TARGET_ARCH=NEHALEM' if there were errors building SandyBridge support. Both these options can also be used simultaneously. ***
+#		...
+#try the other workaround:
+#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
+#	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
+sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
+make %{?_smp_mflags}
 
 
 
@@ -218,11 +172,36 @@ mkdir docs/html
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
+
+
+#make these absolute symbolic links relative
+
+#./julia -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/usr/bin/julia
+rm ./julia
+ln -s usr/bin/julia julia
+
+#./usr/share/julia/base -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/base
+rm ./usr/share/julia/base
+ln -s ../../../base ./usr/share/julia/base
+
+#./usr/share/julia/doc -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/doc
+rm ./usr/share/julia/doc
+ln -s ../../../doc ./usr/share/julia/doc
+
+#./usr/share/julia/examples -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/examples
+rm ./usr/share/julia/examples
+ln -s ../../../examples ./usr/share/julia/examples
+
+#./usr/share/julia/test -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/test
+rm ./usr/share/julia/test
+ln -s ../../../test ./usr/share/julia/test
+
+
+#forklift the whole thing, source and all
+rsync -av ./ %{buildroot}/%{_prefix}/
 
 
 #(this should not need to be changed)
@@ -301,45 +280,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
-
----- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+-- environment changes (uncomment what's relevant)
+prepend_path("PATH",                "%{_prefix}/usr/bin")
 EOF
 
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-module              : %{modulename}
-tags                : %{apptags}
-publication         : %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
-EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
@@ -349,6 +299,9 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+%{_prefix}/.git*
+%{_prefix}/.mailmap
+%{_prefix}/.travis.yml
 
 
 

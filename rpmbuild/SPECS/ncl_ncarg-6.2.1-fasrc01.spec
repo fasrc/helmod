@@ -1,3 +1,8 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
 #------------------- package info ----------------------------------------------
 #
 #
@@ -30,15 +35,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. 
+%define summary_static NCL, a product of the Computational & Information Systems Laboratory at the National Center for Atmospheric Research (NCAR) and sponsored by the National Science Foundation, is a free interpreted language designed specifically for scientific data processing and visualization. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://packages.seqan.de/seqan-src/seqan-src-1.4.2.tar.gz
-Source: %{name}-src-%{version}.tar.gz
+URL: https://www.earthsystemgrid.org/download/fileDownload.htm?logicalFileId=5995adf7-351e-11e4-a4b4-00c0f03d5b7c 
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,15 +61,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-SeqAn is an open source C++ library of efficient algorithms and data structures for the analysis of sequences with the focus on biological data. Our library applies a unique generic design that guarantees high performance, generality, extensibility, and integration with other libraries. SeqAn is easy to use and simplifies the development of new software tools with a minimal loss of performance.
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -80,17 +76,31 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 %define buildhostversion 1
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 icu4c/54.1-fasrc01 boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02
+%define builddependencies proj/4.8.0-fasrc01 libpng/1.5.21-fasrc01 zlib/1.2.8-fasrc04 gdal/1.11.1-fasrc02 g2lib/1.4.0-fasrc01 g2clib/1.4.0-fasrc01 hdf5/1.8.12-fasrc04 hdf/4.2.11-fasrc01 netcdf/4.3.3.1-fasrc01 vis5d+/1.3.0-fasrc01 udunits/2.2.18-fasrc01 HDF-EOS/5.1.15-fasrc02 HDF-EOS2/2.19v1.00-fasrc01 cairo/1.12.18-fasrc01 jasper/1.900.1-fasrc01 szip/2.1-fasrc01 jpeg/6b-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Shaokai Yu <shoukaiyu@hsph.harvard.edu>
-%define requestref RCRT:80568
+%define requestor Katie Dagon <kdagon@fas.harvard.edu>
+%define requestref RCRT:82208
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Build notes: %{buildcomments}
+NCL has robust file input and output. It can read and write netCDF-3, netCDF-4 classic, netCDF-4, HDF4, binary, and ASCII data. It can read HDF-EOS2, HDF-EOS5, GRIB1, GRIB2, and OGR files (shapefiles, MapInfo, GMT, Tiger). It can be built as an OPeNDAP client.
+NCL visualizations are world class and highly customizable.
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,7 +118,7 @@ SeqAn is an open source C++ library of efficient algorithms and data structures 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-src-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -136,59 +146,51 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
+%define libsearch -L$ZLIB_LIB -L$LIBPNG_LIB -L$SZIP_LIB -L$VIS5D_LIB -L$HDF4_LIB -L$HDF5_LIB -L$GDAL_LIB -L$PROJ_LIB -L$UDUNITS_LIB -L$HDF_EOS2_LIB -L$HDF_EOS5_LIB -L$NETCDF_LIB -L$G2LIB_LIB -L$G2CLIB_LIB -L$CAIRO_LIB -L$JASPER_LIB -L$JPEG_LIB -L/usr/lib64 -L/usr/lib
+%define incsearch -I$ZLIB_INCLUDE -I$LIBPNG_INCLUDE -I$SZIP_INCLUDE -I$VIS5D_INCLUDE -I$HDF4_INCLUDE -I$HDF5_INCLUDE -I$GDAL_INCLUDE -I$PROJ_INCLUDE -I$UDUNITS_INCLUDE -I$HDF_EOS5_INCLUDE -I$NETCDF_INCLUDE -I$G2CLIB_INCLUDE -I$CAIRO_INCLUDE -I$JASPER_INCLUDE -I$JPEG_INCLUDE -I/usr/include/freetype2 -I/usr/include
 
-rm -rf build
-mkdir build
-cd build
+cat <<EOF > config/Site.local
+#ifdef FirstSite
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$ZLIB_INCLUDE;$BOOST_INCLUDE;$ICU_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$BOOST_LIB;$ICU_LIB" ..
+#endif /* FirstSite */
 
-# Fix some bad library references for boost
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?" \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/build.make
 
-sed -i    -e "s?/usr/lib64/lib64/libboost_wave-mt.so.5?$BOOST_LIB/libboost_wave.so?" \
-          -e "s?/usr/lib64/lib64/libboost_signals-mt.so.5?$BOOST_LIB/libboost_signals.so?" \
-          -e "s?/usr/lib64/lib64/libboost_program_options-mt.so.5?$BOOST_LIB/libboost_program_options.so?" \
-          -e "s?/usr/lib64/lib64/libboost_iostreams-mt.so.5?$BOOST_LIB/libboost_iostreams.so?" \
-          -e "s?/usr/lib64/lib64/libboost_filesystem-mt.so.5?$BOOST_LIB/libboost_filesystem.so?" \
-          -e "s?/usr/lib64/lib64/libboost_unit_test_framework-mt.so.5?$BOOST_LIB/libboost_unit_test_framework.so?" \
-          -e "s?/usr/lib64/lib64/libboost_system-mt.so.5?$BOOST_LIB/libboost_system.so?" \
-          -e "s?/usr/lib64/lib64/libboost_python-mt.so.5?$BOOST_LIB/libboost_python.so?" \
-          -e "s?/usr/lib64/lib64/libboost_graph-mt.so.5?$BOOST_LIB/libboost_graph.so?"  \
-          -e "s?/usr/lib64/lib64/libboost_math_c99l-mt.so.5?$BOOST_LIB/libboost_math_c99l.so?" \
-          -e "s?/usr/lib64/lib64/libboost_wserialization-mt.so.5?$BOOST_LIB/libboost_wserialization.so?" \
-          -e "s?/usr/lib64/lib64/libboost_regex-mt.so.5?$BOOST_LIB/libboost_regex.so?" \
-          -e "s?/usr/lib64/lib64/libboost_thread-mt.so.5?$BOOST_LIB/libboost_thread.so?" \
-          -e "s?/usr/lib64/lib64/libboost_serialization-mt.so.5?$BOOST_LIB/libboost_serialization.so?" \
-          -e "s?/usr/lib64/libicuuc.so?$ICU_LIB/libicuuc.so?" \
-          -e "s?/usr/lib64/libicui18n.so?$ICU_LIB/libicui18n.so?" \
-          -e "s?/usr/lib64/lib64/libboost_date_time-mt.so.5?$BOOST_LIB/libboost_date_time.so?" extras/apps/bs_tools/CMakeFiles/casbar.dir/link.txt
+#ifdef SecondSite
 
-make -j 2
-touch ../extras/apps/seqan_flexbar/README
-touch extras/apps/seqan_flexbar/README
-mkdir docs/html
+#define YmakeRoot %{_prefix}
 
+#define HDFlib -lmfhdf -ldf -ljpeg -lz -lsz -lgrib2c -ljasper
+
+#define LibSearch %{libsearch}
+
+#define IncSearch %{incsearch}
+
+#define BuildGDAL 1
+#define BuildTRIANGLE 0
+#define BuildHDFEOS 0
+#define HDFEOSlib
+#define BuildGRIB2 1
+#define GRIB2lib
+#define BuildV5D 1
+
+#define NoMakeDepend
+
+#endif /* SecondSite */
+
+EOF
+
+./Configure
+
+sed -i -e 's?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS))?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS) $(ROBJ_OBJ))?'  ncarg2d/src/libncarg_gks/awi/yMakefile
+
+#make Makefiles
+#sed -i -e 's?^../libncarg_gks.a:: $(OBJECTS)?../libncarg_gks.a:: $(OBJECTS) $(ROBJ_OBJ)?' \
+#       -e 's?$(AR_REG) ../libncarg_gks.a $(OBJECTS)?$(AR_REG) ../libncarg_gks.a $(OBJECTS) $(ROBJ_OBJ)?' ncarg2d/src/libncarg_gks/awi/Makefile
+   
+
+make Build
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 
 
 
@@ -218,12 +220,18 @@ mkdir docs/html
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-cp -r ../core/include %{buildroot}%{_prefix}
 
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+make Everything
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -312,16 +320,20 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("SEQAN_HOME",                "%{_prefix}")
-setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
+setenv("NCL_NCARG_HOME",           "%{_prefix}")
+setenv("NCL_NCARG_LIB",            "%{_prefix}/lib")
+setenv("NCL_NCARG_INCLUDE",        "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/lib/ncarg/data/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/man")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
+cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
