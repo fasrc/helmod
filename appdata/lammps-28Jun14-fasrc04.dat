@@ -1,0 +1,17 @@
+appname             : lammps
+appversion          : 28Jun14
+description         : LAMMPS is a classical molecular dynamics code, and an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.
+module              : lammps-28Jun14-fasrc04
+tags                : aci-ref-app-category:Applications;  aci-ref-app-tag:Molecular dynamics;  aci-ref-app-tag:Molecular mechanics
+publication         : 
+modulename          : lammps-28Jun14-fasrc04
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 13 12:05:41 EST 2015
+buildhost           : holygpu01.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : fftw/2.1.5-fasrc03
+rundependencies     : fftw/2.1.5-fasrc03
+buildcomments       : This is a CUDA build that creates the lmp_cuda executable.  It includes the misc, user-misc, kokkos, and user-reaxc sub packages
+requestor           : 
+requestref          : 

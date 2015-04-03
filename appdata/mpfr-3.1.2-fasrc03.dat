@@ -1,0 +1,17 @@
+appname             : mpfr
+appversion          : 3.1.2
+description         : a C library for multiple-precision floating-point computations with correct rounding
+module              : mpfr-3.1.2-fasrc03
+tags                : 
+publication         : 
+modulename          : mpfr-3.1.2-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Dec 22 14:10:08 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gmp/6.0.0-fasrc03
+rundependencies     : gmp/6.0.0-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

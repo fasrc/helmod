@@ -1,0 +1,17 @@
+appname             : jasper
+appversion          : 1.900.1
+description         : The JasPer Project is an open-source initiative to provide a free software-based reference implementation of the codec specified in the JPEG-2000 Part-1 standard (i.e., ISO/IEC 15444-1).
+module              : jasper-1.900.1-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : jasper-1.900.1-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Mar 26 10:25:06 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Katie Dagon <kdagon@fas.harvard.edu>
+requestref          : RCRT:82208

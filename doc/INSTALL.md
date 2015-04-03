@@ -1,10 +1,10 @@
 # Overview
 
-Most of this is a one-time operation, done by the person setting up fasrcsw.
-In order to join an existing fasrcsw environment, [this section](#have-each-contributor-setup-a-development-repo-clone) is all that's needed.
+Most of this is a one-time operation, done by the person setting up HeLmod.
+In order to join an existing HeLmod environment, [this section](#have-each-contributor-setup-a-development-repo-clone) is all that's needed.
 
-The fasrcsw system is designed to work on a CentOS 6 cluster.
-If you're setting this up for an organization other than Harvard FAS Research Computing (@fasrc on github), create a new canonical fasrcsw master remote and adjust urls below accordingly.
+The HeLmod system is designed to work on a CentOS 6 cluster.
+If you're setting this up for an organization other than Harvard FAS Research Computing (@fasrc on github), create a new canonical HeLmod master remote and adjust urls below accordingly.
 
 
 
@@ -12,16 +12,16 @@ If you're setting this up for an organization other than Harvard FAS Research Co
 
 ## Setup the production repo clone
 
-As root, pick the central location on network storage for all cluster software, and clone the fasrcsw repo there:
+As root, pick the central location on network storage for all cluster software, and clone the HeLmod repo there:
 
 ``` bash
-git clone git@github.com:/fasrc/fasrcsw.git
-cd fasrcsw
+git clone git@github.com:/fasrc/helmod.git
+cd helmod
 ```
 
 Aside from initial configuration, this clone only needs to pull updates, so changing to an https remote later is fine.
 
-This top-level directory will contain everything relevant to the fasrcsw software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
+This top-level directory will contain everything relevant to the HeLmod software management system, but actual rpm files, app installations, and other build outputs are .gitignore'd.
 Thus, *make sure this is backed up regularly*.
 
 Edit the configuration:
@@ -30,7 +30,7 @@ Edit the configuration:
 $EDITOR setup.sh
 ```
 
-and set `FASRCSW_PROD` to the absolute path of this fasrcsw clone you just made.
+and set `FASRCSW_PROD` to the absolute path of this HeLmod clone you just made.
 Push these changes back to the remote.
 
 Source the setup.sh:
@@ -40,7 +40,7 @@ source ./setup.sh
 ```
 
 This makes available some scripts such as `fasrcsw-rpm` and `fasrcsw-rpmbuild-*` which are very thin wrappers around the normal programs and just add some default options.
-Use the rpm one to initialize the rpm database used exclusively for fasrcsw:
+Use the rpm one to initialize the rpm database used exclusively for HeLmod:
 
 ``` bash
 fasrcsw-rpm --initdb
@@ -51,13 +51,13 @@ This repo clone is the one and only `$FASRCSW_PROD`.
 
 ## Have each contributor setup a development repo clone
 
-Each app contributor should clone the fasrcsw repo in some personal location.
+Each app contributor should clone the HeLmod repo in some personal location.
 The scripts in the repo need to be able to be read by root, so the location should not be root squashed (or, if root squashed, must be world-readable).
 Accumulation of sources and build output can easily reach many GBs, so make sure there is room to grow, too.
 
 ``` bash
-git clone git@github.com:/fasrc/fasrcsw.git
-cd fasrcsw
+git clone git@github.com:/fasrc/helmod.git
+cd helmod
 ```
 
 These clones will need to regularly push updates back to the remote.
@@ -73,7 +73,7 @@ These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
 # Install lmod
 
-The fasrcsw system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
+The HeLmod system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
 <!--
 FASRC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
 In particular, these instructions are matched to lmod 5.2, commit c00912cda9.
@@ -93,7 +93,7 @@ If you're upgrading, the lmod `make install` will automatically update to the `l
 
 lmod requires `lua` 5.1 or 5.2, plus `lua-filesystem`, `lua-posix`, and `lua-devel` (at least as of lmod version 5.2).
 
-Source a configured fasrcsw clone, or at least define `FASRCSW_PROD` to point to the parent of the production `apps` directory.
+Source a configured HeLmod clone, or at least define `FASRCSW_PROD` to point to the parent of the production `apps` directory.
 
 Temporarily allow the writes that lmod wants to do (assuming your primary group is a trusted admin group):
 
@@ -133,7 +133,7 @@ Stop your deployment system from replacing these files before their updates are 
 
 ## Build and install it
 
-Get the source code (stash a copy in `$FASRCSW_PROD/rpmbuild/SOURCES/` for good measure), configure it to use the various locations within fasrcsw, and build it.
+Get the source code (stash a copy in `$FASRCSW_PROD/rpmbuild/SOURCES/` for good measure), configure it to use the various locations within HeLmod, and build it.
 
 ``` bash
 ./configure --prefix="$FASRCSW_PROD"/apps --with-module-root-path="$FASRCSW_PROD"/modulefiles --with-spiderCacheDir="$FASRCSW_PROD"/moduledata/cacheDir --with-updateSystemFn="$FASRCSW_PROD"/moduledata/system.txt
@@ -207,12 +207,12 @@ sudo chown -R root:root "$FASRCSW_PROD"/apps/{lmod,$VERSION}
 
 ### Spider cache
 
-lmod features optional caching of the modulefile hierarchy to make spider and avail faster; fasrcsw enables this.
-Updates of the cache happen during the fasrcsw app build process, therefore no cron job or other automatic update mechanism is necessary.
+lmod features optional caching of the modulefile hierarchy to make spider and avail faster; HeLmod enables this.
+Updates of the cache happen during the HeLmod app build process, therefore no cron job or other automatic update mechanism is necessary.
 
 ### Module usage logging
 
-fasrcsw includes a hook for logging module load events to a MySQL database.
+HeLmod includes a hook for logging module load events to a MySQL database.
 To use this, create a MySQL database using [$FASRCSW_PROD/modulehook/modulestats.sql](../modulehook/modulestats.sql), and create a file `$FASRCSW_PROD/modulehook/.my.cnf.modulelogger` with the host, database name, and credentials for connecting to it.
 Finally, tell lmod to use this hook by adding the following to `lmod.sh` and `lmod.csh`, respectively, filling in the value of FASRCSW_PROD:
 

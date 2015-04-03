@@ -1,0 +1,17 @@
+appname             : zlib
+appversion          : 1.2.8
+description         : zlib version 1.2.8
+module              : zlib-1.2.8-fasrc03
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Compression
+publication         : 
+modulename          : zlib-1.2.8-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 29 11:01:44 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

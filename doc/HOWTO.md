@@ -3,7 +3,7 @@
 
 ## Overview
 
-The basic workflow to build an app using fasrcsw is:
+The basic workflow to build an app using HeLmod is:
 
 * get the source
 * create and partially complete a spec file, using the template as a starting point
@@ -16,18 +16,18 @@ Once you're comfortable with the workflow, you can probably just use [HOWTO-shor
 
 The default behavior and templates are designed to work with GNU-toolchain-style software packages, i.e. things that use `configure`/`make`/`make install` with standard options, with as little modification as possible.
 As an example, this document uses the automake hello-world example, `amhello-1.0.tar.gz`, distributed with automake.
-If you're new to fasrcsw, *try building and installing amhello first*, to get the hang of things.
+If you're new to HeLmod, *try building and installing amhello first*, to get the hang of things.
 
 
 ## Prepare
 
 Get ready to build software:
 
-* make sure you've cloned and configured fasrcsw according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
+* make sure you've cloned and configured HeLmod according to [this](INSTALL.md#have-each-contributor-setup-a-development-repo-clone)
 * make sure you're logged into the build host
 * make sure you're logged into your normal user account (with sudo privilege), *not* root
 
-`cd` to your personal fasrcsw clone.
+`cd` to your personal HeLmod clone.
 Make sure your clone is up-to-date and your environment is pristine, and setup the environment:
 
 ``` bash
@@ -50,10 +50,10 @@ export TYPE=...
 ```
 
 `NAME` and `VERSION` are whatever the app claims, though some adjustments may be required -- see [this FAQ item](FAQ.md#what-are-the-naming-conventions-and-restrictions-for-an-apps-name-version-and-release).
-`RELEASE` is used to track the build under the fasrcsw system and should be of the form `fasrc##` where `##` is a two-digit number.
-If this is the first fasrcsw-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
+`RELEASE` is used to track the build under the HeLmod system and should be of the form `fasrc##` where `##` is a two-digit number.
+If this is the first HeLmod-style build, use `fasrc01`; otherwise increment the fasrc number used in the previous spec file for the app.
 
-Regarding `TYPE`, a major purpose of fasrcsw is to manage entire software environments for multiple compiler and MPI implementations.
+Regarding `TYPE`, a major purpose of HeLmod is to manage entire software environments for multiple compiler and MPI implementations.
 Apps are therefore categorized by their *dependencies* (see [this FAQ item](FAQ.md#why-is-a-compiler-a-core-app-and-not-a-comp-app--why-is-an-mpi-implementation-a-comp-app-and-not-an-mpi-app) more about this initially non-intuitive convention, adopted from TACC):
 
 * A *Core* app is one that does not depend on a compiler or MPI implementation.
@@ -128,14 +128,14 @@ make trial
 Eventually, after a few iterations of running the above and tweaking the spec file in order to get the software to build properly and even get to the *trial* step, the output will show something like this near the end:
 
 ```
-*************** fasrcsw -- STOPPING due to %define trial yes ******************
+*************** helmod -- STOPPING due to %define trial yes ******************
 
 
 Look at the tree output below to decide how to finish off the spec file.  (`Bad
 exit status' is expected in this case, it's just a way to stop NOW.)
 
 
-/home/me/fasrcsw/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/fasrcsw/apps/Core/amhello/1.0-fasrc01
+/home/me/helmod/rpmbuild/BUILDROOT/amhello-1.0-fasrc01.x86_64//n/sw/helmod/apps/Core/amhello/1.0-fasrc01
 |-- README
 |-- bin
 |   `-- hello
@@ -160,7 +160,7 @@ error: Bad exit status from /var/tmp/rpm-tmp.B5l2ZA (%install)
 ```
 
 The `Bad exit status` is expected in this case.
-The `README` and other docs in the root of the installation is something manually done by fasrcsw just out of personal preference.
+The `README` and other docs in the root of the installation is something manually done by HeLmod just out of personal preference.
 
 
 ## Finish the spec file
@@ -235,7 +235,7 @@ If you want to erase and retry the process, `make uninstall`.
 ## Save your work
 
 If you're just trying things out with `amhello`, `make uninstall` and remove your spec file (`amhello*` is `.gitignore`d anyways).
-Otherwise, for production apps, copy the rpms to the production location and commit/push all your modifications to the fasrcsw git remote.
+Otherwise, for production apps, copy the rpms to the production location and commit/push all your modifications to the HeLmod git remote.
 The following will do all of this:
 
 ``` bash

@@ -1,0 +1,17 @@
+appname             : perl
+appversion          : 5.10.1
+description         : Perl interpreter
+module              : perl-5.10.1-fasrc03
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
+publication         : 
+modulename          : perl-5.10.1-fasrc03
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 18 17:24:54 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : builds.rc.fas.harvard.edu
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

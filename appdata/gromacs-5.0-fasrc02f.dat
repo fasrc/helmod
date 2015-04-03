@@ -1,0 +1,17 @@
+appname             : gromacs
+appversion          : 5.0
+description         : GROMACS is a versatile package to perform molecular dynamics, i.e. simulate the Newtonian equations of motion for systems with hundreds to millions of particles.
+module              : gromacs-5.0-fasrc02f
+tags                : 
+publication         : 
+modulename          : gromacs-5.0-fasrc02f
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 13 10:01:38 EST 2015
+buildhost           : holygpu01.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01
+rundependencies     : cmake/2.8.12.2-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

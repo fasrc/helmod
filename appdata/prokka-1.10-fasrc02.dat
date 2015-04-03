@@ -1,0 +1,17 @@
+appname             : prokka
+appversion          : 1.10
+description         : Prokka is a software tool for the rapid annotation of prokaryotic genomes.
+module              : prokka-1.10-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence annotation
+publication         : 
+modulename          : prokka-1.10-fasrc02
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb  5 15:38:33 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : perl-modules/5.10.1-fasrc04 tbl2asn/23.9-fasrc01
+buildcomments       : Updated template and added tbl2asn to runtime dependencies
+requestor           : Cheryl Andam <candam@hsph.harvard.edu>
+requestref          : RCRT:80043

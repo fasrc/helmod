@@ -1,0 +1,17 @@
+appname             : llvm
+appversion          : 3.5.1
+description         : The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.  This build also contains clang.  Clang is an 'LLVM native' C/C++/Objective-C compiler, which aims to deliver amazingly fast compiles (e.g. about 3x faster than GCC when compiling Objective-C code in a debug configuration), extremely useful error and warning messages and to provide a platform for building great source level tools.
+module              : llvm-3.5.1-fasrc01
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+publication         : 
+modulename          : llvm-3.5.1-fasrc01
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Mar 23 15:40:34 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01
+rundependencies     : cmake/2.8.12.2-fasrc01
+buildcomments       : 
+requestor           : Yihe Huang <yihehuang@g.harvard.edu>
+requestref          : RCRT:81646

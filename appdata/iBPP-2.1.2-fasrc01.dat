@@ -1,0 +1,17 @@
+appname             : iBPP
+appversion          : 2.1.2
+description         : Bayesian species delimitation integrating genes and traits
+module              : iBPP-2.1.2-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic analysis
+publication         : Claudia Solís-Lemus, L. Lacey Knowles and Cécile Ané (2014). Bayesian species delimitation combining multiple genes and traits in a unified framework. Evolution.
+modulename          : iBPP-2.1.2-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 25 12:40:09 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : No actual Makefile.  build commands are in the README
+requestor           : Bruno Souza de Medeiros <souzademedeiros@fas.harvard.edu>
+requestref          : RCRT:80698

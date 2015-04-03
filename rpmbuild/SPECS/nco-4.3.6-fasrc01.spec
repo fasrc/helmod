@@ -70,7 +70,7 @@ Prefix: %{_prefix}
 %define buildhostversion 1
 
 
-%define builddependencies netcdf/4.1.3-fasrc02
+%define builddependencies netcdf/4.1.3-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor Lu Shen <lshen@fas.harvard.edu>
@@ -257,6 +257,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 

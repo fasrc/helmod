@@ -70,7 +70,7 @@ Prefix: %{_prefix}
 %define buildhostversion 1
 
 
-%define builddependencies netcdf/4.1.3-fasrc02 udunits/2.2.18-fasrc01 antlr/2.7.7-fasrc01
+%define builddependencies netcdf/4.1.3-fasrc03 udunits/2.2.18-fasrc01 antlr/2.7.7-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments The name of this module was modified so that the requestor, Lu Shen, can load it simultaneously with another version of NCO
 %define requestor Lu Shen <lshen@fas.harvard.edu>
@@ -256,12 +256,14 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
+whatis("Build: %{buildcomments}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 

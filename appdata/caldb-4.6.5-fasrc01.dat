@@ -1,0 +1,17 @@
+appname             : caldb
+appversion          : 4.6.5
+description         : The Chandra Calibration Database
+module              : caldb-4.6.5-fasrc01
+tags                : aci-ref-app-category:Databases; aci-ref-app-tag:Cosmological data
+publication         : 
+modulename          : caldb-4.6.5-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jan 13 13:22:36 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : This is part of the CIAO installation.  Additional tarballs are important to the installation.
+requestor           : Alex Krolewski <akrolewski@college.harvard.edu>
+requestref          : RCRT:78701

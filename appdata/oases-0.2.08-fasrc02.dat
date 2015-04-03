@@ -1,0 +1,17 @@
+appname             : oases
+appversion          : 0.2.08
+description         :  
+module              : oases-0.2.08-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : oases-0.2.08-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Dec 24 09:09:27 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : velvet/1.2.10-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,17 @@
+appname             : freebayes
+appversion          : 2015Feb18
+description         : Bayesian haplotype-based polymorphism discovery and genotyping.
+module              : freebayes-2015Feb18-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : freebayes-2015Feb18-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 18 15:22:44 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Used git clone --recursive to get all the submodules.  Checked out master on Feb 18 2015
+requestor           : Lori Shapiro <lshapiro@fas.harvard.edu>
+requestref          : 

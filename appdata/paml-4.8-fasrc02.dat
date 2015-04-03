@@ -1,0 +1,17 @@
+appname             : paml
+appversion          : 4.8
+description         : PAML is a package of programs for phylogenetic analyses of DNA or protein sequences using maximum likelihood.
+module              : paml-4.8-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic analysis
+publication         : 
+modulename          : paml-4.8-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Dec 23 13:17:26 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

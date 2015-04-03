@@ -4,6 +4,6 @@ set -e
 source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them this way)
 fasrcsw-env-check
 
-rpmbuild --dbpath "$FASRCSW_PROD"/rpmdb "$@"
+rpmbuild $RPMBUILD_OPTS --dbpath "$FASRCSW_PROD"/rpmdb "$@"
 
 echo fasrcsw-rpmbuild-Core SUCCESS

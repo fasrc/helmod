@@ -1,0 +1,17 @@
+appname             : boost
+appversion          : 1.54.0
+description         : Boost provides free peer-reviewed portable C++ source libraries.
+module              : boost-1.54.0-fasrc02
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
+publication         : 
+modulename          : boost-1.54.0-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 29 02:48:10 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : python/2.7.6-fasrc01
+rundependencies     : 
+buildcomments       : Had to unset CPATH for intel 15.0.0 because it threw an error with std::complex for some reason.
+requestor           : 
+requestref          : 

@@ -181,7 +181,7 @@ EOF
 
 ./Configure
 
-sed -i -e 's?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS))?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS) $(ROBJ_OBJ))?'  ncarg2d/src/libncarg_gks/awi/yMakefile
+#sed -i -e 's?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS))?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS) $(ROBJ_OBJ))?'  ncarg2d/src/libncarg_gks/awi/yMakefile
 
 #make Makefiles
 #sed -i -e 's?^../libncarg_gks.a:: $(OBJECTS)?../libncarg_gks.a:: $(OBJECTS) $(ROBJ_OBJ)?' \
@@ -189,6 +189,8 @@ sed -i -e 's?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS))?PartialLibraryTarge
    
 
 make Build
+rm ncarg2d/src/libncarg_gks/awi/ggkwdr_stub.o
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 

@@ -1,0 +1,17 @@
+appname             : Amber
+appversion          : 14
+description         : A package of molecular simulation programs.
+module              : Amber-14-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Chemistry; aci-ref-app-tag:Molecular dynamics; aci-ref-app-tag:Molecular mechanics
+publication         : 
+modulename          : Amber-14-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 20:05:33 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

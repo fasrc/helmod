@@ -1,0 +1,17 @@
+appname             : alsa-lib
+appversion          : 1.0.29
+description         : The Advanced Linux Sound Architecture (ALSA) provides audio and MIDI functionality to the Linux operating system.
+module              : alsa-lib-1.0.29-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Audio
+publication         : 
+modulename          : alsa-lib-1.0.29-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 27 15:53:40 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Caitlin Lewarch <clewarch@fas.harvard.edu>
+requestref          : RCRT:80610

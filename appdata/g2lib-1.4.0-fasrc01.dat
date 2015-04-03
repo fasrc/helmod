@@ -1,0 +1,17 @@
+appname             : g2lib
+appversion          : 1.4.0
+description         : Fortran library for working with the GRIB2 format
+module              : g2lib-1.4.0-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : g2lib-1.4.0-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Mar 27 13:21:38 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : jasper/1.900.1-fasrc01
+rundependencies     : jasper/1.900.1-fasrc01
+buildcomments       : 
+requestor           : Katie Dagon <kdagon@fas.harvard.edu>
+requestref          : RCRT:82208

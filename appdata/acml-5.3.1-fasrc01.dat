@@ -1,0 +1,17 @@
+appname             : acml
+appversion          : 5.3.1
+description         : AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications.
+module              : acml-5.3.1-fasrc01
+tags                : 
+publication         : 
+modulename          : acml-5.3.1-fasrc01
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Mar 20 12:01:13 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : LD_LIBRARY_PATH and CPATH are updated with the basic libraries.  For fma4 or mp versions, you'll want to manually add those directories using ACML_FMA4_LIB / ACML_FMA4_INCLUDE, ACML_MP_LIB / ACML_MP_INCLUDE, or ACML_FMA4_MP_LIB /ACML_FMA4_MP_INCLUDE
+requestor           : 
+requestref          : 

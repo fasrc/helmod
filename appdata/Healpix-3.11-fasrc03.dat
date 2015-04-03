@@ -1,0 +1,17 @@
+appname             : Healpix
+appversion          : 3.11
+description         : Data Analysis, Simulations and Visualization on the Sphere
+module              : Healpix-3.11-fasrc03
+tags                : aci-ref-app-category:Applications;  aci-ref-app-tag:Image analysis
+publication         : 
+modulename          : Healpix-3.11-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Dec 23 13:02:31 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cfitsio/3360-fasrc03
+rundependencies     : cfitsio/3360-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,17 @@
+appname             : cairo
+appversion          : 1.12.18
+description         : Cairo graphics library
+module              : cairo-1.12.18-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : cairo-1.12.18-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Mar 27 17:46:17 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Kate Dagon <kdagon@fas.harvard.edu>
+requestref          : 

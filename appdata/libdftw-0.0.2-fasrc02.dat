@@ -1,0 +1,17 @@
+appname             : libdftw
+appversion          : 0.0.2
+description         : a distributed and decentralized filesystem treewalk function
+module              : libdftw-0.0.2-fasrc02
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
+publication         : 
+modulename          : libdftw-0.0.2-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 18:02:46 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libcircle/0.2.0.rc.1-fasrc03
+rundependencies     : libcircle/0.2.0.rc.1-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

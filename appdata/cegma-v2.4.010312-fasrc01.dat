@@ -1,0 +1,17 @@
+appname             : cegma
+appversion          : v2.4.010312
+description         : CEGMA (Core Eukaryotic Genes Mapping Approach) is a pipeline for building a set of high reliable set of gene annotations in virtually any eukaryotic genome.
+module              : cegma-v2.4.010312-fasrc01
+tags                : aci-ref-app-category:Applications aci-reg-app-tag:Sequence annotation
+publication         : 
+modulename          : cegma-v2.4.010312-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Jan 12 14:23:27 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : wise/2.2.3rc7-fasrc01 geneid/1.4.4-fasrc01 hmmer/3.1b1-fasrc01 ncbi-blast/2.2.29+-fasrc01
+buildcomments       : 
+requestor           : backstr@fas.harvard.edu
+requestref          : RCRT:77860

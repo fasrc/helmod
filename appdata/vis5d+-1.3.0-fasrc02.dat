@@ -1,0 +1,17 @@
+appname             : vis5d+
+appversion          : 1.3.0
+description         : Vis5d+ is intended as a central repository for enhanced versions and development work on Vis5d, a free OpenGL-based volumetric visualization program for scientific datasets in 3+ dimensions.
+module              : vis5d+-1.3.0-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Visualization
+publication         : 
+modulename          : vis5d+-1.3.0-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Apr  3 10:50:28 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : netcdf/4.1.3-fasrc02
+rundependencies     : netcdf/4.1.3-fasrc02
+buildcomments       : Built for NCL/NCAR.  The patches required are nicely described here: http://cypresslin.web.fc2.com/Memo/M-ENG-Vis5DInst.html
+requestor           : Lu Shen <lshen@fas.harvard.edu>
+requestref          : 

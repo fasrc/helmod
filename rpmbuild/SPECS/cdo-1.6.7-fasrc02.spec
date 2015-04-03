@@ -81,7 +81,7 @@ CDO has very small memory requirements and can process files larger than the phy
 %define buildhostversion 1
 
 
-%define builddependencies netcdf/4.1.3-fasrc02 proj/4.8.0-fasrc01 udunits/2.2.18-fasrc01
+%define builddependencies netcdf/4.1.3-fasrc03 proj/4.8.0-fasrc01 udunits/2.2.18-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments Built using netcdf/4.1.3 for use with Lu Shens software stack
 %define requestor Lu Shen <lshen@fas.harvard.edu>

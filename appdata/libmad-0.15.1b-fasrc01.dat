@@ -1,0 +1,17 @@
+appname             : libmad
+appversion          : 0.15.1b
+description         : Mpeg audio decoder
+module              : libmad-0.15.1b-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Audio codec
+publication         : 
+modulename          : libmad-0.15.1b-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 27 15:28:04 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Caitlin Lewarch <clewarch@fas.harvard.edu>
+requestref          : RCRT:80610
