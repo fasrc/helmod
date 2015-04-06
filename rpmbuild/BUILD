@@ -1,1 +1,0 @@
-/tmp/ajk/BUILD

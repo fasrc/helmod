@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static a high-level, high-performance dynamic programming language for technical computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://julialang.org/
 
 #
 # there should be no need to change the following
@@ -56,42 +55,12 @@ Prefix: %{_prefix}
 
 
 #
-# Macros for setting app data 
-# The first set can probably be left as is
-# the nil construct should be used for empty values
-#
-%define modulename %{name}-%{version}-%{release_short}
-%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
-%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
-%define appdescription %{summary_static}
-%define type %{getenv:TYPE}
-%define specauthor %{getenv:FASRCSW_AUTHOR}
-%define builddate %(date)
-%define buildhost %(hostname)
-%define buildhostversion 1
-
-
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
-%define apppublication %{nil}
-
-
-
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
+Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,9 +77,9 @@ Prefix: %{_prefix}
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}_cb9bcae93a.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -135,27 +104,46 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+
+#FIXME -- hopefully these openblas issues go away in the future
+#out of the box first failed like so:
+#	make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S: Assembler messages:
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0x1b,%ymm0,%ymm0'
+#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
+#	...tons of those
+#this describes it:
+#	https://github.com/JuliaLang/julia/issues/7240
+#this workaround:
+#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-46168120
+#	$ echo 'OPENBLAS_DYNAMIC_ARCH=0' > Make.user
+#	but still fails:
+#		make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
+#		...tons of those
+#		ar: sgemm_kernel.o: No such file or directory
+#		make[5]: *** [libs] Error 1
+#		make[5]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
+#		make[4]: *** [libs] Error 1
+#		make[4]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10'
+#		*** Clean the OpenBLAS build with 'make -C deps clean-openblas'. Rebuild with 'make OPENBLAS_USE_THREAD=0 if OpenBLAS had trouble linking libpthread.so, and with 'make OPENBLAS_TARGET_ARCH=NEHALEM' if there were errors building SandyBridge support. Both these options can also be used simultaneously. ***
+#		...
+#try the other workaround:
+#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
+#	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
+#sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
+sed -i -e 's?^USE_SYSTEM_BLAS=0?USE_SYSTEM_BLAS=1?' \
+       -e 's?^USE_SYSTEM_LAPACK=0?USE_SYSTEM_LAPACK=1?' Make.inc
+
+make %{?_smp_mflags}
+
 
 
 
@@ -185,10 +173,36 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+
+
+#make these absolute symbolic links relative
+
+#./julia -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/usr/bin/julia
+rm ./julia
+ln -s usr/bin/julia julia
+
+#./usr/share/julia/base -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/base
+rm ./usr/share/julia/base
+ln -s ../../../base ./usr/share/julia/base
+
+#./usr/share/julia/doc -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/doc
+rm ./usr/share/julia/doc
+ln -s ../../../doc ./usr/share/julia/doc
+
+#./usr/share/julia/examples -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/examples
+rm ./usr/share/julia/examples
+ln -s ../../../examples ./usr/share/julia/examples
+
+#./usr/share/julia/test -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/test
+rm ./usr/share/julia/test
+ln -s ../../../test ./usr/share/julia/test
+
+
+#forklift the whole thing, source and all
+rsync -av ./ %{buildroot}/%{_prefix}/
 
 
 #(this should not need to be changed)
@@ -259,7 +273,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -268,56 +281,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
-
----- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+-- environment changes (uncomment what's relevant)
+prepend_path("PATH",                "%{_prefix}/usr/bin")
 EOF
 
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-module              : %{modulename}
-tags                : %{apptags}
-publication         : %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
-EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
@@ -327,7 +300,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-
+%{_prefix}/.mailmap
 
 
 #------------------- scripts (there should be no need to change these) --------
