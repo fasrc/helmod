@@ -1,0 +1,17 @@
+appname             : velvet
+appversion          : 1.2.10
+description         : Sequence assembler for very short reads
+module              : velvet-1.2.10-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : velvet-1.2.10-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Dec 23 12:14:33 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

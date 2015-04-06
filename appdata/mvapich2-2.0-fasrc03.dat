@@ -1,0 +1,17 @@
+appname             : mvapich2
+appversion          : 2.0
+description         : MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+module              : mvapich2-2.0-fasrc03
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
+publication         : 
+modulename          : mvapich2-2.0-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 13 13:21:03 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

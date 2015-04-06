@@ -1,0 +1,17 @@
+appname             : openbabel
+appversion          : 2.3.2
+description         : Open Babel is a chemical toolbox designed to speak the many languages of chemical data.
+module              : openbabel-2.3.2-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:File Handling
+publication         : 
+modulename          : openbabel-2.3.2-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jan 21 11:27:36 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01 libxml2/2.7.8-fasrc02 eigen/3.2.2-fasrc01
+rundependencies     : libxml2/2.7.8-fasrc02 eigen/3.2.2-fasrc01
+buildcomments       : 
+requestor           : Rafa Gómez Bombarelli <rgbombarelli@chemistry.harvard.edu>
+requestref          : RCRT:79266

@@ -193,6 +193,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+cd contrib
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)

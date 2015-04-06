@@ -1,0 +1,17 @@
+appname             : velvet
+appversion          : 1.2.10
+description         : Sequence assembler for very short reads
+module              : velvet-1.2.10-fasrc03
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : velvet-1.2.10-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Feb 23 14:38:36 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Boosted max kmer length to 127
+requestor           : Lauren O'Connell <aloconnel@fas.harvard.edu>
+requestref          : RCRT:81076

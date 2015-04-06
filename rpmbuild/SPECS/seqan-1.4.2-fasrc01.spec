@@ -222,6 +222,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+cp -r ../core/include %{buildroot}%{_prefix}
 
 
 #(this should not need to be changed)
@@ -312,7 +313,9 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("SEQAN_HOME",                "%{_prefix}")
+setenv("SEQAN_INCLUDE",            "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("MANPATH",            "%{_prefix}/share/doc/sak/man")
 EOF
 

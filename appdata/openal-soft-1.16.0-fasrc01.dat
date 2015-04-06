@@ -1,0 +1,17 @@
+appname             : openal-soft
+appversion          : 1.16.0
+description         : OpenAL Soft is an LGPL-licensed, cross-platform, software implementation of the OpenAL 3D audio API
+module              : openal-soft-1.16.0-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Audio processing
+publication         : 
+modulename          : openal-soft-1.16.0-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 11 14:10:18 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Adam West <awest@physics.harvard.edu>
+requestref          : RCRT:80269

@@ -1,0 +1,17 @@
+appname             : oases
+appversion          : 0.2.08
+description         : %{summary_static}
+module              : oases-0.2.08-fasrc03
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : oases-0.2.08-fasrc03
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Feb 23 14:40:29 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : velvet/1.2.10-fasrc03
+buildcomments       : Boosted max kmer length to 127
+requestor           : Lauren O'Connell <aloconnel@fas.harvard.edu>
+requestref          : RCRT:81076

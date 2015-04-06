@@ -1,0 +1,17 @@
+appname             : abyss
+appversion          : 1.5.2
+description         : ABySS is a de novo, parallel, paired-end sequence assembler that is designed for short reads.
+module              : abyss-1.5.2-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : abyss-1.5.2-fasrc01
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 21:53:35 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : boost/1.54.0-fasrc02 sparsehash/2.0.2-fasrc02
+rundependencies     : boost/1.54.0-fasrc02 sparsehash/2.0.2-fasrc02
+buildcomments       : 
+requestor           : Holly Elmore <m.holly.elmore@gmail.com>
+requestref          : RCRT:79401

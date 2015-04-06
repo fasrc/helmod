@@ -14,7 +14,7 @@ In particular, the default module is the last version when shorted alphanumerica
 
 ### Why is a compiler a Core app and not a Comp app?  Why is an MPI implementation a Comp app and not an MPI app?
 
-The app classifications used by fasrcsw and the module hierarchy describe the app's *dependencies*, not the app itself.
+The app classifications used by HeLmod and the module hierarchy describe the app's *dependencies*, not the app itself.
 They mainly pertain to the layout in the filesystem.
 
 An app *family* is something a bit different.
@@ -78,7 +78,7 @@ Also, add this to the top of the spec file, so that you don't get any failures f
 %define __arch_install_post %{nil}
 ```
 
-In the future, fasrcsw may take advantage of mock for this situation.
+In the future, HeLmod may take advantage of mock for this situation.
 
 
 ### How do I handle apps where the tarball and/or untarred directory have unconventional names?
@@ -91,7 +91,7 @@ Alternatively, you can code the above retar or the handling of the non-standard 
 
 You can script any changes you like, but the easiest is to prepare a patch with `diff` and apply it with `patch`.
 
-Outside of `fasrcsw`, unzip/untar two copies of the source, renaming the top directories `a` and `b`, respectively.
+Outside of `HeLmod`, unzip/untar two copies of the source, renaming the top directories `a` and `b`, respectively.
 Make all of your changes to the `b` copy.
 
 Next run the command:
@@ -204,7 +204,7 @@ curl http://ftp.gnu.org/gnu/automake/automake-1.14.tar.xz | tar --strip-componen
 
 An app may require one or more other apps in order to function.
 The other app(s) will need to be loaded during the rpmbuild, and the module file will need to make sure these other apps are loaded for users, too.
-The fasrcsw system uses the following conventions when an app requires another app named `NAME`:
+The HeLmod system uses the following conventions when an app requires another app named `NAME`:
 
 In the spec file's `%build` section:
 
@@ -267,7 +267,7 @@ end
 ### How are app dependency hierarchies handled?
 
 If app C requires apps A and B, and A also requires B, C should still explicitly require B, for clarity.
-Note that, in the fasrcsw style of coding prerequisites, the order of C's requiring A and B will matter if A and C choose different versions of B to load if none other is loaded.
+Note that, in the HeLmod style of coding prerequisites, the order of C's requiring A and B will matter if A and C choose different versions of B to load if none other is loaded.
 
 
 ### How are rpm dependencies handled?
@@ -302,9 +302,9 @@ Also consider binding the rpmbuild work dir (`%{_topdir}/BUILD`, the place where
 You can do so with something like the following:
 
 ``` bash
-mkdir -p /tmp/"$USER"/fasrcsw/BUILD
-cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/.gitignore /tmp/"$USER"/fasrcsw/BUILD
-sudo mount -o bind /tmp/"$USER"/fasrcsw/BUILD "$FASRCSW_DEV"/rpmbuild/BUILD
+mkdir -p /tmp/"$USER"/helmod/BUILD
+cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/.gitignore /tmp/"$USER"/helmod/BUILD
+sudo mount -o bind /tmp/"$USER"/helmod/BUILD "$FASRCSW_DEV"/rpmbuild/BUILD
 ```
 
 ### What are the values of the rpm-specific variables?
@@ -318,7 +318,7 @@ See the FAQ below about why `%{buildroot}` uses your `$HOME` instead of `$FASRCS
 
 ### Why is rpmbuild still writing to my home directory?
 
-You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the fasrcsw clone's `%{_topdir}`.
+You may notice that `rpmbuild` still uses `~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{_arch}` even though everything else is self-contained within the HeLmod clone's `%{_topdir}`.
 This is part of the design of rpmbuild -- the spec file cannot override the `%{buildroot}` or `%{_buildrootdir}` variable, and by default it points to a location within your home directory.
 You can provide `--buildroot` on the `rpmbuild` command line if you want, but be sure to use something app-specific as this location is `rm -fr`'ed during the build.
 
@@ -326,7 +326,7 @@ You can provide `--buildroot` on the `rpmbuild` command line if you want, but be
 ### Can I install the apps under a common prefix?
 
 No.
-Although all the rpms created by fasrcsw are relocatable and therefore can be installed in non-default locations by using `rpm --prefix ...`, each app owns all the files within its prefix.
+Although all the rpms created by HeLmod are relocatable and therefore can be installed in non-default locations by using `rpm --prefix ...`, each app owns all the files within its prefix.
 Thus each app would be competing for ownership of `bin`, `lib`, etc.
 
 However, it's not to hard to update a spec file to avoid this.
@@ -345,11 +345,11 @@ And, earlier in the `%install` section, take out the for-loop that copies `COPYI
 
 From a cursory look, its support of Lmod appears to be minimal.
 <strike>In particular, it does not support module hierarchies.</strike>
-**UPDATE** Lmod+EasyBuild integration has come a long way since we wrote fasrcsw.
+**UPDATE** Lmod+EasyBuild integration has come a long way since we wrote HeLmod.
 Check it out -- [http://hpcugent.github.io/easybuild/](http://hpcugent.github.io/easybuild/).
 
 
 ### What about Mock?
 
 Good question.
-The fasrcsw system does not use mock, but it's possible it could benefit from doing so.
+The HeLmod system does not use mock, but it's possible it could benefit from doing so.

@@ -1,0 +1,17 @@
+appname             : get_homologues
+appversion          : 20150205
+description         : GET_HOMOLOGUES, a versatile software package for scalable and robust microbial pangenome analysis.
+module              : get_homologues-20150205-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : get_homologues-20150205-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb  5 13:18:25 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : perl-modules/5.10.1-fasrc08 R_packages/3.1.0-fasrc02
+rundependencies     : perl-modules/5.10.1-fasrc08 R_packages/3.1.0-fasrc02
+buildcomments       : Cheryl got a replacement for phyTools.pm from the author
+requestor           : Cheryl Andam <candam@hsph.harvard.edu>
+requestref          : RCRT:80045

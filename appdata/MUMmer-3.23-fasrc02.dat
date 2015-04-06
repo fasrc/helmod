@@ -1,0 +1,17 @@
+appname             : MUMmer
+appversion          : 3.23
+description         : MUMmer is a system for rapidly aligning entire genomes, whether in complete or draft form.
+module              : MUMmer-3.23-fasrc02
+tags                : aci-ref-app-category:Applications;  aci-ref-app-tag:Sequence alignment & comparison
+publication         : 
+modulename          : MUMmer-3.23-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Dec 23 13:07:48 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

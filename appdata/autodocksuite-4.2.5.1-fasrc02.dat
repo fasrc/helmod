@@ -1,0 +1,17 @@
+appname             : autodocksuite
+appversion          : 4.2.5.1
+description         : AutoDock is a suite of automated docking tools.
+module              : autodocksuite-4.2.5.1-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Chemistry;  aci-ref-app-tag:Molecular docking
+publication         : 
+modulename          : autodocksuite-4.2.5.1-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 21:36:09 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

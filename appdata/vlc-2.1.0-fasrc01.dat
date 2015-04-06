@@ -1,0 +1,17 @@
+appname             : vlc
+appversion          : 2.1.0
+description         : VLC video player
+module              : vlc-2.1.0-fasrc01
+tags                : 
+publication         : 
+modulename          : vlc-2.1.0-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 27 20:32:21 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : opencv/2.4.9-fasrc01 libmad/0.15.1b-fasrc01 a52dec/0.7.4-fasrc01
+rundependencies     : opencv/2.4.9-fasrc01 libmad/0.15.1b-fasrc01 a52dec/0.7.4-fasrc01
+buildcomments       : 
+requestor           : Caitlin Lewarch <clewarch@fas.harvard.edu>
+requestref          : RCRT:80610

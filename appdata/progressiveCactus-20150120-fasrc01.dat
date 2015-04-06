@@ -1,0 +1,17 @@
+appname             : progressiveCactus
+appversion          : 20150120
+description         : Progressive Cactus is a whole-genome alignment package.
+module              : progressiveCactus-20150120-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
+publication         : 
+modulename          : progressiveCactus-20150120-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jan 20 20:32:53 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : python/2.7.6-fasrc01
+rundependencies     : python/2.7.6-fasrc01
+buildcomments       : Tarball was created on 1/20/2015 based on the github code and submodules were pulled.  The jobTree submodule is switched to the harvardinformatics fork.  Could not make a relocatable build
+requestor           : 
+requestref          : 

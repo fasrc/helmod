@@ -1,0 +1,17 @@
+appname             : boost
+appversion          : 1.50.0
+description         : Boost provides free peer-reviewed portable C++ source libraries.
+module              : boost-1.50.0-fasrc02
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
+publication         : 
+modulename          : boost-1.50.0-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Dec 18 17:27:09 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : python/2.7.6-fasrc01
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

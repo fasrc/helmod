@@ -1,0 +1,17 @@
+appname             : szip
+appversion          : 2.1
+description         : Compression library for HDF5
+module              : szip-2.1-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : szip-2.1-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Mar 26 13:30:08 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Katie Dagon <kdagon@fas.harvard.edu>
+requestref          : RCRT:82208

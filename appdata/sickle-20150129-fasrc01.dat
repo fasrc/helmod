@@ -1,0 +1,17 @@
+appname             : sickle
+appversion          : 20150129
+description         : Windowed Adaptive Trimming for fastq files using quality
+module              : sickle-20150129-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : sickle-20150129-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 29 15:19:59 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : <pgorring@fas.harvard.edu>
+requestref          : RCRT:78764

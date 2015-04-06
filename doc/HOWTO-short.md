@@ -1,4 +1,4 @@
-__cd__ to your personal *fasrcsw* clone (on the canonical build host, as you, not root), and get setup:
+__cd__ to your personal *HeLmod* clone (on the canonical build host, as you, not root), and get setup:
 
 ``` bash
 git pull

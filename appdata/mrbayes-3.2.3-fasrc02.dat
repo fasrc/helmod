@@ -1,0 +1,17 @@
+appname             : mrbayes
+appversion          : 3.2.3
+description         : MrBayes version 3.2.3
+module              : mrbayes-3.2.3-fasrc02
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic analysis
+publication         : 
+modulename          : mrbayes-3.2.3-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 18:11:45 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : beagle/2.1.trunk-fasrc02
+rundependencies     : beagle/2.1.trunk-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

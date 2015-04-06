@@ -1,0 +1,17 @@
+appname             : uchime
+appversion          : 4.2.40
+description         : UCHIME is an algorithm for detecting chimeric sequences.
+module              : uchime-4.2.40-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : uchime-4.2.40-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 09:59:28 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

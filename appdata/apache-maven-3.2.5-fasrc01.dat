@@ -1,0 +1,17 @@
+appname             : apache-maven
+appversion          : 3.2.5
+description         : Maven is a tool that can be used for building and managing any Java-based project.
+module              : apache-maven-3.2.5-fasrc01
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Build tools
+publication         : 
+modulename          : apache-maven-3.2.5-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Jan 12 15:59:44 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : jdk/1.7.0_60-fasrc01
+rundependencies     : jdk/1.7.0_60-fasrc01
+buildcomments       : 
+requestor           : Jinyan Huang <jhuang@hsph.harvard.edu>
+requestref          : RCRT:78731

@@ -1,0 +1,17 @@
+appname             : Python
+appversion          : 2.7.8
+description         : Python version 2.7.8
+module              : Python-2.7.8-fasrc02
+tags                : 
+publication         : 
+modulename          : Python-2.7.8-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Mar  6 15:24:23 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

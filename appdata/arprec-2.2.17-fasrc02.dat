@@ -1,0 +1,17 @@
+appname             : arprec
+appversion          : 2.2.17
+description         : arprec version 2.2.17
+module              : arprec-2.2.17-fasrc02
+tags                : aci-ref-app-category:Libraries  aci-ref-app-tag:Math
+publication         : 
+modulename          : arprec-2.2.17-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Dec 24 09:11:13 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,17 @@
+appname             : SuiteSparse
+appversion          : 3.7.1
+description         : SuiteSparse is a meta-package of sparse matrix packages.
+module              : SuiteSparse-3.7.1-fasrc02
+tags                : aci-ref-app-category:Libraries;  aci-ref-app-tag:Utility
+publication         : 
+modulename          : SuiteSparse-3.7.1-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Dec 22 15:40:36 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

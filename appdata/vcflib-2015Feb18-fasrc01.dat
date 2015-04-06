@@ -1,0 +1,17 @@
+appname             : vcflib
+appversion          : 2015Feb18
+description         : A simple C++ library for parsing and manipulating VCF files, + many command-line utilities.
+module              : vcflib-2015Feb18-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : vcflib-2015Feb18-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 18 14:53:18 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Checked out latest from github.  Make sure and do "git clone --recursive" to get the submodules
+requestor           : Lori Shapiro <lshapiro@fas.harvard.edu>
+requestref          : 

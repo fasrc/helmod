@@ -1,0 +1,17 @@
+appname             : gd
+appversion          : 2.0.28
+description         : A graphics library for fast image creation
+module              : gd-2.0.28-fasrc01
+tags                : aci-ref-app-category:Library aci-ref-app-tag:Graphics
+publication         : 
+modulename          : gd-2.0.28-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 18 17:58:40 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

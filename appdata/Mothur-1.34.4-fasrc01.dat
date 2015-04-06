@@ -1,0 +1,17 @@
+appname             : Mothur
+appversion          : 1.34.4
+description         : Mothur seeks to develop a single piece of open-source, expandable software to fill the bioinformatics needs of the microbial ecology community
+module              : Mothur-1.34.4-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : Mothur-1.34.4-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 18 14:21:59 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Joey Pakes <pakes@fas.harvard.edu>
+requestref          : RCRT:80506

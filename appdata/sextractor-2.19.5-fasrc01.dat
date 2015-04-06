@@ -1,0 +1,17 @@
+appname             : sextractor
+appversion          : 2.19.5
+description         : SExtractor is a program that builds a catalogue of objects from an astronomical image. Although it is particularly oriented towards reduction of large scale galaxy-survey data, it can perform reasonably well on moderately crowded star fields.
+module              : sextractor-2.19.5-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Astronomy
+publication         : 
+modulename          : sextractor-2.19.5-fasrc01
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Mar  6 11:37:03 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : fftw/3.3.4-fasrc06 atlas/3.10.2-fasrc02
+rundependencies     : fftw/3.3.4-fasrc06
+buildcomments       : atlas is only needed for the gcc build; for intel, the mkl library that comes with cluster studio is used.
+requestor           : Gregory Green <ggreen@cfa.harvard.edu>
+requestref          : RCRT:81631

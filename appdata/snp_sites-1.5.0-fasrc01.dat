@@ -1,0 +1,17 @@
+appname             : snp_sites
+appversion          : 1.5.0
+description         : Finds snp sites from a multi fasta alignment file.
+module              : snp_sites-1.5.0-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : snp_sites-1.5.0-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Mar  9 15:43:09 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Cheryl Andam <cheryl.andam@gmail.com>
+requestref          : RCRT:82031

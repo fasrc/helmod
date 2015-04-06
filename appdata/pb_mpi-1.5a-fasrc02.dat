@@ -1,0 +1,17 @@
+appname             : pb_mpi
+appversion          : 1.5a
+description         : A Bayesian software for phylogenetic reconstruction using mixture models
+module              : pb_mpi-1.5a-fasrc02
+tags                : aci-ref-app-category:Applications;  aci-ref-app-tag:Phylogenetic analysis
+publication         : 
+modulename          : pb_mpi-1.5a-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 18:23:30 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,17 @@
+appname             : esmf
+appversion          : 6.3.0r
+description         : software for building and coupling weather, climate, and related models
+module              : esmf-6.3.0r-fasrc02
+tags                : aci-ref-app-category:Applications;  aci-ref-app-tag:Weather and climate modeling
+publication         : 
+modulename          : esmf-6.3.0r-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 18:46:39 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

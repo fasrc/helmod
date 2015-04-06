@@ -1,0 +1,17 @@
+appname             : ftgl
+appversion          : 2.1.3rc5
+description         : FTGL is a free cross-platform Open Source C++ library that uses Freetype2 to simplify rendering fonts in OpenGL applications.
+module              : ftgl-2.1.3rc5-fasrc02
+tags                : aci-ref-app-category:Libraries;  aci-ref-app-tag:Utility
+publication         : 
+modulename          : ftgl-2.1.3rc5-fasrc02
+type                : Comp
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Dec 19 14:57:09 EST 2014
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

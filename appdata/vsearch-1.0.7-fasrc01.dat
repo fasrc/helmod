@@ -1,0 +1,17 @@
+appname             : vsearch
+appversion          : 1.0.7
+description         : Open and free 64-bit multithreaded tool for processing metagenomic sequences, including searching, clustering, chimera detection, dereplication, sorting, masking and shuffling
+module              : vsearch-1.0.7-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
+publication         : 
+modulename          : vsearch-1.0.7-fasrc01
+type                : Core
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jan 20 11:03:26 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Renamed source tarball.  Built for pyRAD
+requestor           : Bruno Souza de Medeiros <souzademedeiros@fas.harvard.edu>
+requestref          : RCRT:79174

@@ -1,0 +1,17 @@
+appname             : netcdf-fortran
+appversion          : 4.4.0
+description         : NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+module              : netcdf-fortran-4.4.0-fasrc02
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : netcdf-fortran-4.4.0-fasrc02
+type                : MPI
+specauthor          : Aaron Kitzmiller, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 12 21:29:44 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : netcdf/4.3.2-fasrc03
+rundependencies     : netcdf/4.3.2-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 
