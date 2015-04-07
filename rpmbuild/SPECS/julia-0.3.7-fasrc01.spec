@@ -78,8 +78,9 @@ Julia is a high-level, high-performance dynamic programming language for technic
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}_cb9bcae93a.tar.*
+git clone https://github.com/JuliaLang/julia.git
 cd %{name}
+git checkout cb9bcae93a32b42cec02585c387396ff11836aed
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,8 +140,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 #	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
 #	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
 #sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
-sed -i -e 's?^USE_SYSTEM_BLAS=0?USE_SYSTEM_BLAS=1?' \
-       -e 's?^USE_SYSTEM_LAPACK=0?USE_SYSTEM_LAPACK=1?' Make.inc
+cat <<EOF > Make.user
+USE_SYSTEM_BLAS=1
+USE_SYSTEM_LAPACK=1
+JULIA_CPU_TARGET=core2
+EOF
 
 make %{?_smp_mflags}
 
