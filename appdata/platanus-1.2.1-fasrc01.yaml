@@ -1,0 +1,18 @@
+---
+appname             : platanus
+appversion          : 1.2.1
+description         : Platanus version 1.2.1
+module              : platanus-1.2.1-fasrc01
+tags                : 
+publication         : 
+modulename          : platanus-1.2.1-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Apr  6 15:49:57 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

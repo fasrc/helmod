@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PICRUSt version 1.0.0
+%define summary_static The UDUNITS package supports units of physical quantities. Its C library provides for arithmetic manipulation of units and for conversion of numeric values between compatible units.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/picrust/picrust/releases/download/1.0.0/picrust-1.0.0.tar.gz
+URL: ftp://ftp.unidata.ucar.edu/pub/udunits/udunits-2.2.19.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -62,8 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PICRUSt (pronounced “pie crust”) is a bioinformatics software package designed to predict metagenome 
-functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
+The UDUNITS package supports units of physical quantities. Its C library provides for arithmetic manipulation of units and for conversion of numeric values between compatible units. The package contains an extensive unit database, which is in XML format and user-extendable. The package also contains a command-line utility for investigating units and converting values.
 
 #
 # Macros for setting app data 
@@ -84,13 +83,13 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Fabio Farinosi <fabio_farinosi@hks.harvard.edu>
+%define requestref RCRT:79448
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Scientific units
 %define apppublication %{nil}
 
 
@@ -142,29 +141,28 @@ do
     module load ${m}
 done
 
-#module load Python/2.7.8-fasrc01
 
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
-#python setup.py build
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -191,29 +189,12 @@ done
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-# +++ Installing python packages +++
-
-# Standard stuff.
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-#python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -291,23 +272,26 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/site-packages")
+setenv("UDUNITS_HOME",             "%{_prefix}")
+setenv("UDUNITS_INCLUDE",          "%{_prefix}/include")
+setenv("UDUNITS_LIB",              "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 EOF
 
 #------------------- App data file

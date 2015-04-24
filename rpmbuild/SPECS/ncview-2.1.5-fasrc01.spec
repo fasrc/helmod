@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PICRUSt version 1.0.0
+%define summary_static Ncview version 2.1.5: a netCDF visual browser
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/picrust/picrust/releases/download/1.0.0/picrust-1.0.0.tar.gz
+URL: ftp://cirrus.ucsd.edu/pub/ncview/ncview-2.1.5.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -59,11 +59,9 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-PICRUSt (pronounced “pie crust”) is a bioinformatics software package designed to predict metagenome 
-functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
+Ncview is a visual browser for netCDF format files. Typically you would use ncview to get a quick and easy, push-button look at your netCDF files. 
+You can view simple movies of the data, view along various dimensions, take a look at the actual data values, change color maps, invert the data, etc.
 
 #
 # Macros for setting app data 
@@ -81,7 +79,7 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies udunits/2.2.19-fasrc01 netcdf/4.1.3-fasrc04
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -90,7 +88,7 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
 
@@ -132,39 +130,36 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
 for m in %{builddependencies}
 do
     module load ${m}
 done
 
-#module load Python/2.7.8-fasrc01
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
-#python setup.py build
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -191,29 +186,12 @@ done
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-# +++ Installing python packages +++
-
-# Standard stuff.
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-#python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -291,23 +269,18 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -331,6 +304,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

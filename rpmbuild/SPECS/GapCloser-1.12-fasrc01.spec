@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PICRUSt version 1.0.0
+%define summary_static GapCloser version 1.12
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/picrust/picrust/releases/download/1.0.0/picrust-1.0.0.tar.gz
+#URL: http://...
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -54,16 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-PICRUSt (pronounced “pie crust”) is a bioinformatics software package designed to predict metagenome 
-functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 
 #
 # Macros for setting app data 
@@ -92,6 +82,17 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+GapCloser for SOAPdenovo. This module has been built by Plamen G. Krastev.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -137,13 +138,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-#module load Python/2.7.8-fasrc01
-
 
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
@@ -162,9 +156,9 @@ done
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
-#python setup.py build
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -191,29 +185,13 @@ done
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/Release
 #make install DESTDIR=%{buildroot}
-
-# +++ Installing python packages +++
-
-# Standard stuff.
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-#python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
+cp -r bin/ "%{buildroot}/%{_prefix}"
+cp -r Release/GapCloser "%{buildroot}/%{_prefix}/Release"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -283,6 +261,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -291,23 +270,18 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/site-packages")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

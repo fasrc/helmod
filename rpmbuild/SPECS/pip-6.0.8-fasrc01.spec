@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PICRUSt version 1.0.0
+%define summary_static PIP version 6.0.8
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/picrust/picrust/releases/download/1.0.0/picrust-1.0.0.tar.gz
+URL: https://pypi.python.org/packages/source/p/pip/pip-6.0.8.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -62,8 +62,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PICRUSt (pronounced “pie crust”) is a bioinformatics software package designed to predict metagenome 
-functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
+A tool for installing Python packages.
 
 #
 # Macros for setting app data 
@@ -164,7 +163,7 @@ done
 #percent sign) to build in parallel
 #make
 
-#python setup.py build
+python setup.py build
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -200,20 +199,27 @@ done
 # +++ Installing python packages +++
 
 # Standard stuff.
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
 #sudo mkdir -p "$(dirname %{_prefix})"
 #test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
 #sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
-#python setup.py install --prefix=%{_prefix}
+sudo mkdir -p "%{_prefix}/lib/python2.7/site-packages"
+sudo chown -R pkrastev:rc_admin "/n/sw/fasrcsw/apps/Core/pip"
+
+export PYTHONPATH="%{_prefix}/lib/python2.7/site-packages":$PYTHONPATH
+python setup.py install --prefix=%{_prefix}
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
 #sudo rm "%{_prefix}"
+
+cp -r %{_prefix}/* "%{buildroot}/%{_prefix}"
+rm -r "/n/sw/fasrcsw/apps/Core/pip"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -300,14 +306,14 @@ whatis("Description: %{summary_static}")
 ----    end
 ----end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
+
+load("setuptools/1.4.2-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/picrust-1.0.0-fasrc01/lib")
-prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 #------------------- App data file
