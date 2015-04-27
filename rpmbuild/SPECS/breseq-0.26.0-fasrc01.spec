@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static breseq version 0.25
+%define summary_static breseq version 0.26.0
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
+URL: http://barricklab.org/release/breseq/breseq-0.26.0c.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,16 +56,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-breseq is a computational pipeline for finding mutations relative to a reference sequence in short-read DNA 
-re-sequencing data for microbial sized genomes.
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -81,7 +71,7 @@ re-sequencing data for microbial sized genomes.
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies R/3.1.0-fasrc01 ssaha2/2.5.5-fasrc01 bowtie2/2.2.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -93,6 +83,16 @@ re-sequencing data for microbial sized genomes.
 %define apptags %{nil} 
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+breseq is a computational pipeline for the analysis of short-read re-sequencing data. This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -137,12 +137,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -161,8 +155,12 @@ done
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
-
+make %{?_smp_mflags}
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/extern/samtools-0.1.18/bcftools
+#make clean
+#cp Makefile.original Makefile
+#make
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -265,6 +263,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -282,9 +281,6 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
-load("ssaha2/2.5.5-fasrc01")
-load("R/3.1.0-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")
