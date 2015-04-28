@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a high-level, high-performance dynamic programming language for technical computing
+%define summary_static Virtual Python Environment builder
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://julialang.org/
+URL:https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.1.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -52,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -71,7 +73,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments This Julia was built against the general compute processor architecture (JULIA_CPU_TARGET=core2) for Odyssey (i.e. general and interact partitions).  It will not work for login nodes and may not work on many nodes in serial_requeue 
+%define buildcomments For some reason, module load python/2.7.9-fasrc01 does not work.  Instead of using the builddependencies, I have to load it directly in the install phase.  The dependency has been hardcoded in the lua file and dat file.
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -82,14 +84,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
-
-
+virtualenv is a tool to create isolated Python environments.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -105,12 +108,10 @@ Julia is a high-level, high-performance dynamic programming language for technic
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/JuliaLang/julia.git
-cd %{name}
-git checkout cb9bcae93a32b42cec02585c387396ff11836aed
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -119,62 +120,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-
-#FIXME -- hopefully these openblas issues go away in the future
-#out of the box first failed like so:
-#	make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S: Assembler messages:
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0x1b,%ymm0,%ymm0'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
-#	...tons of those
-#this describes it:
-#	https://github.com/JuliaLang/julia/issues/7240
-#this workaround:
-#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-46168120
-#	$ echo 'OPENBLAS_DYNAMIC_ARCH=0' > Make.user
-#	but still fails:
-#		make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		...tons of those
-#		ar: sgemm_kernel.o: No such file or directory
-#		make[5]: *** [libs] Error 1
-#		make[5]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#		make[4]: *** [libs] Error 1
-#		make[4]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10'
-#		*** Clean the OpenBLAS build with 'make -C deps clean-openblas'. Rebuild with 'make OPENBLAS_USE_THREAD=0 if OpenBLAS had trouble linking libpthread.so, and with 'make OPENBLAS_TARGET_ARCH=NEHALEM' if there were errors building SandyBridge support. Both these options can also be used simultaneously. ***
-#		...
-#try the other workaround:
-#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
-#	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
-#sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
-cat <<EOF > Make.user
-USE_SYSTEM_BLAS=1
-USE_SYSTEM_LAPACK=1
-JULIA_CPU_TARGET=core2
-EOF
-
-make %{?_smp_mflags}
 
 
 
@@ -205,36 +150,16 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
-
-#make these absolute symbolic links relative
-
-#./julia -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/usr/bin/julia
-rm ./julia
-ln -s usr/bin/julia julia
-
-#./usr/share/julia/base -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/base
-rm ./usr/share/julia/base
-ln -s ../../../base ./usr/share/julia/base
-
-#./usr/share/julia/doc -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/doc
-rm ./usr/share/julia/doc
-ln -s ../../../doc ./usr/share/julia/doc
-
-#./usr/share/julia/examples -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/examples
-rm ./usr/share/julia/examples
-ln -s ../../../examples ./usr/share/julia/examples
-
-#./usr/share/julia/test -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/test
-rm ./usr/share/julia/test
-ln -s ../../../test ./usr/share/julia/test
-
-
-#forklift the whole thing, source and all
-rsync -av ./ %{buildroot}/%{_prefix}/
+#
+# For some strange reason, module load does not work
+#
+eval `/n/sw/fasrcsw/apps/lmod/lmod/libexec/lmod bash load python/2.7.9-fasrc01`
+which python
+python setup.py install --prefix=%{_prefix} --root=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -314,14 +239,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+if not isloaded("python/2.7.9-fasrc01") then
+    load("python/2.7.9-fasrc01")
+end
 
--- environment changes (uncomment what is relevant)
-prepend_path("PATH",                "%{_prefix}/usr/bin")
+
+---- environment changes (uncomment what is relevant)
+setenv("VIRTUALENV_HOME",       "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 #------------------- App data file
@@ -338,14 +266,12 @@ specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}
 buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
+builddependencies   : python/2.7.9-fasrc01
+rundependencies     : python/2.7.9-fasrc01
 buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
@@ -355,9 +281,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-%{_prefix}/.git*
-%{_prefix}/.mailmap
-%{_prefix}/.travis.yml
+
 
 
 #------------------- scripts (there should be no need to change these) --------
