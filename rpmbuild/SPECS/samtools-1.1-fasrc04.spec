@@ -30,14 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a high-level, high-performance dynamic programming language for technical computing
+%define summary_static SAM Tools provide various utilities for manipulating alignments in the SAM format, including sorting, merging, indexing and generating alignments in a per-position format. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://julialang.org/
+URL: http://downloads.sourceforge.net/project/samtools/samtools/1.1/samtools-1.1.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -52,6 +53,14 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+SAM Tools provide various utilities for manipulating alignments in the SAM format, including sorting, merging, indexing and generating alignments in a per-position format.
 
 #
 # Macros for setting app data 
@@ -70,25 +79,16 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments This Julia was built against the general compute processor architecture (JULIA_CPU_TARGET=core2) for Odyssey (i.e. general and interact partitions).  It will not work for login nodes and may not work on many nodes in serial_requeue 
+%define rundependencies perl/5.10.1-fasrc03
+%define buildcomments Some changes to support PGI compiler
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
 %define apppublication %{nil}
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
-
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -105,10 +105,9 @@ Julia is a high-level, high-performance dynamic programming language for technic
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/JuliaLang/julia.git
-cd %{name}
-git checkout cb9bcae93a32b42cec02585c387396ff11836aed
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -132,50 +131,19 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+sed -i -e 's?^CC.*??' Makefile
+sed -i -e 's?^CC.*??' htslib-1.1/Makefile
+
+test "%{comp_name}" == "pgi" && CC="$CC -noswitcherror"
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-
-#FIXME -- hopefully these openblas issues go away in the future
-#out of the box first failed like so:
-#	make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S: Assembler messages:
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0x1b,%ymm0,%ymm0'
-#	../kernel/x86_64/dgemm_kernel_4x4_haswell.S:1398: Error: no such instruction: `vpermpd $ 0xb1,%ymm0,%ymm0'
-#	...tons of those
-#this describes it:
-#	https://github.com/JuliaLang/julia/issues/7240
-#this workaround:
-#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-46168120
-#	$ echo 'OPENBLAS_DYNAMIC_ARCH=0' > Make.user
-#	but still fails:
-#		make[5]: Entering directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		gcc: ../kernel/x86_64/: linker input file unused because linking not done
-#		...tons of those
-#		ar: sgemm_kernel.o: No such file or directory
-#		make[5]: *** [libs] Error 1
-#		make[5]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10/kernel'
-#		make[4]: *** [libs] Error 1
-#		make[4]: Leaving directory `/odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/deps/openblas-v0.2.10'
-#		*** Clean the OpenBLAS build with 'make -C deps clean-openblas'. Rebuild with 'make OPENBLAS_USE_THREAD=0 if OpenBLAS had trouble linking libpthread.so, and with 'make OPENBLAS_TARGET_ARCH=NEHALEM' if there were errors building SandyBridge support. Both these options can also be used simultaneously. ***
-#		...
-#try the other workaround:
-#	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
-#	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
-#sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
-cat <<EOF > Make.user
-USE_SYSTEM_BLAS=1
-USE_SYSTEM_LAPACK=1
-JULIA_CPU_TARGET=core2
-EOF
-
-make %{?_smp_mflags}
-
+make
 
 
 
@@ -205,36 +173,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-
-#make these absolute symbolic links relative
-
-#./julia -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/usr/bin/julia
-rm ./julia
-ln -s usr/bin/julia julia
-
-#./usr/share/julia/base -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/base
-rm ./usr/share/julia/base
-ln -s ../../../base ./usr/share/julia/base
-
-#./usr/share/julia/doc -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/doc
-rm ./usr/share/julia/doc
-ln -s ../../../doc ./usr/share/julia/doc
-
-#./usr/share/julia/examples -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/examples
-rm ./usr/share/julia/examples
-ln -s ../../../examples ./usr/share/julia/examples
-
-#./usr/share/julia/test -> /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/julia-0.3.0.rc2/test
-rm ./usr/share/julia/test
-ln -s ../../../test ./usr/share/julia/test
-
-
-#forklift the whole thing, source and all
-rsync -av ./ %{buildroot}/%{_prefix}/
+make prefix=%{_prefix} DESTDIR=%{buildroot} install
 
 
 #(this should not need to be changed)
@@ -243,6 +185,11 @@ rsync -av ./ %{buildroot}/%{_prefix}/
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
+
+mkdir -p include/bam lib
+cp -a *.h include/bam/
+cp -a libbam.a lib/
+cp -a include lib '%{buildroot}/%{_prefix}/'
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -314,15 +261,26 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
--- environment changes (uncomment what is relevant)
-prepend_path("PATH",                "%{_prefix}/usr/bin")
+
+---- environment changes (uncomment what is relevant)
+setenv("SAMTOOLS_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
@@ -346,8 +304,6 @@ requestref          : %{requestref}
 EOF
 
 
-
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -355,9 +311,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-%{_prefix}/.git*
-%{_prefix}/.mailmap
-%{_prefix}/.travis.yml
+
 
 
 #------------------- scripts (there should be no need to change these) --------

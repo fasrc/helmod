@@ -13,5 +13,6 @@ source /usr/local/bin/lmod.sh
         for m in %{builddependencies}
         do
                 module load ${m}
+                echo "result $?"
         done
 %endif
