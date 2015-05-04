@@ -7,10 +7,12 @@
 #
 Name: %{getenv:NAME}
 
+
 #
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
+#
 Version: %{getenv:VERSION}
 
 
@@ -30,7 +32,7 @@ Version: %{getenv:VERSION}
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-%define summary_static Sequence assembler for very short reads
+%define summary_static Oases v0.2.08
 Summary: %{summary_static}
 
 #
@@ -39,10 +41,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source, as a comment; change the archive 
 # suffix if applicable
 #
-#http://...FIXME...
-URL: http://www.ebi.ac.uk/~zerbino/velvet/%{name}_%{version}.tgz
+URL: http://www.ebi.ac.uk/~zerbino/oases/oases_0.2.08.tgz
 Source: %{name}_%{version}.tgz
-
 
 #
 # there should be no need to change the following
@@ -66,9 +66,10 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Velvet is a de novo genomic assembler specially designed for short read sequencing technologies, such as Solexa or 454, developed by Daniel Zerbino and Ewan Birney at the European Bioinformatics Institute (EMBL-EBI), near Cambridge, in the United Kingdom.  Velvet currently takes in short read sequences, removes errors then produces high quality unique contigs. It then uses paired-end read and long read information, when available, to retrieve the repeated areas between contigs.
+Oases is a de novo transcriptome assembler designed to produce transcripts from short read sequencing technologies, such as Illumina, SOLiD, or 454 in the absence of any genomic assembly. It was developed by Marcel Schulz (MPI for Molecular Genomics) and Daniel Zerbino (previously at the European Bioinformatics Institute (EMBL-EBI), now at UC Santa Cruz).  Oases uploads a preliminary assembly produced by Velvet, and clusters the contigs into small groups, called loci. It then exploits the paired-end read and long read information, when available, to construct transcript isoforms.
 
 This package has been compiled for openMP with a default thread (core/cpu) limit to 1 (OMP_THREAD_LIMIT=1). You must set the environment variable OMP_THREAD_LIMIT to the number of cores requested from SLURM.
+
 
 #
 # Macros for setting app data 
@@ -87,16 +88,26 @@ This package has been compiled for openMP with a default thread (core/cpu) limit
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define rundependencies velvet/1.2.10-fasrc04
 %define buildcomments Boosted max kmer length to 127, openMP build, set OMP_THREAD_LIMIT to 1 by default
-%define requestor Lauren O'Connell <aloconnel@fas.harvard.edu>
-%define requestref RCRT:81076
+%define requestor  Lauren O'Connell <aloconnel@fas.harvard.edu>
+%define requestref  RCRT:81076
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
 %define apppublication %{nil}
+
+
+#
+# Velvet dependencies
+#
+# Oases depends on velvet for some processing.  The following variables
+# allow Oases to find velvet during build and set module dependencies
+#
+%define _velvet_version 1.2.10
+%define _velvet_builddir ../velvet_%{_velvet_version} 
 
 
 
@@ -114,8 +125,9 @@ This package has been compiled for openMP with a default thread (core/cpu) limit
 # %setup
 cd %{_topdir}/BUILD
 tar xvf %{_topdir}/SOURCES/%{name}_%{version}.tgz
-# stat %{name}-%{version}
-cd %{name}_%{version}
+%define _bd oases_0.2.8
+stat %{_bd}
+cd %{_bd}
 
 
 
@@ -136,8 +148,11 @@ cd %{name}_%{version}
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-cd %{_topdir}/BUILD/%{name}_%{version}
+cd %{_topdir}/BUILD/%{_bd}
+# Substitute hard coded gcc when intel is in session
 test "%{comp_name}" == "intel" && sed -i 's/gcc/icc/' Makefile
+# Add VELVET_DIR 
+sed -i 's#../velvet#%{_velvet_builddir}#' Makefile
 make 'MAXKMERLENGTH=127' 'OPENMP=1'
 
 
@@ -158,7 +173,7 @@ make 'MAXKMERLENGTH=127' 'OPENMP=1'
 
 echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/bin
-cp %{_topdir}/BUILD/%{name}_%{version}/velvetg %{_topdir}/BUILD/%{name}_%{version}/velveth %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{_bd}/oases %{buildroot}/%{_prefix}/bin
 
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -222,13 +237,23 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what is relevant)
-prepend_path("PATH",           "%{_prefix}/bin")
-setenv("VELVET_HOME",          "%{_prefix}")
-setenv("OMP_THREAD_LIMIT",     "1")
+
+---- environment changes (uncomment what's relevant)
+prepend_path("PATH",                "%{_prefix}/bin")
+setenv("OASES_HOME",                "%{_prefix}")
+setenv("OMP_THREAD_LIMIT",          "1")
 
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
@@ -251,7 +276,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

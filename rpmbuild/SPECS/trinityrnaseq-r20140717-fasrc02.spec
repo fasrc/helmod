@@ -1,48 +1,44 @@
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
-# FIXME
-#
 # enter the app version, e.g. 0.0.1
+#
 Version: %{getenv:VERSION}
 
-
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
 
-
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-%define summary_static Sequence assembler for very short reads
+#
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
+#
+%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#http://...FIXME...
-URL: http://www.ebi.ac.uk/~zerbino/velvet/%{name}_%{version}.tgz
-Source: %{name}_%{version}.tgz
-
+URL: http://downloads.sourceforge.net/project/trinityrnaseq/trinityrnaseq_r20140717.tar.gz?r=&ts=1412886871&use_mirror=iweb
+Source: %{name}_%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -57,18 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
-
-#
-# FIXME
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-Velvet is a de novo genomic assembler specially designed for short read sequencing technologies, such as Solexa or 454, developed by Daniel Zerbino and Ewan Birney at the European Bioinformatics Institute (EMBL-EBI), near Cambridge, in the United Kingdom.  Velvet currently takes in short read sequences, removes errors then produces high quality unique contigs. It then uses paired-end read and long read information, when available, to retrieve the repeated areas between contigs.
-
-This package has been compiled for openMP with a default thread (core/cpu) limit to 1 (OMP_THREAD_LIMIT=1). You must set the environment variable OMP_THREAD_LIMIT to the number of cores requested from SLURM.
 
 #
 # Macros for setting app data 
@@ -87,16 +71,26 @@ This package has been compiled for openMP with a default thread (core/cpu) limit
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Boosted max kmer length to 127, openMP build, set OMP_THREAD_LIMIT to 1 by default
-%define requestor Lauren O'Connell <aloconnel@fas.harvard.edu>
-%define requestref RCRT:81076
+%define rundependencies bowtie/1.1.1-fasrc01 samtools/1.1-fasrc02 perl-modules/5.10.1-fasrc11
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
+%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
+
 
 
 
@@ -104,18 +98,20 @@ This package has been compiled for openMP with a default thread (core/cpu) limit
 
 %prep
 
+
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-# %setup
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{name}_%{version}.tgz
-# stat %{name}-%{version}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}.tar.*
 cd %{name}_%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -123,22 +119,42 @@ cd %{name}_%{version}
 
 %build
 
-#
-# FIXME
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-cd %{_topdir}/BUILD/%{name}_%{version}
-test "%{comp_name}" == "intel" && sed -i 's/gcc/icc/' Makefile
-make 'MAXKMERLENGTH=127' 'OPENMP=1'
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
+
+# ./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make -j 4
 
 
 
@@ -146,29 +162,43 @@ make 'MAXKMERLENGTH=127' 'OPENMP=1'
 
 %install
 
-#
-# FIXME
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/bin
-cp %{_topdir}/BUILD/%{name}_%{version}/velvetg %{_topdir}/BUILD/%{name}_%{version}/velveth %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}
+cp -r * %{buildroot}/%{_prefix}
 
 
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -185,6 +215,14 @@ done
 
 	echo
 	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -198,9 +236,13 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# - uncomment any applicable prepend_path things
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
 #
-# - do any other customizing of the module, e.g. load dependencies
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -210,10 +252,13 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -222,17 +267,23 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what is relevant)
-prepend_path("PATH",           "%{_prefix}/bin")
-setenv("VELVET_HOME",          "%{_prefix}")
-setenv("OMP_THREAD_LIMIT",     "1")
 
+---- environment changes (uncomment what's relevant)
+prepend_path("PATH",               "%{_prefix}")
+setenv("TRINITY_HOME",             "%{_prefix}")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
----
+cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
@@ -251,7 +302,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
