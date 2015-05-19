@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.14
+%define summary_static NetCDF version 4.3.2
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
+URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -71,7 +71,7 @@ Prefix: %{_prefix}
 %define buildhostversion 1
 
 
-%define builddependencies %{nil}
+%define builddependencies hdf5/1.8.12-fasrc06 zlib/1.2.8-fasrc04
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -84,6 +84,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -91,8 +92,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
-This module has been built by Plamen G. Krastev.
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -138,24 +139,26 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make TARGET=NEHALEM
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -183,28 +186,11 @@ make TARGET=NEHALEM
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-make install PREFIX=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -295,11 +281,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-----prepend_path("PATH",               "%{_prefix}/bin")
+setenv("NETCDF_HOME",              "%{_prefix}")
+setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_LIB",               "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
