@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static VisIT version 2.9.1
+%define summary_static VAPOR version 2.4.0
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: ...
+#URL: http://...
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -91,8 +91,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-VisIt is an Open Source, interactive, scalable, visualization, animation and analysis tool.
-This module has been built by Plamen G. Krastev.
+VAPOR is the Visualization and Analysis Platform for Ocean, Atmosphere, and Solar Researchers.  VAPOR provides an interactive 
+3D visualization environment that can also produce animations and still frame images. This module has been built by Plamen G Krastev.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -184,6 +185,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+
 # Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -196,10 +203,11 @@ test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
 sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
 #make install
-./visit-install2_9_1 2.9.1 linux-x86_64-rhel6 %{_prefix}
+./vapor-install.csh %{_prefix}
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
 sudo rm "%{_prefix}"
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -288,91 +296,27 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("PYTHONHOME",               "%{_prefix}/current/linux-x86_64/lib/python")
+setenv("VAPOR_HOME",               "%{_prefix}")
+setenv("PYTHONHOME",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/current/bin")
-prepend_path("PATH",               "%{_prefix}/current/linux-x86_64/bin")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/lib/python/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/gdal/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/mfem/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/uintah/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/cfitsio/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/hdf4/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/boxlib/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/fastbit/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/hdf5/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/ccmio/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/pyside/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/python/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/h5part/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/netcdf/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/visit/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/slivr/teem-1.9.0-src/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/slivr/teem-1.9.0-src/win32/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/glew/glew/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/vtk/vtk-6.1/vtkfreetype/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/mesa/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/mpich/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/advio/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/qt/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/fusion/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/spirit/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/spirit/repository/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/icet/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/cgns/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/mili/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/adios/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/netcdf_cxx/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/silo/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/include/xdmf/include")
-prepend_path("CPATH",              "%{_prefix}/current/linux-x86_64/libsim/V2/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/lib/python/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/gdal/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/mfem/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/uintah/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/cfitsio/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/hdf4/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/boxlib/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/fastbit/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/hdf5/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/ccmio/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/pyside/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/python/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/h5part/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/netcdf/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/visit/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/slivr/teem-1.9.0-src/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/slivr/teem-1.9.0-src/win32/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/visit/third_party_builtin/glew/glew/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/vtk/vtk-6.1/vtkfreetype/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/mesa/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/mpich/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/advio/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/qt/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/fusion/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/spirit/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/boost/include/boost/spirit/repository/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/icet/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/cgns/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/mili/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/adios/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/netcdf_cxx/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/silo/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/include/xdmf/include")
-prepend_path("FPATH",              "%{_prefix}/current/linux-x86_64/libsim/V2/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/current/linux-x86_64/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/current/linux-x86_64/lib/python/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/current/linux-x86_64/libsim/V2/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/current/linux-x86_64/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/current/linux-x86_64/lib/python/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/current/linux-x86_64/libsim/V2/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/current/linux-x86_64/lib/pkgconfig")
-prepend_path("PYTHONPATH",         "%{_prefix}/current/linux-x86_64/lib/python/lib/python2.7/site-packages")
-prepend_path("PYTHONPATH",         "%{_prefix}/current/linux-x86_64/lib/site-packages")
+prepend_path("CPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
+prepend_path("CPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/core/include")
+prepend_path("CPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/numarray/include")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
+prepend_path("FPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/core/include")
+prepend_path("FPATH",              "%{_prefix}/lib/python2.7/site-packages/numpy/numarray/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/python2.7/site-packages/numpy/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/python2.7/site-packages/numpy/core/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/python2.7/site-packages/scipy/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/python2.7/site-packages/numpy/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/python2.7/site-packages/numpy/core/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/python2.7/site-packages/scipy/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 #------------------- App data file
