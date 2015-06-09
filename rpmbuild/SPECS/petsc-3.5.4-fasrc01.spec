@@ -1,3 +1,8 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
 #------------------- package info ----------------------------------------------
 #
 #
@@ -92,7 +97,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism.
+PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism. This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -202,16 +207,20 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+#sudo mkdir -p "$(dirname %{_prefix})"
+#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+sudo mkdir -p "%{_prefix}"
+sudo chown -R pkrastev:rc_admin "%{_prefix}/" 
 
 make install
-rm -r %{buildroot}/%{_prefix}/conf
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+#sudo rm "%{_prefix}"
 
+rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
+rm -r "%{_prefix}/"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -300,6 +309,8 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
+setenv("PETSC_DIR",                "%{_prefix}")
+setenv("PETSC_ARCH",               "linux-gnu-intel")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
