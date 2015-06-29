@@ -225,7 +225,7 @@ setenv("ZLIBFORSAMTOOLS",	      "-L%{_prefix}/lib -I%{_prefix}/include")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 ---
 appname             : %{appname}
 appversion          : %{appversion}

@@ -3,3 +3,6 @@ nohup.out
 fasrcsw*
 *.swp
 .nfs*
+update_templates*
+replace.pl
+cores*
