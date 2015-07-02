@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SyMAP version 4.2 is a software package for detecting,displaying, and querying syntenic relationships between sequenced chromosomes and/or FPC physical maps.
+%define summary_static Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
 Summary: %{summary_static}
 
 #
@@ -92,7 +92,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SyMAP v4.2 (Synteny Mapping and Analysis Program) is a software package for detecting,displaying, and querying syntenic relationships between sequenced chromosomes and/or FPC physical maps.
+Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -135,10 +135,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
 
-#./configure --prefix=%{_prefix} \
+./configure CC=mpicc CXX=mpicxx F77=mpif77 --prefix=%{_prefix} --with-MPI --with-blas --with-lapack --enable-fortran
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -155,7 +155,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make %{?_smp_mflags}
 
 
 
@@ -185,12 +185,19 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
 
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -278,10 +285,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-
-prepend_path("PATH",                "%{_prefix}")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
