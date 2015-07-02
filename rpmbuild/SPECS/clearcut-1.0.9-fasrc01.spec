@@ -298,7 +298,7 @@ prepend_path("FPATH",              "%{_prefix}/include")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 ---
 appname             : %{appname}
 appversion          : %{appversion}
@@ -308,6 +308,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

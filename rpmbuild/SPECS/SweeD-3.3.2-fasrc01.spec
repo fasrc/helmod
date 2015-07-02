@@ -296,6 +296,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

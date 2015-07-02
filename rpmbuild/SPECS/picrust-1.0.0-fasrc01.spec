@@ -311,7 +311,7 @@ prepend_path("PYTHONPATH",         "/n/sw/picrust-1.0.0-fasrc01/lib/python2.7/si
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 ---
 appname             : %{appname}
 appversion          : %{appversion}
@@ -321,6 +321,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

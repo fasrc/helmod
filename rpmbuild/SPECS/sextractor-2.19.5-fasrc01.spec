@@ -95,9 +95,9 @@ but it also performs well on moderately crowded star fields. Its main features a
 %define buildhostversion 1
 
 
-%define builddependencies fftw/3.3.4-fasrc06 atlas/3.10.2-fasrc02
-%define rundependencies fftw/3.3.4-fasrc06 
-%define buildcomments atlas is only needed for the gcc build; for intel, the mkl library that comes with cluster studio is used.
+%define builddependencies fftw/3.3.4-fasrc06
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
 %define requestor Gregory Green <ggreen@cfa.harvard.edu>
 %define requestref RCRT:81631
 
@@ -153,18 +153,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 for m in %{builddependencies}
 do
-    if [ "${m}" == "atlas/3.10.2-fasrc02" ] && [ "%{comp_name}" == "intel" ]
-    then
-        echo "Not loading atlas for intel"
-    else
-        module load ${m}
-    fi
+    module load ${m}
 done
 
 
-test "%{comp_name}" == "intel" && ./configure --prefix=%{_prefix} --enable-icc --enable-mkl --with-mkl-dir=$MKL_HOME
-test "%{comp_name}" == "gcc" && ./configure --prefix=%{_prefix} --with-atlas-libdir=$ATLAS_LIB --with-atlas-incdir=$ATLAS_INCLUDE  --with-fftw-libdir=$FFTW_LIB --with-fftw-incdir=$FFTW_INCLUDE
+"%{comp_name}" == "intel" && ./configure --enable-icc --enable-mkl --with-mkl-dir=$MKL_HOME
 
+./configure --prefix=%{_prefix} 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -291,13 +286,26 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("SEXTRACTOR_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+--setenv("TEMPLATE_HOME",       "%{_prefix}")
+
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 ---
 appname             : %{appname}
 appversion          : %{appversion}
@@ -307,6 +315,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

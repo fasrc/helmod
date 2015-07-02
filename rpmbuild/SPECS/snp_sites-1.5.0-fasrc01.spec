@@ -294,7 +294,7 @@ prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.yaml <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 ---
 appname             : %{appname}
 appversion          : %{appversion}
@@ -304,6 +304,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}
