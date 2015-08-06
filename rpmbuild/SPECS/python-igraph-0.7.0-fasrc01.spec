@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -11,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your
+# enter the release; start with fasrc01 (or some other convention for your 
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
-# and MPI apps, it will include the name/version/release of the apps used to
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -26,19 +26,19 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
-# rpm gets created, so this stores it separately for later re-use); do not
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static FreeFem++ is a partial differential equation solver.
+%define summary_static Interface for using igraph from Python.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if
+# enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.freefem.org/ff++/ftp/freefem++-3.35.tar.gz
-Source: %{name}-3.35.tar.gz
+URL: http://igraph.org/nightly/get/python/python-igraph-0.7.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,14 +56,7 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces,
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FreeFem++ is a partial differential equation solver. It has its own language. freefem scripts can solve multiphysics non linear systems in 2D and 3D.
-
-#
-# Macros for setting app data
+# Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
 #
@@ -76,10 +69,12 @@ FreeFem++ is a partial differential equation solver. It has its own language. fr
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies gsl/1.16-fasrc03
-%define rundependencies gsl/1.16-fasrc03
+%define builddependencies igraph/0.7.1-fasrc01 Anaconda/1.9.2-fasrc01
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,9 +82,18 @@ FreeFem++ is a partial differential equation solver. It has its own language. fr
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Interface for using igraph from Python. This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -99,15 +103,15 @@ FreeFem++ is a partial differential equation solver. It has its own language. fr
 #
 # FIXME
 #
-# unpack the sources here.  The default below is for standard, GNU-toolchain
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
-rm -rf %{name}-3.35
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-3.35.tar.*
-cd %{name}-3.35
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -123,36 +127,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard
+# configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
-#
+# 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here,
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.35
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
-test -z $CC && export CC=gcc
-test -z $CXX && export CXX=g++
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
 
-#CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
-#CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
-#export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
-
-./configure --prefix=%{_prefix} \
-    --enable-download \
-    --disable-parms
-
-download/getall -a -f
-sed -i -e "s?CPP='gcc -E'?CPP=\"\$(CC) -E\"?" download/*/Makefile
-sed -i -e "s?CP=\"\$(CXXCPP)\"?CPP=\"\$(CC) -E\"?" download/nlopt/Makefile
-make
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+#make
+python setup.py build
 
 
 
@@ -167,12 +172,12 @@ make
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style
+# make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
 #
-# Note that DESTDIR != %{prefix} -- this is not the final installation.
-# Rpmbuild does a temporary installation in the %{buildroot} and then
-# constructs an rpm out of those files.  See the following hack if your app
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
 # does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
@@ -181,11 +186,28 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+
+# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.35
-echo %{buildroot} | grep -q %{name}-3.35 && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+export PYTHONPATH=%{_prefix}/lib/python2.7/site-packages:$PYTHONPATH
+python setup.py install --prefix=%{_prefix}
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 
 #(this should not need to be changed)
@@ -199,16 +221,16 @@ done
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-
+	
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo
+	echo 
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-
+	
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -224,25 +246,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-
+	
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-#
+# 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run
+# This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything
+# - in the help message, link to website docs rather than write anything 
 #   lengthy here
 #
 # references on writing modules:
@@ -256,6 +278,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -264,7 +287,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do
+for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
         if not isloaded(a) then
@@ -275,25 +298,29 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("FREEFEM_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/lib/ff++/3.35/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib/ff++/3.35/include")
-prepend_path("FPATH",              "%{_prefix}/lib/ff++/3.35/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/ff++/3.35/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/ff++/3.35/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/ff++/3.35/lib/pkgconfig")
+--setenv("TEMPLATE_HOME",       "%{_prefix}")
+
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -312,7 +339,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -328,9 +354,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some
-# components may need creating, but no single rpm should own them, since parts
-# are shared; only do this if it looks like an app-specific prefix is indeed
+# everything in fasrcsw is installed in an app hierarchy in which some 
+# components may need creating, but no single rpm should own them, since parts 
+# are shared; only do this if it looks like an app-specific prefix is indeed 
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -338,9 +364,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to
-# be relocatable, hence why this is not a proper %%file; as with the app itself,
-# modulefiles are in an app hierarchy in which some components may need
+# symlink to the modulefile installed along with the app; we want all rpms to 
+# be relocatable, hence why this is not a proper %%file; as with the app itself, 
+# modulefiles are in an app hierarchy in which some components may need 
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -350,9 +376,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
-# orphans will be left over after the last package in the app family
+# undo the module file symlink done in the %%post; do not rmdir 
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
+# orphans will be left over after the last package in the app family 
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -360,9 +386,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be
-# left over after the last package in the app family is removed); also put a
-# little protection so this does not cause problems if a non-default prefix
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
+# left over after the last package in the app family is removed); also put a 
+# little protection so this does not cause problems if a non-default prefix 
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -371,7 +397,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't
+# wipe out the buildroot, but put some protection to make sure it isn't 
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
