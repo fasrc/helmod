@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a module for loading R_core and R_packages
+%define summary_static ALLPATHS-LG is a short read assembler and it works on both small and large (mammalian size) genomes.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
-#Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,13 +56,45 @@ Prefix: %{_prefix}
 
 
 #
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
+%define apppublication %{nil}
+
+
+
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-The RPM is simply a modulefile that loads R_core (the base R package), and R_packages (a large set of the most popular packages from CRAN).
-
-
+ALLPATHS-LG is a short read assembler and it works on both small and large (mammalian size) genomes.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -70,12 +102,18 @@ The RPM is simply a modulefile that loads R_core (the base R package), and R_pac
 
 
 #
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
-#(n/a)
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -88,6 +126,7 @@ The RPM is simply a modulefile that loads R_core (the base R package), and R_pac
 
 
 #
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -97,7 +136,28 @@ The RPM is simply a modulefile that loads R_core (the base R package), and R_pac
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-#(n/a)
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
 
 
 
@@ -110,6 +170,7 @@ The RPM is simply a modulefile that loads R_core (the base R package), and R_pac
 
 
 #
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -125,7 +186,12 @@ The RPM is simply a modulefile that loads R_core (the base R package), and R_pac
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#(n/a)
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -195,6 +261,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -202,10 +269,41 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
-load("R_core/3.1.0-fasrc01")
-load("R_packages/3.1.0-fasrc02")
+---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
+---- environment changes (uncomment what is relevant)
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
