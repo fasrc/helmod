@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static VisIT version 2.9.1
+%define summary_static VisIt version 2.9.1 -- an Open Source, interactive, scalable, visualization, animation and analysis tool.
 Summary: %{summary_static}
 
 #
@@ -92,7 +92,6 @@ Prefix: %{_prefix}
 #
 %description
 VisIt is an Open Source, interactive, scalable, visualization, animation and analysis tool.
-This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
