@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+%define summary_static Parallel Matlab Toolbox version 2.0.15, MPI MATLAB
 Summary: %{summary_static}
 
 #
@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 #URL: http://...FIXME...
-#Source: %{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/1.9.2-fasrc01 geos/3.4.2-fasrc01 opencv/2.4.9-fasrc01
+%define builddependencies matlab/R2015a-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -86,7 +86,6 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -94,7 +93,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+Parallel Matlab Toolbox version 2.0.15, MPI MATLAB
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,10 +110,9 @@ SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -137,8 +135,8 @@ cd %{name}-%{version}
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 #./configure --prefix=%{_prefix} \
@@ -191,17 +189,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-wget https://pypi.python.org/packages/source/f/future/future-0.15.0.tar.gz
-tar xvfz future-0.15.0.tar.gz
-cd future-0.15.0
-export PYTHONPATH=%{buildroot}/%{_prefix}/lib/python2.7/site-packages:$PYTHONPATH
-mkdir -p %{buildroot}/%{_prefix}/lib/python2.7/site-packages
-python setup.py build
-python setup.py install --prefix=%{buildroot}/%{_prefix}
-cd ..
-pip install --install-option="--prefix=%{buildroot}/%{_prefix}" shapely pillow bottleneck sima 
-
 #make install DESTDIR=%{buildroot}
+rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
 
 
 #(this should not need to be changed)
@@ -292,10 +281,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("MATLABPATH",       "%{_prefix}/src")
+prepend_path("MATLABPATH",       "%{_prefix}/MatlabMPI/src")
 EOF
 
 #------------------- App data file

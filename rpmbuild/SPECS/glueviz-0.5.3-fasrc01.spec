@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+%define summary_static Glue is a Python library to explore relationships within and among related datasets.
 Summary: %{summary_static}
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/1.9.2-fasrc01 geos/3.4.2-fasrc01 opencv/2.4.9-fasrc01
+%define builddependencies Anaconda/1.9.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+Glue is a Python library to explore relationships within and among related datasets.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,12 +109,11 @@ SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}-%{version}
 #tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-mkdir %{name}-%{version}
-cd %{name}-%{version}
+#cd %{name}-%{version}
 #chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,6 +138,7 @@ cd %{name}-%{version}
 #module load NAME/VERSION-RELEASE
 
 #umask 022
+#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
@@ -188,20 +189,12 @@ cd %{name}-%{version}
 #
 
 umask 022
+mkdir -p "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-wget https://pypi.python.org/packages/source/f/future/future-0.15.0.tar.gz
-tar xvfz future-0.15.0.tar.gz
-cd future-0.15.0
-export PYTHONPATH=%{buildroot}/%{_prefix}/lib/python2.7/site-packages:$PYTHONPATH
-mkdir -p %{buildroot}/%{_prefix}/lib/python2.7/site-packages
-python setup.py build
-python setup.py install --prefix=%{buildroot}/%{_prefix}
-cd ..
-pip install --install-option="--prefix=%{buildroot}/%{_prefix}" shapely pillow bottleneck sima 
-
 #make install DESTDIR=%{buildroot}
+pip install --install-option="--prefix=%{buildroot}/%{_prefix}" 'glueviz==0.5.3'
 
 
 #(this should not need to be changed)

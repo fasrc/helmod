@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+%define summary_static ParaView is an open-source, multi-platform data analysis and visualization application.
 Summary: %{summary_static}
 
 #
@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 #URL: http://...FIXME...
-#Source: %{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/1.9.2-fasrc01 geos/3.4.2-fasrc01 opencv/2.4.9-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-series imaging data arising from fluorescence microscopy.
+ParaView is an open-source, multi-platform data analysis and visualization application. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,10 +111,9 @@ SIMA (Sequential IMage Analysis) is an Open Source package for analysis of time-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -137,8 +136,8 @@ cd %{name}-%{version}
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 #./configure --prefix=%{_prefix} \
@@ -191,17 +190,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-wget https://pypi.python.org/packages/source/f/future/future-0.15.0.tar.gz
-tar xvfz future-0.15.0.tar.gz
-cd future-0.15.0
-export PYTHONPATH=%{buildroot}/%{_prefix}/lib/python2.7/site-packages:$PYTHONPATH
-mkdir -p %{buildroot}/%{_prefix}/lib/python2.7/site-packages
-python setup.py build
-python setup.py install --prefix=%{buildroot}/%{_prefix}
-cd ..
-pip install --install-option="--prefix=%{buildroot}/%{_prefix}" shapely pillow bottleneck sima 
-
 #make install DESTDIR=%{buildroot}
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
 
 
 #(this should not need to be changed)
@@ -293,9 +283,28 @@ end
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
+prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/include")
+prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/numarray/include")
+prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/include")
+prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/site-packages/mpi4py/include")
+prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
+prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/include")
+prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/numarray/include")
+prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/include")
+prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/site-packages/mpi4py/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/paraview-4.3/www/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/share/paraview-4.3/www/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/paraview-4.3/site-packages")
 EOF
 
 #------------------- App data file
