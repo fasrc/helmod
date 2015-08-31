@@ -80,9 +80,12 @@ to build cross-platform applications with improved developer productivity.
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+
+%define builddependencies libgdiplus/3.12-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -138,16 +141,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 
 ./configure --prefix=%{_prefix} \
             --with-large-heap=yes --with-profile4=yes --enable-big-arrays \
-            --with-libgdiplus=/n/sw/fasrcsw/apps/Core/libgdiplus/3.12-fasrc01/lib
+            --with-libgdiplus=$LIBGDIPLUS_LIB
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \

@@ -199,9 +199,31 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("STATA_HOME",                  "/n/sw/stata-13")
 prepend_path("PATH",                  "/n/sw/stata-13")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

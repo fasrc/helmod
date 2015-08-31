@@ -78,6 +78,9 @@ The goal of mothur is to have a single resource to analyze molecular data that i
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies %{nil}
@@ -137,10 +140,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}.%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 sed -i -e 's?TARGET_ARCH += -arch x86_64?#TARGET_ARCH += -arch x86_64?' \
        -e 's?#CXXFLAGS += -mtune=native -march=native?CXXFLAGS += -mtune=native -march=native?' makefile
@@ -273,7 +272,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

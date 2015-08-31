@@ -74,6 +74,9 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies proj/4.8.0-fasrc01 libpng/1.5.21-fasrc01 zlib/1.2.8-fasrc04 gdal/1.11.1-fasrc02 g2lib/1.4.0-fasrc01 g2clib/1.4.0-fasrc01 hdf5/1.8.12-fasrc04 hdf/4.2.11-fasrc01 netcdf/4.3.3.1-fasrc01 vis5d+/1.3.0-fasrc01 udunits/2.2.18-fasrc01 HDF-EOS/5.1.15-fasrc02 HDF-EOS2/2.19v1.00-fasrc01 cairo/1.12.18-fasrc01 jasper/1.900.1-fasrc01 szip/2.1-fasrc01 jpeg/6b-fasrc01 

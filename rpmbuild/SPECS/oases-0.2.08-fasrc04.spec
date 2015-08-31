@@ -136,17 +136,13 @@ cd %{_bd}
 %build
 
 #
-# FIXME
 #
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
 # 
 
-#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
-#module load NAME/VERSION-RELEASE
 
 cd %{_topdir}/BUILD/%{_bd}
 # Substitute hard coded gcc when intel is in session

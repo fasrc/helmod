@@ -72,6 +72,9 @@ FFmpeg is the leading multimedia framework, able to decode, encode, transcode, m
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1 
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 %define builddependencies libvorbis/1.3.4-fasrc01 xvidcore/1.3.3-fasrc01 libtheora/1.1.1-fasrc01 yasm/1.3.0-fasrc01 opus/1.0.3-fasrc01 fdk-aac/0.1.3-fasrc01 lame/3.99.5-fasrc01 x264/20140814-fasrc01 faac/1.28-fasrc01 libvpx/v1.3.0-fasrc01 opencore-amr/0.1.3-fasrc01 libass/0.11.2-fasrc01 fribidi/0.19.1-fasrc01 enca/1.15-fasrc01 libogg/1.3.2-fasrc01
 %define rundependencies %{builddependencies}
@@ -135,10 +138,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 ./configure --enable-shared --enable-gpl --enable-libass --enable-libfdk-aac --enable-libopus --enable-libfaac --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-nonfree --enable-postproc --enable-version3 --enable-x11grab --enable-libvpx --prefix=%{_prefix}
 
@@ -264,7 +263,7 @@ for i in string.gmatch(%{rundependencies},"%%S+") do
     end
 end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("FFMPEG_HOME",              "%{_prefix}")
 setenv("FFMPEG_LIB",               "%{_prefix}/lib")
 setenv("FFMPEG_INCLUDE",           "%{_prefix}/include")
@@ -282,7 +281,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

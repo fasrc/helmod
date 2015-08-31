@@ -85,6 +85,9 @@ Basic Local Alignment Search Tool (BLAST) (1, 2) is the tool most frequently use
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies perl-modules/5.10.1-fasrc08
@@ -130,12 +133,6 @@ tar xvf %{_topdir}/SOURCES/%{name}-%{version}-src.tar.*
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-##prerequisite apps (uncomment and tweak if necessary)
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
@@ -245,7 +242,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BLAST_HOME",                "%{_prefix}")
 setenv("BLAST_INCLUDE",             "%{_prefix}/include")
 setenv("BLAST_LIB",                 "%{_prefix}/lib")
@@ -256,7 +253,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

@@ -57,6 +57,36 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+%define builddependencies R/3.1.0-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
+%define apppublication %{nil}
+
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
@@ -106,7 +136,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #this is not a prerequisite, but just needed to build and use the extra R stuff
-module load R/3.1.0-fasrc01
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -169,7 +198,6 @@ cp build/execs/xhmm %{buildroot}/%{_prefix}/bin/
 
 mkdir %{buildroot}/%{_prefix}/R
 
-module load R/3.1.0-fasrc01
 #the R package needs 'gplots' and 'plotrix'
 
 # Make the symlink.
@@ -263,17 +291,43 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 -- prerequisite apps (uncomment and tweak if necessary)
--- R is not a tight dependency -- it's only needed if using the associated R 
+-- R is not a tight dependency -- it is only needed if using the associated R 
 -- package.
-if mode()=="load" then
-	if not isloaded("R") then
-		load("R/3.1.0-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
 end
 
--- environment changes (uncomment what's relevant)
+
+-- environment changes (uncomment what is relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("R_LIBS_USER",         "%{_prefix}/R")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

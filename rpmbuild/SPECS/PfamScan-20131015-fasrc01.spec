@@ -79,6 +79,9 @@ The Pfam database is a large collection of protein families, each represented by
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies hmmer/3.1b1-fasrc01
@@ -138,10 +141,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 # ./configure --prefix=%{_prefix} \
 # 	--program-prefix= \
@@ -293,7 +292,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
--- environment changes (uncomment what's relevant)
+-- environment changes (uncomment what is relevant)
 setenv("PFAMSCAN_HOME",                "%{_prefix}")
 prepend_path("PATH",                  "%{_prefix}")
 prepend_path("PERL5LIB",              "%{_prefix}")

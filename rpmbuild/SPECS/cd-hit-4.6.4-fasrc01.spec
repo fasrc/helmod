@@ -266,7 +266,6 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("CDHIT_HOME",       "%{_prefix}")
-
 prepend_path("PATH",                "%{_prefix}")
 EOF
 

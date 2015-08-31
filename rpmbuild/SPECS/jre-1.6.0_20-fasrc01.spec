@@ -137,11 +137,6 @@ Java SE Runtime Environment 6u20.
 #umask 022
 #cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
 
 
 #./configure --prefix=%{_prefix} \

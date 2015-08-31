@@ -54,17 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-CDO is a large tool set for working on climate and NWP model data. NetCDF 3/4, GRIB 1/2 including SZIP and JPEG compression, EXTRA, SERVICE and IEG are supported as IO-formats. Apart from that CDO can be used to analyse any kind of gridded data not related to climate science.
-CDO has very small memory requirements and can process files larger than the physical memory.
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -79,6 +68,8 @@ CDO has very small memory requirements and can process files larger than the phy
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies netcdf/4.1.3-fasrc03 proj/4.8.0-fasrc01 udunits/2.2.18-fasrc01
@@ -92,6 +83,18 @@ CDO has very small memory requirements and can process files larger than the phy
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+CDO is a large tool set for working on climate and NWP model data. NetCDF 3/4, GRIB 1/2 including SZIP and JPEG compression, EXTRA, SERVICE and IEG are supported as IO-formats. Apart from that CDO can be used to analyse any kind of gridded data not related to climate science.
+CDO has very small memory requirements and can process files larger than the physical memory.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------

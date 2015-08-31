@@ -136,10 +136,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Source
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 # Won't build under O3 with intel
 if [ "%{comp_name}" == "intel" ] 

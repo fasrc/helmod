@@ -79,10 +79,13 @@ functional content from marker gene (e.g., 16S rRNA) surveys and full genomes.
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define rundependencies PyCogent/1.5.3-fasrc01 biom-format/1.3.1-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -137,10 +140,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 #module load Python/2.7.8-fasrc01
 
@@ -290,18 +289,16 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
 
-load("PyCogent/1.5.3-fasrc01")
-load("biom-format/1.3.1-fasrc01")
+---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "/n/sw/picrust-1.0.0-fasrc01/bin")
@@ -312,7 +309,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

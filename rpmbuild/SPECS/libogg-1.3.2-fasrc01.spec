@@ -62,9 +62,12 @@ Prefix: %{_prefix}
 %description
 Audio library
 
+
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -73,34 +76,22 @@ Audio library
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
-%define buildhostversion 1 
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-#
-# These may need some input.  Replace %{nil} with an actual value.
-#
 
-# builddependencies should be a space separated list of the modules that must be loaded during build phase
 %define builddependencies %{nil}
-
-# rundependencies is the list of modules that must be loaded at run time.  May or may not be the same
-# as the builddependencies list
 %define rundependencies %{builddependencies}
-
-# any comments you'd like to add about how the software was built
 %define buildcomments %{nil}
-
-# login of the person requesting the software
 %define requestor %{nil}
-
-# reference to the request.  This may be a ticket id (e.g. RCRT:123456).  
 %define requestref %{nil}
 
-# publication reference
-%define apppublication %{nil}
-
-# list of tags for the application. Use a suitable OWL ontology like namespace.
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags aci-ref-app-category:Utilities aci-ref-app-tag:Audio
-
+%define apppublication %{nil}
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -279,24 +270,15 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

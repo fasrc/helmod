@@ -76,10 +76,13 @@ RStudio is an integrated development environment (IDE) for R. This module has be
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies boost/1.55.0-fasrc01 R/3.1.0-fasrc01 cmake/2.8.12.2-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies boost/1.55.0-fasrc01 R/3.1.0-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -129,10 +132,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 umask 022
@@ -165,8 +164,8 @@ cd ../../
 mkdir build
 cd build
 cmake .. -DRSTUDIO_TARGET=Desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-         -DBoost_DIR=/n/sw/fasrcsw/apps/Core/boost/1.55.0-fasrc01/lib \
-         -DBoost_INCLUDE_DIR=/n/sw/fasrcsw/apps/Core/boost/1.55.0-fasrc01/include
+         -DBoost_DIR=$BOOST_LIB \
+         -DBoost_INCLUDE_DIR=$BOOST_INCLUDE
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -302,7 +301,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
