@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them this way)
 fasrcsw-env-check
 
-for comp in "${FASRCSW_COMPS[@]}"; do
+for comp in $FASRCSW_COMPS; do
 	IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
 	IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
 	

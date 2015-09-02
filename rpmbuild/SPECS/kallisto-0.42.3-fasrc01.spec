@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static FFMPEG version 2.4.2
+%define summary_static kallisto is a program for quantifying abundances of transcripts from RNA-Seq data, or more generally of target sequences using high-throughput sequencing reads. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ffmpeg.org/releases/ffmpeg-2.4.2.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: https://github.com/pachterlab/kallisto/archive/v0.42.3.tar.gz 
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies xvidcore/1.3.3-fasrc01 libtheora/1.1.1-fasrc01 yasm/1.3.0-fasrc01 opus/1.0.3-fasrc01 fdk-aac/0.1.3-fasrc01 lame/3.99.5-fasrc01 x264/20140814-fasrc01 faac/1.28-fasrc01 libvpx/v1.3.0-fasrc01 opencore-amr/0.1.3-fasrc01 libass/0.11.2-fasrc01 fribidi/0.19.1-fasrc01 enca/1.15-fasrc01 libvorbis/1.3.4-fasrc01
-%define rundependencies %{builddependencies}
+%define builddependencies hdf5/1.8.12-fasrc05 cmake/2.8.12.2-fasrc01
+%define rundependencies hdf5/1.8.12-fasrc05 
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Nimrod Rubinstein <rubinste@icloud.com>
+%define requestref RCRT:88502
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis
 %define apppublication %{nil}
 
 
@@ -90,10 +91,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.
-
-
+kallisto is a program for quantifying abundances of transcripts from RNA-Seq data, or more generally of target sequences using high-throughput sequencing reads. It is based on the novel idea of pseudoalignment for rapidly determining the compatibility of reads with targets, without the need for alignment. On benchmarks with standard RNA-Seq data, kallisto can quantify 30 million human reads in less than 3 minutes on a Mac desktop computer using only the read sequences and a transcriptome index that itself takes less than 10 minutes to build. Pseudoalignment of reads preserves the key information needed for quantification, and kallisto is therefore not only fast, but also as accurate as existing quantification tools. In fact, because the pseudoalignment procedure is robust to errors in the reads, in many benchmarks kallisto significantly outperforms existing tools.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -133,11 +134,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --enable-shared --enable-gpl --enable-libass --enable-libfdk-aac --enable-libopus --enable-libfaac --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-nonfree --enable-postproc --enable-version3 --enable-x11grab --enable-libvpx --prefix=%{_prefix}
+mkdir build
+cd build
+
+export CXX="mpic++ -std=c++11"
+
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$MPI_INCLUDE;$HDF5_INCLUDE;$ZLIB_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$ZLIB_LIB;$MPI_LIB;$HDF5_LIB" ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -171,7 +178,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -245,6 +252,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -264,16 +272,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFMPEG_HOME",              "%{_prefix}")
-setenv("FFMPEG_LIB",               "%{_prefix}/lib")
-setenv("FFMPEG_INCLUDE",           "%{_prefix}/include")
+setenv("KALLISTO_HOME",       "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -297,7 +297,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

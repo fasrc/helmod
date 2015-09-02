@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them this way)
 fasrcsw-env-check
 
-for mpi in "${FASRCSW_MPIS[@]}"; do
+for mpi in $FASRCSW_MPIS; do
 	IFS=/ read -r mpi_name mpi_versionrelease <<< "$mpi"
 	IFS=- read -r mpi_version mpi_release     <<< "$mpi_versionrelease"
 	
