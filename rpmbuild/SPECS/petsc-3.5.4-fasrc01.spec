@@ -97,7 +97,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism. This module has been built by Plamen G. Krastev.
+PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -141,7 +141,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
@@ -157,12 +156,18 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #	--mandir=%{_prefix}/share/man \
 #	--infodir=%{_prefix}/share/info
 
-./configure --prefix=%{_prefix} --with-mpi-dir=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.3-fasrc02 --with-blas-lapack-dir=/n/sw/intel-cluster-studio-2015/mkl
+#./configure --prefix=%{_prefix} --with-mpi-dir=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.3-fasrc02 --with-blas-lapack-dir=/n/sw/intel-cluster-studio-2015/mkl
+if [ "%{comp_name}" == "intel" ]
+then
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --with-blas-lapack-dir=$MKL_HOME
+else
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME
+fi
+
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
