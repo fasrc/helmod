@@ -132,10 +132,6 @@ tar xvf %{_topdir}/SOURCES/%{name}-%{version}-src.tar.*
 %include fasrcsw_module_loads.rpmmacros
 
 ##prerequisite apps (uncomment and tweak if necessary)
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 cd %{_topdir}/BUILD/%{name}-%{version}-src/c++
@@ -245,7 +241,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BLAST_HOME",                "%{_prefix}")
 setenv("BLAST_INCLUDE",             "%{_prefix}/include")
 setenv("BLAST_LIB",                 "%{_prefix}/lib")
@@ -265,8 +261,6 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
-compiler            : %{compiler}
-mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

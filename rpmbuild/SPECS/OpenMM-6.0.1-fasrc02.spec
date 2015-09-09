@@ -77,6 +77,9 @@ OpenMM is a toolkit for molecular simulation. It can be used either as a stand-a
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies cmake/2.8.12.2-fasrc01 python/2.7.6-fasrc01
@@ -134,10 +137,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}-Source
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 CXX="$CXX -std=c++0x"
 

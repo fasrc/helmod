@@ -74,6 +74,9 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies proj/4.8.0-fasrc01 libpng/1.5.21-fasrc01 zlib/1.2.8-fasrc04 gdal/1.11.1-fasrc02 g2lib/1.4.0-fasrc01 g2clib/1.4.0-fasrc01 hdf5/1.8.12-fasrc06 hdf/4.2.11-fasrc01 netcdf/4.1.3-fasrc03 vis5d+/1.3.0-fasrc02 udunits/2.2.18-fasrc01 HDF-EOS/5.1.15-fasrc03 HDF-EOS2/2.19v1.00-fasrc01 cairo/1.12.18-fasrc01 jasper/1.900.1-fasrc01 szip/2.1-fasrc01 jpeg/6b-fasrc01 
@@ -97,7 +100,6 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Build notes: %{buildcomments}
 NCL has robust file input and output. It can read and write netCDF-3, netCDF-4 classic, netCDF-4, HDF4, binary, and ASCII data. It can read HDF-EOS2, HDF-EOS5, GRIB1, GRIB2, and OGR files (shapefiles, MapInfo, GMT, Tiger). It can be built as an OPeNDAP client.
 NCL visualizations are world class and highly customizable.
 
@@ -336,11 +338,10 @@ prepend_path("MANPATH",            "%{_prefix}/man")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

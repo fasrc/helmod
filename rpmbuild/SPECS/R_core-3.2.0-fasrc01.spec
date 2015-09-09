@@ -275,6 +275,7 @@ whatis("Description: %{summary_static}")
 --end
 
 -- environment changes (uncomment what is relevant)
+setenv("R_HOME",                   "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
