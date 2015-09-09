@@ -1,0 +1,18 @@
+appname             : mpb
+appversion          : 1.5
+description         : The MIT Photonic-Bands (MPB) package is a free program for computing the band structures (dispersion relations) and electromagnetic modes of periodic dielectric structures, on both serial and parallel computers.
+tags                : 
+publication         : 
+modulename          : mpb-1.5-fasrc01
+type                : MPI
+compiler            : 
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Aug  3 15:41:54 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libctl/3.2.2-fasrc01 hdf5/1.8.12-fasrc06 fftw/3.3.4-fasrc06
+rundependencies     : libctl/3.2.2-fasrc01 hdf5/1.8.12-fasrc06 fftw/3.3.4-fasrc06
+buildcomments       : 
+requestor           : 
+requestref          : 

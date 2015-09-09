@@ -1,0 +1,17 @@
+appname             : armadillo
+appversion          : 5.100.2
+description         : Armadillo version 5.100.2
+module              : armadillo-5.100.2-fasrc01
+tags                : 
+publication         : 
+modulename          : armadillo-5.100.2-fasrc01
+type                : Comp
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May 14 14:13:45 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01 OpenBLAS/0.2.14-fasrc01
+rundependencies     : cmake/2.8.12.2-fasrc01 OpenBLAS/0.2.14-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

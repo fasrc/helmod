@@ -1,0 +1,18 @@
+appname             : sqlite
+appversion          : 3081101
+description         : SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
+tags                : 
+publication         : 
+modulename          : sqlite-3081101-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Aug 12 15:58:27 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

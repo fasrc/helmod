@@ -1,0 +1,17 @@
+appname             : tcl
+appversion          : 8.6.4
+description         : Tcl version 8.6.4
+module              : tcl-8.6.4-fasrc01
+tags                : 
+publication         : 
+modulename          : tcl-8.6.4-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jun  2 12:49:37 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

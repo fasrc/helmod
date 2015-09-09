@@ -7,12 +7,12 @@ export FASRCSW_PROD=/n/sw/fasrcsw
 #update these as versions increase.
 #this assumes each FASRCSW_MPIS has been built with each FASRCSW_COMPS
 export FASRCSW_COMPS=(
-	gcc/4.8.2-fasrc01
+#	gcc/4.8.2-fasrc01
 	intel/15.0.0-fasrc01
 )
 export FASRCSW_MPIS=(
-	openmpi/1.8.3-fasrc02
-	mvapich2/2.0-fasrc02
+#	openmpi/1.8.3-fasrc02
+	mvapich2/2.0-fasrc03
 )
 
 #the build host

@@ -1,0 +1,17 @@
+appname             : stacks
+appversion          : 1.30
+description         : stacks version 1.30
+module              : stacks-1.30-fasrc01
+tags                : 
+publication         : 
+modulename          : stacks-1.30-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Jun 12 14:21:18 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

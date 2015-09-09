@@ -1,0 +1,18 @@
+appname             : harminv
+appversion          : 1.4
+description         : Harminv is a free program (and accompanying library) to solve the problem of harmonic inversion.
+tags                : 
+publication         : 
+modulename          : harminv-1.4-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Aug  3 15:53:21 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : readline
+appversion          : 6.3
+description         : The GNU Readline library provides a set of functions for use by applications that allow users to edit command lines as they are typed in.
+tags                : 
+publication         : 
+modulename          : readline-6.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Aug  3 10:17:47 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 
