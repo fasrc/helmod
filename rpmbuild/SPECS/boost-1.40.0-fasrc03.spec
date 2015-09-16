@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF-EOS libraries are software libraries built on HDF libraries. HDF-EOS libraries support the construction of data structures: Grid, Point and Swath.
+%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/HDF-EOS5.1.15.tar.Z
-Source: HDF-EOS5.1.15.tar.Z
+URL: http://downloads.sourceforge.net/project/boost/boost/1.40.0/boost_1_40_0.tar.gz 
+Source: %{name}_1_40_0.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,11 +54,18 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+
+
 #
 # Macros for setting app data 
 # The first set can probably be left as is
-# the nil construct should be used for empty values
-#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -68,33 +75,14 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-
-
-%define builddependencies hdf5/1.8.12-fasrc06 zlib/1.2.8-fasrc03 szip/2.1-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Built for NCL/NCAR with Lu Shen's software stack
-%define requestor Lu Shen <lshen@fas.harvard.edu>
+%define builddependencies python/2.7.6-fasrc01
+%define rundependencies %{nil}
+%define buildcomments Adding build-type=complete to see if that gets multithread as well.  Then adding the -mt symlinks
+%define requestor %{nil}
 %define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
 %define apppublication %{nil}
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-Build notes: %{buildcomments}
-HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing file format for transfer of various types of data between different machines based upon HDF. 
-
-
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -111,11 +99,9 @@ HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf hdfeos5
-test -e HDF-EOS5.1.15.tar && rm HDF-EOS5.1.15.tar
-7za e "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS5.1.15.tar.Z
-tar xvf HDF-EOS5.1.15.tar
-cd hdfeos5
+rm -rf %{name}_1_40_0
+tar xvzf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_40_0.tar.*
+cd %{name}_1_40_0
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,20 +124,22 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 
+
+# Build based on instructions from this page
+# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
 
-export CC="$HDF5_HOME/bin/h5pcc"
-./configure --prefix=%{_prefix} \
-            --with-hdf5=$HDF5_HOME \
-            --with-zlib=$ZLIB_HOME \
-            --with-szlib=$SZIP_HOME \
-            --enable-install-include
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
+%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
+%define c_version %( test "$TYPE" == "Core" && echo "4.4.7" || echo "%{comp_version}" )
+
+./bootstrap.sh --prefix="%{_prefix}" --with-python-root="${PYTHON_HOME}" \
+--with-toolset=%{toolset_name} --libdir="%{_prefix}/lib"
+
+test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
+# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -180,10 +168,31 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
+echo %{buildroot} | grep -q %{name}_1_40_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+
+# Apply patch so that boost can properly detect thread support
+cat <<'EOF' | patch boost/config/stdlib/libstdcpp3.hpp
+Index: boost/config/stdlib/libstdcpp3.hpp
+===================================================================
+--- boost/config/stdlib/libstdcpp3.hpp (revision 75635)
++++ boost/config/stdlib/libstdcpp3.hpp (working copy)
+@@ -33,7 +33,8 @@
+ 
+ #ifdef __GLIBCXX__ // gcc 3.4 and greater:
+ #  if defined(_GLIBCXX_HAVE_GTHR_DEFAULT) \
+-        || defined(_GLIBCXX__PTHREADS)
++        || defined(_GLIBCXX__PTHREADS) \
++        || defined(_GLIBCXX_HAS_GTHREADS)
+       //
+       // If the std lib has thread support turned on, then turn it on in Boost
+       // as well.  We do this because some gcc-3.4 std lib headers define _REENTANT
+EOF
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./bjam install toolset=%{toolset_name} --build-type=complete --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
 
 
 #(this should not need to be changed)
@@ -254,7 +263,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -272,15 +280,13 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("HDF_EOS5_HOME",            "%{_prefix}")
-setenv("HDF_EOS5_LIB",             "%{_prefix}/lib")
-setenv("HDF_EOS5_INCLUDE",         "%{_prefix}/include")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("BOOST_HOME",                 "%{_prefix}")
+setenv("BOOST_INCLUDE",              "%{_prefix}/include")
+setenv("BOOST_LIB",                  "%{_prefix}/lib")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 
@@ -289,6 +295,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +312,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

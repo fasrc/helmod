@@ -225,7 +225,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
+setenv("RUBY_HOME",                "%{_prefix}")
+setenv("RUBY_INCLUDE",             "%{_prefix}/include")
+setenv("RUBY_LIB",                 "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/lib64/ruby/gems/2.1.0/gems/rake-10.1.0/bin")
 prepend_path("PATH",               "%{_prefix}/lib64/ruby/gems/2.1.0/gems/test-unit-2.1.1.0/bin")
 prepend_path("PATH",               "%{_prefix}/lib64/ruby/gems/2.1.0/gems/rdoc-4.1.0/bin")
@@ -241,6 +243,28 @@ prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

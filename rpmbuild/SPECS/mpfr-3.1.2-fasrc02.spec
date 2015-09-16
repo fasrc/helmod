@@ -221,6 +221,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+prepend_path("MPFR_HOME",          "%{_prefix}")
+prepend_path("MPFR_LIB",           "%{_prefix}/lib64")
+prepend_path("MPFR_INCLUDE",       "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("INFOPATH",           "%{_prefix}/share/info")

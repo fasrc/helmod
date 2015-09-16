@@ -246,7 +246,7 @@ BEGIN {
   ## ========================
   ## Set the location of the NCBI RMBLAST programs and support utilities.
   ##
-    \$RMBLAST_DIR   = "$RMBLAST_HOME/bin";
+    \$RMBLAST_DIR   = "${RMBLAST_HOME}/bin";
     \$RMBLASTN_PRGM = "\$RMBLAST_DIR/rmblastn";
     \$RMBLASTX_PRGM = "\$RMBLAST_DIR/blastx";
     \$RMBLASTDB_PRGM   = "\$RMBLAST_DIR/makeblastdb";
@@ -312,7 +312,7 @@ BEGIN {
 ## Tandem Repeat Finder program.  This is only required by
 ## the RepeatProteinMask program.
 ##
-  \$TRF_PRGM = "$TRF_HOME/trf";
+  \$TRF_PRGM = "${TRF_HOME}/trf";
 
 ##
 ## Turns on debugging in all RepeatMasker modules/scripts
@@ -338,7 +338,7 @@ EOF
 
 
 # fix hard coding of perl location...
-find . -type f -mtime -1 | xargs sed -i 's@$PERL_HOME/bin/perl@/usr/bin/env perl@'
+find . -type f -mtime -1 | xargs sed -i "s@${PERL_HOME}/bin/perl@/usr/bin/env perl@"
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel

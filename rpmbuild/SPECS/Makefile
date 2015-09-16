@@ -1,4 +1,4 @@
-.PHONY: all trial build filelist filequery test install query post uninstall
+.PHONY: all trial build filelist filequery test install query post uninstall publish
 
 all: build
 
@@ -37,3 +37,6 @@ post:
 uninstall: 
 	sudo -E fasrcsw-rpm -ev --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE" | xargs -I% basename % .rpm)
 	sudo -E fasrcsw-update-lmod-spider-cache
+publish:
+	module load portal && load-build.py "../../appdata/$$NAME-$$VERSION-$$RELEASE.$$TYPE.dat"
+	module load portal && update-module-load.py $$FASRCSW_PROD/modulefiles

@@ -72,8 +72,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies gd/2.0.28-fasrc01 texinfo/5.2-fasrc01
+%define rundependencies gd/2.0.28-fasrc01 
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -136,6 +136,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+test [ -z "$CC" ] && export CC=gcc
+CC="$CC -I$GD_HOME/include -L$GD_HOME/lib64"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -266,11 +269,15 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")

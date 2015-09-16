@@ -69,6 +69,9 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies hdf/4.2.11-fasrc01 jpeg/6b-fasrc01 zlib/1.2.8-fasrc04
@@ -110,7 +113,7 @@ HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf hdfeos
-rm  HDF-EOS%{version}.tar
+rm  HDF-EOS%{version}.tar || echo "No tar file"
 7za e "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS%{version}.tar.Z
 tar xvf HDF-EOS%{version}.tar
 cd hdfeos
@@ -278,11 +281,10 @@ prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -299,6 +301,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -77,6 +77,9 @@ EMAN2 is the successor to EMAN1. It is a broadly based greyscale scientific imag
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies python/2.7.6-fasrc01 fftw/3.3.4-fasrc06 gsl/1.16-fasrc03 hdf5/1.8.12-fasrc05 ftgl/2.1.3rc5-fasrc02
@@ -133,10 +136,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/EMAN2/src
 
 CPATH=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.1-fasrc04/include
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 export PYTHON_ROOT=$PYTHON_HOME
 export PYTHON_VERSION=2.7.6
@@ -281,7 +280,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("EMAN2_HOME",                "%{_prefix}")
 setenv("EMAN2_INCLUDE",             "%{_prefix}/include")
 setenv("EMAN2_LIB",                 "%{_prefix}/lib")
@@ -290,6 +289,28 @@ prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 prepend_path("PYTHONPATH",          "%{_prefix}/lib")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

@@ -110,11 +110,12 @@ tRNAscan-SE detects ~99% of eukaryotic nuclear or prokaryotic tRNA genes, with a
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
-
+module load p7zip/9.38.1-fasrc01 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xZvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.tar.Z
+7za x "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.tar.Z
+tar xvf %{name}.tar
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 

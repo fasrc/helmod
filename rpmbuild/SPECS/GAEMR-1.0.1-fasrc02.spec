@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies bib/2014.05.19-fasrc01 rdp_classifier/2.10.1-fasrc01 rnammer/1.2-fasrc01 python/2.7.6-fasrc01 picard-tools/1.119-fasrc01 
+%define rundependencies bib/2014.05.19-fasrc02 rdp_classifier/2.10.1-fasrc01 rnammer/1.2-fasrc01 python/2.7.6-fasrc01 picard-tools/1.119-fasrc01 
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Added c++ libraries
 %define requestor %{nil}
 %define requestref %{nil}
 
