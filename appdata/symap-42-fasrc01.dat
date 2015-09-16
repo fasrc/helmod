@@ -1,0 +1,17 @@
+appname             : symap
+appversion          : 42
+description         : SyMAP version 4.2 is a software package for detecting,displaying, and querying syntenic relationships between sequenced chromosomes and/or FPC physical maps.
+module              : symap-42-fasrc01
+tags                : 
+publication         : 
+modulename          : symap-42-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jun 23 14:26:15 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

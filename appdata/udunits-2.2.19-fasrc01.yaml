@@ -1,0 +1,18 @@
+---
+appname             : udunits
+appversion          : 2.2.19
+description         : The UDUNITS package supports units of physical quantities. Its C library provides for arithmetic manipulation of units and for conversion of numeric values between compatible units.
+module              : udunits-2.2.19-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Scientific units
+publication         : 
+modulename          : udunits-2.2.19-fasrc01
+type                : Comp
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Apr  9 16:18:28 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Fabio Farinosi <fabio_farinosi@hks.harvard.edu>
+requestref          : RCRT:79448

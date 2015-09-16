@@ -1,0 +1,17 @@
+appname             : GenomeAnalysisTK
+appversion          : 3.3.0
+description         : Genome Analysis ToolKit version 3.3.0
+module              : GenomeAnalysisTK-3.3.0-fasrc01
+tags                : 
+publication         : 
+modulename          : GenomeAnalysisTK-3.3.0-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May  7 14:44:01 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

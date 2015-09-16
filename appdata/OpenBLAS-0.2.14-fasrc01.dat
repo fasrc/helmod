@@ -1,0 +1,17 @@
+appname             : OpenBLAS
+appversion          : 0.2.14
+description         : OpenBLAS version 0.2.14
+module              : OpenBLAS-0.2.14-fasrc01
+tags                : 
+publication         : 
+modulename          : OpenBLAS-0.2.14-fasrc01
+type                : Comp
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May 14 13:52:28 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

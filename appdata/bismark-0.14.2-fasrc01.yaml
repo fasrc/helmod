@@ -1,0 +1,18 @@
+---
+appname             : bismark
+appversion          : 0.14.2
+description         : bismark version 0.14.2
+module              : bismark-0.14.2-fasrc01
+tags                : 
+publication         : 
+modulename          : bismark-0.14.2-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Apr 28 11:01:56 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : bowtie2/2.2.2-fasrc01 samtools/1.1-fasrc02
+rundependencies     : bowtie2/2.2.2-fasrc01 samtools/1.1-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

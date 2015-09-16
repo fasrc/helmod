@@ -1,0 +1,18 @@
+appname             : guile
+appversion          : 2.0.11
+description         : Guile is the GNU Ubiquitous Intelligent Language for Extensions, the official extension language for the GNU operating system.
+tags                : 
+publication         : 
+modulename          : guile-2.0.11-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Aug  3 12:45:00 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : readline/6.3-fasrc01 libtool/2.4.6-fasrc01 gmp/6.0.0-fasrc02 libunistring/0.9.6-fasrc01 libffi/3.2.1-fasrc01 gc/7.2-fasrc01
+rundependencies     : readline/6.3-fasrc01 libtool/2.4.6-fasrc01 gmp/6.0.0-fasrc02 libunistring/0.9.6-fasrc01 libffi/3.2.1-fasrc01 gc/7.2-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,17 @@
+appname             : samtools
+appversion          : 1.2
+description         : samtools version 1.2
+module              : samtools-1.2-fasrc01
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
+publication         : 
+modulename          : samtools-1.2-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue May 12 13:52:42 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

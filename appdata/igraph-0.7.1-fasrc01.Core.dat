@@ -1,0 +1,18 @@
+appname             : igraph
+appversion          : 0.7.1
+description         : IGRAPH version 0.7.1 is a collection of network analysis tools with the emphasis on efficiency, portability and ease of use.
+tags                : 
+publication         : 
+modulename          : igraph-0.7.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jul  8 16:21:17 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

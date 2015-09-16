@@ -1,0 +1,18 @@
+appname             : libunistring
+appversion          : 0.9.6
+description         : This library provides functions for manipulating Unicode strings and for manipulating C strings according to the Unicode standard.
+tags                : 
+publication         : 
+modulename          : libunistring-0.9.6-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Aug  3 11:12:30 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

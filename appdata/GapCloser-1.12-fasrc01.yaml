@@ -1,0 +1,18 @@
+---
+appname             : GapCloser
+appversion          : 1.12
+description         : GapCloser version 1.12
+module              : GapCloser-1.12-fasrc01
+tags                : 
+publication         : 
+modulename          : GapCloser-1.12-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Apr 22 11:44:05 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

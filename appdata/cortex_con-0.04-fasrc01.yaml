@@ -1,0 +1,18 @@
+---
+appname             : cortex_con
+appversion          : 0.04
+description         : cortex_con version 0.04
+module              : cortex_con-0.04-fasrc01
+tags                : 
+publication         : 
+modulename          : cortex_con-0.04-fasrc01
+type                : Core
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Apr 22 12:14:24 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : glueviz
+appversion          : 0.5.3
+description         : Glue is a Python library to explore relationships within and among related datasets.
+tags                : 
+publication         : 
+modulename          : glueviz-0.5.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Aug 28 12:53:55 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : Anaconda/1.9.2-fasrc01
+rundependencies     : Anaconda/1.9.2-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

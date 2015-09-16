@@ -1,0 +1,18 @@
+appname             : ParaView
+appversion          : 4.3.1
+description         : ParaView is an open-source, multi-platform data analysis and visualization application.
+tags                : 
+publication         : 
+modulename          : ParaView-4.3.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Aug 28 15:03:48 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 
