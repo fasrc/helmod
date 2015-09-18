@@ -61,6 +61,36 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+%define builddependencies gmp/5.1.3-fasrc01 mpfr/3.1.2-fasrc01 mpc/1.0.1-fasrc01 
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
+%define apppublication %{nil}
+
 
 #
 # FIXME
@@ -104,10 +134,6 @@ The GNU Compiler Collection includes front ends for C, C++, Objective-C, Fortran
 
 #prerequisite apps (uncomment and tweak if necessary)
 #keep these synced with the %%install section!
-module load gmp/5.1.3-fasrc01
-module load mpfr/3.1.2-fasrc01
-module load mpc/1.0.1-fasrc01
-
 #this is from the default %%configure macro + make, except remove -m64, work in a separate objdir subdirectory, and use parallel make
 CFLAGS='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic'
 export CFLAGS
@@ -154,31 +180,13 @@ cd ..
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#keep these synced with the %%build section!
-module load gmp/5.1.3-fasrc01
-module load mpfr/3.1.2-fasrc01
-module load mpc/1.0.1-fasrc01
 
 #this is from the default %%makeinstall macro, except load modules and work in a separate objdir subdirectory
 cd %{_topdir}/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}
 cd objdir
-make \
-  prefix=%{buildroot}/%{_prefix} \
-  exec_prefix=%{buildroot}/%{_prefix} \
-  bindir=%{buildroot}/%{_prefix}/bin \
-  sbindir=%{buildroot}/%{_prefix}/sbin \
-  sysconfdir=%{buildroot}/%{_prefix}/etc \
-  datadir=%{buildroot}/%{_prefix}/share \
-  includedir=%{buildroot}/%{_prefix}/include \
-  libdir=%{buildroot}/%{_prefix}/lib64 \
-  libexecdir=%{buildroot}/%{_prefix}/libexec \
-  localstatedir=%{buildroot}/%{_prefix}/var \
-  sharedstatedir=%{buildroot}/%{_prefix}/var/lib \
-  mandir=%{buildroot}/%{_prefix}/share/man \
-  infodir=%{buildroot}/%{_prefix}/share/info \
-  install
+make install DESTDIR=%{buildroot}
 cd ..
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -242,19 +250,14 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("gmp") then
-		load("gmp/5.1.3-fasrc01")
-	end
-	if not isloaded("mpfr") then
-		load("mpfr/3.1.2-fasrc01")
-	end
-	if not isloaded("mpc") then
-		load("mpc/1.0.1-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        load(i)
+    end
 end
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment what is relevant)
 
 setenv("CC" , "gcc")
 setenv("CXX", "g++")
@@ -284,6 +287,28 @@ setenv("FASRCSW_COMP_NAME"   , "%{name}")
 setenv("FASRCSW_COMP_VERSION", "%{version}")
 setenv("FASRCSW_COMP_RELEASE", "%{release_short}")
 family("Comp")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

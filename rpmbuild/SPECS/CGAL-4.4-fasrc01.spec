@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies gmp/6.0.0-fasrc02 mpfr/3.1.2-fasrc02
+%define builddependencies gmp/6.0.0-fasrc02 mpfr/3.1.2-fasrc02 boost/1.41.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -136,7 +136,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH=$GMP_INCLUDE -DCMAKE_LIBRARY_PATH=$GMP_LIB .
+mkdir build; cd build
+
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$GMP_INCLUDE;$MPFR_INCLUDE;$BOOST_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$GMP_LIB;$MPFR_LIB;$BOOST_LIB" ..
 
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
@@ -185,7 +187,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}

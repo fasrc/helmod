@@ -68,6 +68,9 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies netcdf/4.1.3-fasrc03 udunits/2.2.18-fasrc01 antlr/2.7.7-fasrc01
@@ -88,7 +91,6 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Build notes: %{buildcomments}
 The NCO toolkit manipulates and analyzes data stored in netCDF-accessible formats, including DAP, HDF4, and HDF5. It exploits the geophysical expressivity of many CF (Climate & Forecast) metadata conventions, the flexible description of physical dimensions translated by UDUnits, the network transparency of OPeNDAP, the storage features (e.g., compression, chunking, groups) of HDF (the Hierarchical Data Format), and many powerful mathematical and statistical algorithms of GSL (the GNU Scientific Library).
 
 
@@ -288,11 +290,10 @@ prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

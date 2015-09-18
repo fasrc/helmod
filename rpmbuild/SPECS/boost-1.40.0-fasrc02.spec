@@ -75,6 +75,10 @@ Boost is a set of libraries for the C++ programming language that provide suppor
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
 
 %define builddependencies python/2.7.6-fasrc01
 %define rundependencies %{nil}
@@ -130,11 +134,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_40_0
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
 
 
 %define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
@@ -178,26 +177,11 @@ echo %{buildroot} | grep -q %{name}_1_40_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
 # Apply patch so that boost can properly detect thread support
-cat <<'EOF' | patch boost/config/stdlib/libstdcpp3.hpp
-Index: boost/config/stdlib/libstdcpp3.hpp
-===================================================================
---- boost/config/stdlib/libstdcpp3.hpp (revision 75635)
-+++ boost/config/stdlib/libstdcpp3.hpp (working copy)
-@@ -33,7 +33,8 @@
- 
- #ifdef __GLIBCXX__ // gcc 3.4 and greater:
- #  if defined(_GLIBCXX_HAVE_GTHR_DEFAULT) \
--        || defined(_GLIBCXX__PTHREADS)
-+        || defined(_GLIBCXX__PTHREADS) \
-+        || defined(_GLIBCXX_HAS_GTHREADS)
-       //
-       // If the std lib has thread support turned on, then turn it on in Boost
-       // as well.  We do this because some gcc-3.4 std lib headers define _REENTANT
-EOF
+sed -i -e 's?|| defined(_GLIBCXX__PTHREADS)?|| defined(_GLIBCXX_HAS_GTHREADS)?'  boost/config/stdlib/libstdcpp3.hpp
 
 # I get an error about std::complex if the intel includes are used
 test "%{toolset_name}" == "intel-linux" && unset CPATH
-./bjam install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
+./bjam install toolset=%{toolset_name} --without-mpi --layout=tagged --prefix=%{buildroot}/%{_prefix} --libdir=%{buildroot}/%{_prefix}/lib
 
 
 #(this should not need to be changed)
@@ -297,7 +281,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

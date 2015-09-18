@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake//2.8.12.2-fasrc01 bpp-utils/1.5.0-fasrc01
+%define builddependencies cmake/2.8.12.2-fasrc01 bpp-utils/1.5.0-fasrc01
 %define rundependencies %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}

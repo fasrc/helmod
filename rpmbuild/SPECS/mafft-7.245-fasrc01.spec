@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF-EOS libraries are software libraries built on HDF libraries. HDF-EOS libraries support the construction of data structures: Grid, Point and Swath.
+%define summary_static Multiple alignment program for amino acid or nucleotide sequences
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/HDF-EOS5.1.15.tar.Z
-Source: HDF-EOS5.1.15.tar.Z
+URL:http://mafft.cbrc.jp/alignment/software/mafft-7.245-with-extensions-src.tgz 
+Source: %{name}-%{version}-with-extensions-src.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,30 +73,29 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies hdf5/1.8.12-fasrc06 zlib/1.2.8-fasrc03 szip/2.1-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for NCL/NCAR with Lu Shen's software stack
-%define requestor Lu Shen <lshen@fas.harvard.edu>
-%define requestref %{nil}
+%define buildcomments %{nil}
+%define requestor Chinmay Shukla <cshukla@fas.harvard.edu>
+%define requestref RCRT:92217
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Build notes: %{buildcomments}
-HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing file format for transfer of various types of data between different machines based upon HDF. 
-
-
-
+MAFFT is a multiple sequence alignment program for unix-like operating systems.  It offers a range of multiple alignment methods, L-INS-i (accurate; for alignment of <∼200 sequences), FFT-NS-2 (fast; for alignment of <∼30,000 sequences), etc.
+This build includes extensions (supports RNA structural alignments as well as protein/DNA/RNA sequence alignments).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,11 +111,9 @@ HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf hdfeos5
-test -e HDF-EOS5.1.15.tar && rm HDF-EOS5.1.15.tar
-7za e "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS5.1.15.tar.Z
-tar xvf HDF-EOS5.1.15.tar
-cd hdfeos5
+rm -rf %{name}-%{version}-with-extensions
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-with-extensions-src.tgz
+cd %{name}-%{version}-with-extensions
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,17 +135,13 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-with-extensions/core
 
-export CC="$HDF5_HOME/bin/h5pcc"
-./configure --prefix=%{_prefix} \
-            --with-hdf5=$HDF5_HOME \
-            --with-zlib=$ZLIB_HOME \
-            --with-szlib=$SZIP_HOME \
-            --enable-install-include
 
+sed -i -e 's?^PREFIX =.*?PREFIX = %{_prefix}?' Makefile
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
@@ -180,7 +174,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-with-extensions/core
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -274,15 +268,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF_EOS5_HOME",            "%{_prefix}")
-setenv("HDF_EOS5_LIB",             "%{_prefix}/lib")
-setenv("HDF_EOS5_INCLUDE",         "%{_prefix}/include")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("MAFFT_HOME",       "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

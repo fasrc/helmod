@@ -78,10 +78,13 @@ OpenImageIO is a library for reading and writing images, and a bunch of related 
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 boost/1.54.0-fasrc02 openexr/1.4.0-fasrc01
-%define rundependencies  openexr/1.4.0-fasrc01 boost/1.54.0-fasrc02
+
+%define builddependencies cmake/2.8.12.2-fasrc01 boost/1.54.0-fasrc02 openexr/2.2.0-fasrc02 ilmbase/2.2.0-fasrc02
+%define rundependencies  openexr/1.4.0-fasrc01 boost/1.54.0-fasrc02 openexr/2.2.0-fasrc02 ilmbase/2.2.0-fasrc02
 %define buildcomments %{nil}
 %define requestor Adam West <awest@physics.harvard.edu>
 %define requestref RCRT:80269
@@ -136,15 +139,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-Release-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 rm -rf build; mkdir build; cd build
 
 # test "%{comp_name}" == 'intel' && export CC="$CC -diag-disable 177"
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="\$OPENEXR_HOME/include;\$BOOST_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="\$OPENEXR_HOME/lib;$BOOST_LIB" .. 
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$OPENEXR_INCLUDE;$ILMBASE_INCLUDE;$BOOST_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$OPENEXR_LIB;$ILMBASE_LIB;$BOOST_LIB" .. 
 
 # Unused function causes errors for intel
 # sed -i -e '289,293{;s?^?//?}' ../src/libOpenImageIO/exif.cpp
@@ -178,7 +177,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-RB-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-Release-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -284,7 +283,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

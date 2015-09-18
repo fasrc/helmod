@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF-EOS libraries are software libraries built on HDF libraries. HDF-EOS libraries support the construction of data structures: Grid, Point and Swath.
+%define summary_static RepeatMasker (open) v4.0.5
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/HDF-EOS5.1.15.tar.Z
-Source: HDF-EOS5.1.15.tar.Z
+URL: http://www.repeatmasker.org/RepeatMasker-open-4-0-5.tar.gz
+Source: %{name}-open-4-0-5.tar.gz
 
 #
 # there should be no need to change the following
@@ -72,18 +72,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies hdf5/1.8.12-fasrc06 zlib/1.2.8-fasrc03 szip/2.1-fasrc01
+%define builddependencies perl-modules/5.10.1-fasrc11 trf/404-fasrc01 ncbi-rmblastn/2.2.28-fasrc01 hmmer/3.1b1-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments Built for NCL/NCAR with Lu Shen's software stack
-%define requestor Lu Shen <lshen@fas.harvard.edu>
+%define buildcomments Updated to dependency on newer perl modules
+%define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -91,10 +91,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Build notes: %{buildcomments}
-HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing file format for transfer of various types of data between different machines based upon HDF. 
-
-
+RepeatMasker is a program that screens DNA sequences for interspersed repeats and low complexity DNA sequences. The output of the program is a detailed annotation of the repeats that are present in the query sequence as well as a modified version of the query sequence in which all the annotated repeats have been masked (default: replaced by Ns). Sequence comparisons in RepeatMasker are performed by one of several popular search engines including nhmmer, cross_match, ABBlast/WUBlast, RMBlast and Decypher. RepeatMasker makes use of curated libraries of repeats and currently supports Dfam ( profile HMM library derived from Repbase sequences ) and Repbase, a service of the Genetic Information Research Institute.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -111,11 +108,23 @@ HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf hdfeos5
-test -e HDF-EOS5.1.15.tar && rm HDF-EOS5.1.15.tar
-7za e "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS5.1.15.tar.Z
-tar xvf HDF-EOS5.1.15.tar
-cd hdfeos5
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-open-4-0-5.tar.gz
+mv %{name} %{name}-%{version}
+cd %{name}-%{version}
+
+# get current RepeatMasker library
+%define rmlib 20150807
+wget --no-clobber http://BobFreemanMA:g70lb2@www.girinst.org/server/RepBase/protected/repeatmaskerlibraries/repeatmaskerlibraries-%{rmlib}.tar.gz
+tar zxfv repeatmaskerlibraries-%{rmlib}.tar.gz 
+rm repeatmaskerlibraries-%{rmlib}.tar.gz 
+
+# get current Dfam library
+wget --no-clobber ftp://selab.janelia.org/pub/dfam/Current_Release/Dfam.hmm.gz
+gunzip Dfam.hmm.gz 
+mv Dfam.hmm Libraries/
+
+# and back to our regularly scheduled work...
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,20 +146,206 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-
+#module load NAME/VERSION-RELEASE
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export CC="$HDF5_HOME/bin/h5pcc"
-./configure --prefix=%{_prefix} \
-            --with-hdf5=$HDF5_HOME \
-            --with-zlib=$ZLIB_HOME \
-            --with-szlib=$SZIP_HOME \
-            --enable-install-include
+
+cat > RepeatMaskerConfig.pm <<EOF
+#!/usr/bin/env perl
+##---------------------------------------------------------------------------##
+##  File:
+##      @(#) RepeatMaskerConfig.pm
+##  Author:
+##      Arian Smit <asmit@systemsbiology.org>
+##      Robert Hubley <rhubley@systemsbiology.org>
+##  Description:
+##      This is the main configuration file for the RepeatMasker
+##      program suite.  Before you can run the programs included
+##      in this package you will need to edit this file and
+##      configure for your site.  NOTE: There is also a "configure"
+##      script which will help you do this.
+##
+#******************************************************************************
+#* Copyright (C) Institute for Systems Biology 2005 Developed by
+#* Arian Smit and Robert Hubley.
+#*
+#* This work is licensed under the Open Source License v2.1.  To view a copy
+#* of this license, visit http://www.opensource.org/licenses/osl-2.1.php or
+#* see the license.txt file contained in this distribution.
+#*
+###############################################################################
+package RepeatMaskerConfig;
+use FindBin;
+require Exporter;
+@EXPORT_OK = qw( \$REPEATMASKER_DIR \$REPEATMASKER_MATRICES_DIR
+    \$REPEATMASKER_LIB_DIR \$WUBLAST_DIR \$WUBLASTN_PRGM
+    \$WUBLASTP_PRGM \$WUBLASTX_PRGM \$SETDB_PRGM \$XDFORMAT_PRGM 
+    \$DEMAKE \$DECYPHER \$LIBPATH \$TRF_PRGM \$DEBUGALL \$VALID_SEARCH_ENGINES
+    \$DEFAULT_SEARCH_ENGINES \$RMBLAST_DIR \$RMBLASTN_PRGM \$RMBLASTDB_PRGM );
+
+%%EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
+@ISA         = qw(Exporter);
+
+BEGIN {
+##----------------------------------------------------------------------##
+##     CONFIGURE THE FOLLOWING PARAMETERS FOR YOUR INSTALLATION         ##
+##                                                                      ##
+##
+## RepeatMasker Location
+## ======================
+## The path to the RepeatMasker programs and support files
+## This is the directory with this file as well as
+## the ProcessRepeats and Library/ and Matrices/ subdirectories
+## reside.
+##
+##    i.e. Typical UNIX installation
+##     \$REPEATMASKER_DIR = "/usr/local/RepeatMasker";
+##    Windows w/Cygwin example:
+##     \$REPEATMASKER_DIR = "/cygdrive/c/RepeatMasker";
+##
+  \$REPEATMASKER_DIR          = "\$FindBin::RealBin";
+  \$REPEATMASKER_MATRICES_DIR = "\$REPEATMASKER_DIR/Matrices";
+  \$REPEATMASKER_LIB_DIR      = "\$REPEATMASKER_DIR/Libraries";
+
+##
+## Search Engine Configuration:
+##   RepeatMasker uses either the CrossMatch, WUBlast/ABBlast, or the
+##   TimeLogic search engine to find matches to interspersed
+##   repeat consensi.  You are only required to have one engine
+##   installed on your system in order to run RepeatMasker.  
+##   
+##   The optional program RepeatProteinMask will only run
+##   with the WUBlast/ABBlast package ( currently ).  
+##
+
+  ##
+  ## CrossMatch Location
+  ## ===================
+  ## The path to Phil Green's cross_match program ( phrap program suite ).
+  ##   - Use cross_match version 980501 or later for best results
+  ##   - On a windows machine running the cygwin emulation software
+  ##     you might set this to something like this:
+  ##
+  ##            \$CROSSMATCH_DIR = "/cygdrive/c/phrap";
+  ##            \$CROSSMATCH_PRGM = "cross_match.exe";
+  ##
+    \$CROSSMATCH_DIR = "/usr/local/bin";
+    \$CROSSMATCH_PRGM = "\$CROSSMATCH_DIR/cross_match";
+
+  ##
+  ## HMMER Location
+  ## ========================
+  ## Set the location of the HMMER programs and support utilities.
+  ##
+    \$HMMER_DIR   = "/usr/local/hmmer";
+    \$NHMMSCAN_PRGM = "\$HMMER_DIR/nhmmscan";
+    \$HMMPRESS_PRGM = "\$HMMER_DIR/hmmpress";
+
+  ##
+  ## RMBlast Location
+  ## ========================
+  ## Set the location of the NCBI RMBLAST programs and support utilities.
+  ##
+    \$RMBLAST_DIR   = "${RMBLAST_HOME}/bin";
+    \$RMBLASTN_PRGM = "\$RMBLAST_DIR/rmblastn";
+    \$RMBLASTX_PRGM = "\$RMBLAST_DIR/blastx";
+    \$RMBLASTDB_PRGM   = "\$RMBLAST_DIR/makeblastdb";
+ 
+  ##
+  ## WUBLAST/ABBlast Location
+  ## ========================
+  ## Set the location of the WUBLAST/ABBlast programs and support utilities.
+  ##
+    \$WUBLAST_DIR   = "/usr/local/abblast";
+    \$WUBLASTN_PRGM = "\$WUBLAST_DIR/blastn";
+    \$WUBLASTP_PRGM = "\$WUBLAST_DIR/blastp";
+    \$WUBLASTX_PRGM = "\$WUBLAST_DIR/blastx";
+    \$XDFORMAT_PRGM = "\$WUBLAST_DIR/xdformat";
+    \$SETDB_PRGM    = "\$WUBLAST_DIR/setdb";
+  
+  ##
+  ## DeCypher Blast ( OPTIONAL )
+  ## ==============
+  ##  Location of TimeLogic's DeCypher Blast
+  ##  ie. 
+  ##    \$DECYPHER = "c:/dc_local/bin/dc_template_rt";
+  ##
+  ##
+    \$DEMAKE  = "dc_make_target -template format_aa_into_aa -quiet";
+    \$DECYPHER = "";
+  
+  
+##
+## Default Search Engine
+## =====================
+##  Pick which search engine should be the default
+##  Can be one of "crossmatch", "wublast", "decypher" or "ncbi".
+##
+  \$DEFAULT_SEARCH_ENGINE = "ncbi";
+
+
+##
+## Library Path
+## ============
+##   - RepeatMasker now generates and caches
+##     species specific libraries.  The LIBPATH 
+##     parameter defines the search order for
+##     directories where library caches might
+##     be stored.  NOTE: RepeatMasker needs at
+##     least one of these directories to be writable
+##     and thus if it can't read a cached library
+##     from one of these locations, or write
+##     a new library in one of these locations it
+##     will default to building the libraries
+##     in the programs work directory every time
+##     it runs -- this could be slow if you commonly
+##     run against short sequences using the same
+##     species parameters.
+##
+  @LIBPATH = ( \$REPEATMASKER_LIB_DIR, 
+               \$ENV{'HOME'} . "/.RepeatMaskerCache" );
+
+
+##
+## TRF Location ( OPTIONAL )
+## ============
+## Tandem Repeat Finder program.  This is only required by
+## the RepeatProteinMask program.
+##
+  \$TRF_PRGM = "${TRF_HOME}/trf";
+
+##
+## Turns on debugging in all RepeatMasker modules/scripts
+##
+  \$DEBUGALL = 0;
+
+##                                                                      ##
+##                      END CONFIGURATION AREA                          ##
+##----------------------------------------------------------------------##
+
+##----------------------------------------------------------------------##
+## Do not change these parameters
+##
+  \$VALID_SEARCH_ENGINES = { "crossmatch" => 1, 
+                            "wublast" => 1, 
+                            "decypher" => 1  };
+
+##----------------------------------------------------------------------##
+}
+
+1;
+EOF
+
+
+# fix hard coding of perl location...
+find . -type f | xargs sed -i -e 's@#!/usr/bin/perl@#!/usr/bin/env perl@' -e 's@#!/u1/local/bin/perl@#!/usr/bin/env perl@' -e 's@#!/usr/local/bin/perl@#!/usr/bin/env perl@'
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+
+# No need for RepeatMasker
+#make
 
 
 
@@ -180,11 +375,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+#make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -254,7 +449,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -273,16 +467,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("HDF_EOS5_HOME",            "%{_prefix}")
-setenv("HDF_EOS5_LIB",             "%{_prefix}/lib")
-setenv("HDF_EOS5_INCLUDE",         "%{_prefix}/include")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-EOF
 
+---- environment changes (uncomment what is relevant)
+setenv("REPEATMASKER_HOME",         "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
+EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -305,6 +494,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

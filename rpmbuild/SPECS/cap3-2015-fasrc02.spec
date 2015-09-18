@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF-EOS libraries are software libraries built on HDF libraries. HDF-EOS libraries support the construction of data structures: Grid, Point and Swath.
+%define summary_static CAP3 Assembly Program
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/HDF-EOS5.1.15.tar.Z
-Source: HDF-EOS5.1.15.tar.Z
+URL: http://seq.cs.iastate.edu/CAP3/cap3.linux.x86_64.tar 
+Source: %{name}.linux.x86_64.tar
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,30 +73,28 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies hdf5/1.8.12-fasrc06 zlib/1.2.8-fasrc03 szip/2.1-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for NCL/NCAR with Lu Shen's software stack
-%define requestor Lu Shen <lshen@fas.harvard.edu>
+%define buildcomments %{nil}
+%define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Build notes: %{buildcomments}
-HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing file format for transfer of various types of data between different machines based upon HDF. 
-
-
-
+CAP3 Assembly Program.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,11 +110,9 @@ HDF-EOS (Hierarchical Data Format - Earth Observing System) is a self-describing
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf hdfeos5
-test -e HDF-EOS5.1.15.tar && rm HDF-EOS5.1.15.tar
-7za e "$FASRCSW_DEV"/rpmbuild/SOURCES/HDF-EOS5.1.15.tar.Z
-tar xvf HDF-EOS5.1.15.tar
-cd hdfeos5
+rm -rf CAP3
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.linux.x86_64.tar
+cd CAP3
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,20 +134,30 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/CAP3
 
-export CC="$HDF5_HOME/bin/h5pcc"
-./configure --prefix=%{_prefix} \
-            --with-hdf5=$HDF5_HOME \
-            --with-zlib=$ZLIB_HOME \
-            --with-szlib=$SZIP_HOME \
-            --enable-install-include
+
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+#make
 
 
 
@@ -180,11 +187,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/hdfeos5
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/CAP3
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+#make install DESTDIR=%{buildroot}
+rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/CAP3/ %{buildroot}/%{_prefix}/
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -272,17 +279,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("HDF_EOS5_HOME",            "%{_prefix}")
-setenv("HDF_EOS5_LIB",             "%{_prefix}/lib")
-setenv("HDF_EOS5_INCLUDE",         "%{_prefix}/include")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

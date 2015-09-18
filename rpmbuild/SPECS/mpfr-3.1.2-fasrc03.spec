@@ -75,6 +75,9 @@ The main goal of MPFR is to provide a library for multiple-precision floating-po
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies gmp/6.0.0-fasrc03
@@ -116,11 +119,6 @@ The main goal of MPFR is to provide a library for multiple-precision floating-po
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#prerequisite apps (uncomment and tweak if necessary)
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 %configure
@@ -223,6 +221,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("MPFR_HOME",                "%{_prefix}")
+setenv("MPFR_INCLUDE",             "%{_prefix}/include")
+setenv("MPFR_LIB",                 "%{_prefix}/lib64")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("INFOPATH",           "%{_prefix}/share/info")
@@ -232,7 +233,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

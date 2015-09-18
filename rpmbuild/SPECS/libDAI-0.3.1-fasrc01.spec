@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static A free and open source C++ library for Discrete Approximate Inference in graphical models 
 Summary: %{summary_static}
 
 #
@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies boost/1.40.0-fasrc01 python/2.7.6-fasrc01 matlab/R2015a-fasrc01 
+%define builddependencies boost/1.40.0-fasrc01 python/2.7.6-fasrc01 matlab/R2015a-fasrc01 gmp/6.0.0-fasrc02 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -91,7 +91,10 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-libDAI
+libDAI is a free/open source C++ library that provides implementations of various (approximate) inference methods for discrete graphical models. libDAI supports arbitrary factor graphs with discrete variables; this includes discrete Markov Random Fields and Bayesian Networks.
+The library is targeted at researchers. To be able to use the library, a good understanding of graphical models is needed.
+The best way to use libDAI is by writing C++ code that invokes the library; in addition, part of the functionality is accessibly by using the: command line interface; (limited) MatLab interface; (experimental) python interface; (experimental) octave interface.
+libDAI can be used to implement novel (approximate) inference algorithms and to easily compare the accuracy and performance with existing algorithms that have been implemented already.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------

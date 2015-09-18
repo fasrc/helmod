@@ -81,7 +81,7 @@ GROMACS is a versatile package to perform molecular dynamics, i.e. simulate the 
 
 
 %define builddependencies cmake/2.8.12.2-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

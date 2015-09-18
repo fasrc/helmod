@@ -263,6 +263,28 @@ setenv("ABT_HOME",                  "${AMBERHOME}")
 prepend_path("PATH",                "%{_prefix}")
 EOF
 
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

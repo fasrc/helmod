@@ -54,6 +54,31 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+#
+# Macros for setting app data 
+# The first set can probably be left as is
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
+%define apppublication %{nil}
+
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
@@ -183,13 +208,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
--- environment changes (uncomment what's relevant)
+
+-- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
@@ -205,6 +234,29 @@ setenv("FASRCSW_MPI_NAME"   , "%{name}")
 setenv("FASRCSW_MPI_VERSION", "%{version}")
 setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
 family("MPI")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname     		: %{appname}
+appversion  		: %{appversion}
+description 		: %{appdescription}
+module      		: %{modulename}
+tags        		: %{apptags}
+publication 		: %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 
