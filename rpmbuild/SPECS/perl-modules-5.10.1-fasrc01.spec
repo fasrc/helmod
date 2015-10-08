@@ -66,6 +66,37 @@ Prefix: %{_prefix}
 
 
 #
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+%define builddependencies perl/5.10.1-fasrc01 gd/2.0.28-fasrc01 
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
+%define apppublication %{nil}
+
+
+#
 # The list of modules installed via cpan
 #
 %define MODULES IO-String-1.08 Test-Deep-0.112 Tree-DAG_Node-1.20 Test-Warn-0.24 Class-Data-Inheritable-0.08 Algorithm-Diff-1.1902 Scalar-List-Utils-1.38 Parse-CPAN-Meta-1.4409 CPAN-Meta-YAML-0.010 CPAN-Meta-Requirements-2.125 CPAN-Meta-2.133380 Module-Metadata-1.000019 version-0.9907 Sub-Uplevel-0.24 Test-Exception-0.32 Test-Simple-1.001002 Data-Dumper-2.145 Carp-1.32 File-Slurp-9999.19 ExtUtils-CBuilder-0.280212 ExtUtils-ParseXS-3.22 Perl-OSType-1.007 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41 DBI-1.631 Devel-StackTrace-1.31 Exception-Class-1.37 GD-2.50 JSON-PP-2.27203 Data-Stag-0.14 URI-1.60 Module-Build-0.4204 DBD-SQLite-1.40 IPC-Run-0.92 Graph-0.96 GraphViz-2.15 XML-NamespaceSupport-1.11 XML-SAX-Base-1.08 XML-Parser-2.41 XML-SAX-0.99 XML-Simple-2.20 XML-Twig-3.44 XML-SAX-Writer-0.54 XML-Filter-BufferText-1.01 Acme-Damn-0.02 Bit-Vector-7.3 DBD-Pg-3.0.0 Clone-0.36 Class-Load-0.20 Task-Weaken-1.04 Sub-Exporter-Progressive-0.001011 Devel-GlobalDestruction-0.12 Sub-Name-0.05 Eval-Closure-0.11 Dist-CheckConflicts-0.10 Data-OptList-0.109 Moose-2.1202 Module-Runtime-0.013 Params-Util-1.07 Sub-Install-0.927 Module-Implementation-0.07 Try-Tiny-0.19 List-MoreUtils-0.33 Package-Stash-0.36 Package-DeprecationManager-0.13 MRO-Compat-0.12 Sub-Exporter-0.987 Compress-Raw-Zlib-2.065 Compress-Raw-Bzip2-2.064 Convert-Binary-C-0.76 Mozilla-CA-20130114 WWW-RobotRules-6.02 HTTP-Cookies-6.01 HTTP-Daemon-6.01 HTML-Tagset-3.20 HTML-Parser-3.71 HTTP-Negotiate-6.01 File-Listing-6.04 HTTP-Date-6.02 IO-HTML-1.00 HTTP-Message-6.06 Encode-Locale-1.03 LWP-MediaTypes-6.02 libwww-perl-6.05 Net-HTTP-6.06 Net-SSLeay-1.58 IO-Socket-SSL-1.966 LWP-Protocol-https-6.04 MIME-Base64-3.14 Crypt-SSLeay-0.64 Math-Random-0.71 Perl-Unsafe-Signals-0.02 Socket6-0.25 Storable-2.45 String-Approx-3.26 Tk-804.032 Sys-SigAction-0.21 Time-HiRes-1.9726 Time-Piece-1.27 Want-0.22 XML-LibXML-2.0110 Data-Utilities-0.04 DIYA-1.0
@@ -239,13 +270,17 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("perl") then
-		load("perl/5.10.1-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
 end
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment what is relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("PERL5LIB",              "%{_prefix}/lib")
 prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")
@@ -263,6 +298,28 @@ prepend_path("MANPATH",             "%{_prefix}/man")
 --prepend_path("INFOPATH",            "%{_prefix}/share/info")
 --prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
 --prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 
