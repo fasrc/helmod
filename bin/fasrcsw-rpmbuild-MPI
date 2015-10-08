@@ -6,7 +6,6 @@ fasrcsw-env-check
 for mpi in $FASRCSW_MPIS; do
 	IFS=/ read -r mpi_name mpi_versionrelease <<< "$mpi"
 	IFS=- read -r mpi_version mpi_release     <<< "$mpi_versionrelease"
-	
 	fasrcsw-rpmbuild-Comp \
 		--define "mpi_name $mpi_name" --define "mpi_version $mpi_version" --define "mpi_release $mpi_release" \
 		"$@"

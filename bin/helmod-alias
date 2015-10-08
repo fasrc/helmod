@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+# export NAME=ncbi-blast VERSION=2.2.26 RELEASE=fasrc01 && helmod-alias.sh blast 
+# Take a Helmod spec file and creates an alias spec file.
+# If, for example, you want to make a module called 'blast'
+# that is simply an alias for the 'ncbi-blast' module,
+# this tool will 
+# 1. copy the ncbi-blast spec file
+# 2. remove the contents of the %prep, %build, and most of the %install sections
+# 3. comment out the Source line(s)
+# 3. remove the setenv and prepend_path lines from the lua file
+# 4. and set the original module as the sole runtime dependency. This is set to a 
+#    'hard' dependency as well, not just any version
+#
+# It is assumed that the original is defined in the NAME, VERSION, and RELEASE 
+# variables.  The desired alias is the sole argument.
+# 
+# The new file that is written out has the same version and release information.
+#
+
+# The help message
+read -r -d '' help <<-'EOF'
+  helmod-alias.sh <alias>
+  
+  Take a Helmod spec file and create an alias spec file:
+    
+  $ export NAME=ncbi-blast VERSION=2.2.26 RELEASE=fasrc01 && helmod-alias.sh blast
+
+EOF
+
+helmodalias=$1
+
+if [ -z $helmodalias ]; then
+    echo "The alias argument was not set."
+    echo "$help"
+    exit 1;
+fi
+
+if [ -z $NAME ] || [ -z $VERSION ] || [ -z $RELEASE ] ; then
+    echo "The Helmod NAME, VERSION, and RELEASE environment variables must be set."
+    echo "$help"
+    exit 1;
+fi
+
+
+specfile="${NAME}-${VERSION}-${RELEASE}.spec"
+if [ ! -e ${specfile} ]; then
+    echo "Spec file $specfile cannot be found."
+    echo "$help"
+    exit 1;
+fi
+modulename="${NAME}/${VERSION}-${RELEASE}"
+
+# New spec file is the same as the existing one, with the new name
+newspecfile="${helmodalias}-${VERSION}-${RELEASE}.spec"
+
+if [ -e ${newspecfile} ]; then
+    echo "$newspecfile exists.  Overwriting."
+fi
+
+# Replace stuff and write out the new one
+sed -e "s?^%define rundependencies.*?%define rundependencies ${modulename}?" \
+    -e 's/^%define builddependencies.*/%define builddependencies %{nil}/' \
+    -e 's/^Source/#Source/' \
+    -e 's/if not isloaded(a)/if not isloaded(i)/' \
+    -e '/^%description/,/^%prep/{//!d}' \
+    -e '/^%prep/,/^%build/{//!d}' \
+    -e '/^%build/,/^%install/{//!d}' \
+    -e '/^%install/,/^%if %{defined trial}/{//!d}' \
+    -e '/^setenv(.*/d' \
+    -e '/^prepend_path(.*/d' < ${specfile} > ${newspecfile}
+sed -i -e "/^%description/a Alias for ${modulename}" ${newspecfile}
+sed -i -e '/^%install/a mkdir -p %{buildroot}%{_prefix}' ${newspecfile}
+sed -i -e '/^%install/a %include fasrcsw_module_loads.rpmmacros ' ${newspecfile}

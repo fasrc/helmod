@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-source "$FASRCSW_DEV/setup.sh"  #(bash arrays cannot be exported, so get them this way)
 fasrcsw-env-check
 
 rpm --dbpath "$FASRCSW_PROD"/rpmdb "$@"
