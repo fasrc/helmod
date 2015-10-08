@@ -8,3 +8,5 @@ replace.pl
 cores*
 count.py
 remaining
+.*
+*.list

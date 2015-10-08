@@ -6,6 +6,7 @@ trial:
 	fasrcsw-rpmbuild-$$TYPE --define 'trial yes' -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
 build:
+	@echo "FASRCSW_DEV is $$FASRCSW_DEV"
 	fasrcsw-rpmbuild-$$TYPE -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
 filelist:
@@ -40,3 +41,7 @@ uninstall:
 publish:
 	module load portal && load-build.py "../../appdata/$$NAME-$$VERSION-$$RELEASE.$$TYPE.dat"
 	module load portal && update-module-load.py $$FASRCSW_PROD/modulefiles
+
+alias:
+	helmod-alias $$ALIAS
+

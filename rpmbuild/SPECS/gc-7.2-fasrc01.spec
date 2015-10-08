@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies autoconf/2.69-fasrc01 libatomic_ops/7.4.2-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies libatomic_ops/7.4.2-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

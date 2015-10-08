@@ -76,6 +76,9 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies netcdf/4.2-fasrc01
@@ -121,6 +124,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 test "%{type}" == "MPI" && export FC=mpif90 F90=mpif90 CC=mpicc
+test "%{comp_name}" == "pgi" && export FC=pgf90 F90=pgf90 CC=pgcc CPPFLAGS="-DNDEBUG -DpgiFortran" FCFLAGS="-fPIC" F90FLAGS="-fPIC"
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-rc1
@@ -281,7 +285,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

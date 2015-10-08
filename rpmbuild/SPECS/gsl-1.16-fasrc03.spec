@@ -226,7 +226,7 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("GSL_HOME",                  "%{_prefix}")
 setenv("GSL_INCLUDE",               "%{_prefix}/include")
 setenv("GSL_LIB",                   "%{_prefix}/lib64")
@@ -242,7 +242,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

@@ -282,6 +282,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("LIBATOMIC_OPS_HOME",       "%{_prefix}")     
+setenv("LIBATOMIC_OPS_LIB",        "%{_prefix}/lib64")     
+setenv("LIBATOMIC_OPS_INCLUDE",    "%{_prefix}/include")     
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")

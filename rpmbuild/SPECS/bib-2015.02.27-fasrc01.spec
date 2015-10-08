@@ -253,6 +253,9 @@ yes | bib install velvet
 chmod -R go+rX "%{_prefix}"/install
 chmod -R go-w  "%{_prefix}"/install
 
+# For some reason, you have to run jellyfish 
+%{_prefix}/install/trinity/2.0.6/trinity-plugins/jellyfish/bin/jellyfish --help
+
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
 sudo rm "%{_prefix}"
 
