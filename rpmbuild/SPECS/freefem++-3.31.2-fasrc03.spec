@@ -147,7 +147,11 @@ test -z $CXX && export CXX=g++
 ./configure --prefix=%{_prefix} \
     --enable-download \
     --disable-parms
+
+# Fix errors in the download urls and md5
 sed -i -e 's?http://www.cise.ufl.edu/research/sparse/SuiteSparse?http://faculty.cse.tamu.edu/davis/SuiteSparse?' download/getall
+sed -i -e 's?5e99e975f7a1e3ea6abcad7c6e7e42e6?ca21ed426f347c6ec6b136a181e587e5?' download/getall
+
 download/getall -a -f 
 sed -i -e "s?CPP='gcc -E'?CPP=\"\$(CC) -E\"?" download/*/Makefile
 sed -i -e "s?CP=\"\$(CXXCPP)\"?CPP=\"\$(CC) -E\"?" download/nlopt/Makefile
