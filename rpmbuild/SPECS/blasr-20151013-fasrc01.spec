@@ -1,10 +1,5 @@
-# The spec involves the hack that allows the app to write directly to the 
-# production location.  The following allows the production location path to be 
-# used in files that the rpm builds.
-%define __arch_install_post %{nil}
-
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -35,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static gdata version 2.0.17
+%define summary_static PacBio read aligner
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: https://...
-Source: %{name}-%{version}.tar.gz
+URL:https://github.com/PacificBiosciences/blasr 
+#  Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -59,16 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-The Google Data APIs (Google Data) provide a simple protocol for reading and writing data on the web. 
-This module has been built by Plamen G. Krastev.
 
 #
 # Macros for setting app data 
@@ -88,12 +73,11 @@ This module has been built by Plamen G. Krastev.
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies %{nil}
+%define builddependencies hdf5/1.8.12-fasrc08 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Susan Kocher <skocher@fas.harvard.edu>
+%define requestref RCRT:93590
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -101,6 +85,16 @@ This module has been built by Plamen G. Krastev.
 %define apptags %{nil} 
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+PacBio read aligner
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -116,9 +110,11 @@ This module has been built by Plamen G. Krastev.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+git clone --recursive https://github.com/PacificBiosciences/blasr.git
+cd %{name}
+git checkout 2551eada563a3e9caa5c19535c94582e2a0891ee
+git submodule update --init
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -143,31 +139,26 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-#module load Python/2.7.8-fasrc01
+./configure.py --sub --no-pbbam
+
+# Make sure the szip lib that hdf5 was built with is picked up
+sed -i -e 's/\(HDF5_LIBFLAGS        ?= -lhdf5_cpp -lhdf5\)/\1 -L\$(SZIP_LIB) -lsz/' defines.mk
+
+# Remove all of the shared object builds; some kind of weird error with this gcc
+sed -i -e 's?^all: libblasr.a.*?all: libblasr.a?' libcpp/alignment/makefile
+sed -i -e 's?^all: libpbihdf.a.*?all: libpbihdf.a?' libcpp/hdf/makefile
+sed -i -e 's?^all: libpbdata.a.*?all: libpbdata.a?' libcpp/pbdata/makefile
+
+# Force utils makefile to append to LD_LIBRARY_PATH rather than reset it so that the 
+# mpc, mpfr, and gmp that gcc was built with are available
+sed -i -e 's?^LD_LIBRARY_PATH=\(.*\)?LD_LIBRARY_PATH:=\${LD_LIBRARY_PATH}:\1?' utils/makefile
+
+make build-submodule
+make
 
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
-
-python setup.py build
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -194,36 +185,11 @@ python setup.py build
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-# +++ Installing python packages +++
-
-# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-sudo mkdir -p "%{_prefix}/lib/python2.7/site-packages"
-sudo chown -R pkrastev:rc_admin "/n/sw/fasrcsw/apps/Core/gdata"
-
-export PYTHONPATH="%{_prefix}/lib/python2.7/site-packages":${PYTHONPATH}
-python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-cp -r %{_prefix}/* "%{buildroot}/%{_prefix}"
-rm -r "/n/sw/fasrcsw/apps/Core/gdata"
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp blasr %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -293,6 +259,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -301,30 +268,25 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
-load("numpy/1.5.1-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+setenv("BLASR_HOME",           "%{_prefix}")
+prepend_path("PATH",           "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

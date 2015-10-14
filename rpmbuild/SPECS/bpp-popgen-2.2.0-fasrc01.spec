@@ -253,7 +253,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BPPPOPGEN_HOME",             "%{_prefix}")
 setenv("BPPPOPGEN_INCLUDE",          "%{_prefix}/include")
 setenv("BPPPOPGEN_LIB",              "%{_prefix}/lib")
@@ -261,6 +261,29 @@ prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+EOF
+
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 
