@@ -11,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
+# enter the release; start with fasrc01 (or some other convention for your
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
+# and MPI apps, it will include the name/version/release of the apps used to
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -26,18 +26,18 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
+# rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static biom-format version 1.3.1
+%define summary_static FreeFem++ is a partial differential equation solver.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
+# enter the url from where you got the source; change the archive suffix if
 # applicable
 #
-URL: https://pypi.python.org/packages/source/b/biom-format/biom-format-1.3.1.tar.gz
+URL: http://www.freefem.org/ff++/ftp/freefem++-3.41.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,16 +56,14 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# enter a description, often a paragraph; unless you prefix lines with spaces,
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-Biological Observation Matrix (BIOM) format.
+FreeFem++ is a partial differential equation solver. It has its own language. freefem scripts can solve multiphysics non linear systems in 2D and 3D.
 
 #
-# Macros for setting app data 
+# Macros for setting app data
 # The first set can probably be left as is
 # the nil construct should be used for empty values
 #
@@ -83,8 +81,8 @@ Biological Observation Matrix (BIOM) format.
 
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies gsl/1.16-fasrc03
+%define rundependencies gsl/1.16-fasrc03
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -92,7 +90,7 @@ Biological Observation Matrix (BIOM) format.
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
 %define apppublication %{nil}
 
 
@@ -104,12 +102,12 @@ Biological Observation Matrix (BIOM) format.
 #
 # FIXME
 #
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# unpack the sources here.  The default below is for standard, GNU-toolchain
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
@@ -128,41 +126,35 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
+# configure and make the software here.  The default below is for standard
 # GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
+#
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here,
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+test -z $CC && export CC=gcc
+test -z $CXX && export CXX=g++
 
-#module load Python/2.7.8-fasrc01
+#CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
+#CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
+#export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
+
+./configure --prefix=%{_prefix} \
+    --enable-download \
+    --disable-parms --with-mpi=mpic++
+sed -i -e 's?http://www.cise.ufl.edu/research/sparse/SuiteSparse?http://faculty.cse.tamu.edu/davis/SuiteSparse?' download/getall
+sed -i -e 's?5e99e975f7a1e3ea6abcad7c6e7e42e6?ca21ed426f347c6ec6b136a181e587e5?' download/getall
+
+download/getall -a -f
+sed -i -e "s?CPP='gcc -E'?CPP=\"\$(CC) -E\"?" download/*/Makefile
+sed -i -e "s?CP=\"\$(CXXCPP)\"?CPP=\"\$(CC) -E\"?" download/nlopt/Makefile
+make
 
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
-
-python setup.py build
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -175,12 +167,12 @@ python setup.py build
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
+# make install here.  The default below is for standard GNU-toolchain style
 # things -- hopefully it'll just work as-is.
 #
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
+# Note that DESTDIR != %{prefix} -- this is not the final installation.
+# Rpmbuild does a temporary installation in the %{buildroot} and then
+# constructs an rpm out of those files.  See the following hack if your app
 # does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
@@ -189,29 +181,11 @@ python setup.py build
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-# +++ Installing python packages +++
-
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+make install DESTDIR=%{buildroot}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -224,16 +198,16 @@ done
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-	
+
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo 
+	echo
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-	
+
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -249,25 +223,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-	
+
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-# 
+#
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
+# This is the part that builds the modulefile.  However, stop now and run
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
+# - do any other customizing of the module, e.g. load dependencies -- make sure
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything 
+# - in the help message, link to website docs rather than write anything
 #   lengthy here
 #
 # references on writing modules:
@@ -289,28 +263,31 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-----for i in string.gmatch("%{rundependencies}","%%S+") do 
-----    if mode()=="load" then
-----        a = string.match(i,"^[^/]+")
-----        if not isloaded(a) then
-----           load(i)
-----        end
-----    end
-----end
+for i in string.gmatch("%{rundependencies}","%%S+") do
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
-load("scipy/0.15.1-fasrc02")
-load("pyqi/0.3.2-fasrc01")
 
 ---- environment changes (uncomment what is relevant)
+setenv("FREEFEM_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/lib/ff++/3.35/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib/ff++/3.35/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ff++/3.35/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/ff++/3.35/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/ff++/3.35/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/ff++/3.35/lib/pkgconfig")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
@@ -333,6 +310,7 @@ requestref          : %{requestref}
 EOF
 
 
+
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -348,9 +326,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some 
-# components may need creating, but no single rpm should own them, since parts 
-# are shared; only do this if it looks like an app-specific prefix is indeed 
+# everything in fasrcsw is installed in an app hierarchy in which some
+# components may need creating, but no single rpm should own them, since parts
+# are shared; only do this if it looks like an app-specific prefix is indeed
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -358,9 +336,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to 
-# be relocatable, hence why this is not a proper %%file; as with the app itself, 
-# modulefiles are in an app hierarchy in which some components may need 
+# symlink to the modulefile installed along with the app; we want all rpms to
+# be relocatable, hence why this is not a proper %%file; as with the app itself,
+# modulefiles are in an app hierarchy in which some components may need
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -370,9 +348,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir 
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
-# orphans will be left over after the last package in the app family 
+# undo the module file symlink done in the %%post; do not rmdir
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
+# orphans will be left over after the last package in the app family
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -380,9 +358,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
-# left over after the last package in the app family is removed); also put a 
-# little protection so this does not cause problems if a non-default prefix 
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be
+# left over after the last package in the app family is removed); also put a
+# little protection so this does not cause problems if a non-default prefix
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -391,7 +369,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't 
+# wipe out the buildroot, but put some protection to make sure it isn't
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
