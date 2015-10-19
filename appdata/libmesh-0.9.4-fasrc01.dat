@@ -2,14 +2,14 @@ appname             : libmesh
 appversion          : 0.9.4
 description         : libMesh version 0.9.4
 module              : libmesh-0.9.4-fasrc01
-tags                : 
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 publication         : 
 modulename          : libmesh-0.9.4-fasrc01
 type                : MPI
 compiler            : %{compiler}
 mpi                 : %{mpi}
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Wed Sep  2 11:28:16 EDT 2015
+builddate           : Thu Oct  8 15:27:00 EDT 2015
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : petsc/3.5.4-fasrc01

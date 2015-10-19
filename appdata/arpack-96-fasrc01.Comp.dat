@@ -1,0 +1,18 @@
+appname             : arpack
+appversion          : 96
+description         : ARPACK is a collection of Fortran77 subroutines designed to solve large scale eigenvalue problems.
+tags                : 
+publication         : 
+modulename          : arpack-96-fasrc01
+type                : Comp
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Sep 24 15:26:59 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

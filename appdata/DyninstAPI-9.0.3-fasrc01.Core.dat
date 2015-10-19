@@ -1,0 +1,18 @@
+appname             : DyninstAPI
+appversion          : 9.0.3
+description         : The DyninstAPI library provides an interface for instrumenting and working with binaries and processes.
+tags                : 
+publication         : 
+modulename          : DyninstAPI-9.0.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Sep 11 11:33:08 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01 boost/1.55.0-fasrc03 libdwarf/20150507-fasrc01
+rundependencies     : cmake/2.8.12.2-fasrc01 boost/1.55.0-fasrc03 libdwarf/20150507-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

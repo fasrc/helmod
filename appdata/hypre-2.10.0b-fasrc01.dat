@@ -2,12 +2,12 @@ appname             : hypre
 appversion          : 2.10.0b
 description         : Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
 module              : hypre-2.10.0b-fasrc01
-tags                : 
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 publication         : 
 modulename          : hypre-2.10.0b-fasrc01
 type                : MPI
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Wed Sep  2 12:01:19 EDT 2015
+builddate           : Thu Oct  8 15:54:34 EDT 2015
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : 

@@ -1,0 +1,18 @@
+appname             : LaunchMON
+appversion          : 1.0.1
+description         : LaunchMON is a software infrastructure that enables HPC run-time tools to co-locate tool daemons with a parallel job.
+tags                : 
+publication         : 
+modulename          : LaunchMON-1.0.1-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Sep  9 13:52:08 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

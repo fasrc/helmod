@@ -1,0 +1,18 @@
+appname             : tau
+appversion          : 2.24.1
+description         : TAU Performance System is a portable profiling and tracing toolkit for performance analysis of parallel programs written in Fortran, C, C++, UPC, Java, Python.
+tags                : apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Profiling
+publication         : 
+modulename          : tau-2.24.1-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Oct 13 13:36:26 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : pdtoolkit/3.20-fasrc01 jdk/1.8.0_45-fasrc01
+rundependencies     : pdtoolkit/3.20-fasrc01 jdk/1.8.0_45-fasrc01
+buildcomments       : 
+requestor           : Sebastian Eastham <seastham@fas.harvard.edu>
+requestref          : RCRT: 93252

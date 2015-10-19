@@ -1,0 +1,18 @@
+appname             : totalview
+appversion          : 8.8.0.1
+description         : Totalview v.8.8.0-1, Dynamic source code and memory debugging for C, C++ and Fortran applications.
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Debugging
+publication         : 
+modulename          : totalview-8.8.0.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Oct  6 13:12:46 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

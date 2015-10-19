@@ -1,0 +1,18 @@
+appname             : R_packages
+appversion          : 3.2.2
+description         : a bunch of R packages from CRAN
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+publication         : 
+modulename          : R_packages-3.2.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Oct  1 12:58:26 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : R_core/3.2.2-fasrc01 netcdf/4.3.2-fasrc03 hdf5/1.8.12-fasrc08 gsl/1.16-fasrc02
+rundependencies     : R_core/3.2.2-fasrc01 netcdf/4.3.2-fasrc03 hdf5/1.8.12-fasrc08 gsl/1.16-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

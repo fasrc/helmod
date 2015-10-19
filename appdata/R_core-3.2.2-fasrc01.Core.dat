@@ -1,0 +1,18 @@
+appname             : R_core
+appversion          : 3.2.2
+description         : a free software environment for statistical computing and graphics
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+publication         : 
+modulename          : R_core-3.2.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Oct  1 12:20:58 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : jdk/1.8.0_45-fasrc01
+rundependencies     : jdk/1.8.0_45-fasrc01
+buildcomments       : 
+requestor           : Yoh Isogai <yohisogai@gmail.com>
+requestref          : RCRT:92114

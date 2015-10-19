@@ -1,15 +1,15 @@
 appname             : slepc
 appversion          : 3.5.4
-description         : SLEPc version 3.5.4
+description         : SLEPc version 3.5.4 is a software library for the solution of large scale sparse eigenvalue problems on parallel computers.
 module              : slepc-3.5.4-fasrc01
-tags                : 
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 publication         : 
 modulename          : slepc-3.5.4-fasrc01
 type                : MPI
 compiler            : %{compiler}
 mpi                 : %{mpi}
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Wed Sep  2 11:12:15 EDT 2015
+builddate           : Thu Oct  8 14:59:10 EDT 2015
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : petsc/3.5.4-fasrc01
