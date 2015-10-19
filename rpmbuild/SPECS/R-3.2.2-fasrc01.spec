@@ -1,11 +1,5 @@
-# The spec involves the hack that allows the app to write directly to the 
-# production location.  The following allows the production location path to be 
-# used in files that the rpm builds.
-%define __arch_install_post %{nil}
-#%define _unpackaged_files_terminate_build 0
-#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -36,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PETSc version 3.5.4
+%define summary_static a module for loading R_core and R_packages
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.5.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -62,45 +56,13 @@ Prefix: %{_prefix}
 
 
 #
-# Macros for setting app data 
-# The first set can probably be left as is
-# the nil construct should be used for empty values
-#
-%define modulename %{name}-%{version}-%{release_short}
-%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
-%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
-%define appdescription %{summary_static}
-%define type %{getenv:TYPE}
-%define specauthor %{getenv:FASRCSW_AUTHOR}
-%define builddate %(date)
-%define buildhost %(hostname)
-%define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
-
-
-%define builddependencies Anaconda/1.9.2-fasrc01 cmake/2.8.12.2-fasrc01
-%define rundependencies Anaconda/1.9.2-fasrc01
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
-%define apppublication %{nil}
-
-
-
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism.
+The RPM is simply a modulefile that loads R_core (the base R package), and R_packages (a large set of the most popular packages from CRAN).
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,18 +70,12 @@ PETSc, pronounced PET-see (the S is silent), is a suite of data structures and r
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(n/a)
 
 
 
@@ -132,7 +88,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -142,37 +97,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-if [ "%{comp_name}" == "intel" ]
-then
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre --with-blas-lapack-dir=$MKL_HOME
-
-else
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre
-
-fi
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+#(n/a)
 
 
 
@@ -185,7 +110,6 @@ make
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -201,21 +125,7 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-sudo mkdir -p "%{_prefix}"
-sudo chown -R pkrastev:rc_admin "%{_prefix}/"
-
-
-#unset PETSC_ARCH
-make install
-
-rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
-rm -r "%{_prefix}/"
+#(n/a)
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -285,7 +195,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -293,49 +202,10 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
-
-
----- environment changes (uncomment what is relevant)
-setenv("PETSC_DIR",                "%{_prefix}")
-setenv("PETSC_ARCH",               "")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+load("R_core/%{version}-%{release_short}")
+load("R_packages/%{version}-%{release_short}")
 EOF
 
-#------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-tags                : %{apptags}
-publication         : %{apppublication}
-modulename          : %{modulename}
-type                : %{type}
-compiler            : %{compiler}
-mpi                 : %{mpi}
-specauthor          : %{specauthor}
-builddate           : %{builddate}
-buildhost           : %{buildhost}
-buildhostversion    : %{buildhostversion}
-builddependencies   : %{builddependencies}
-rundependencies     : %{rundependencies}
-buildcomments       : %{buildcomments}
-requestor           : %{requestor}
-requestref          : %{requestref}
-EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -35,14 +35,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SLEPc version 3.5.4
+%define summary_static SLEPc version 3.5.4 is a software library for the solution of large scale sparse eigenvalue problems on parallel computers.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
+URL: http://slepc.upv.es/download/download.php?filename=slepc-3.5.4.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -85,10 +85,8 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 %define apppublication %{nil}
-
-
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 

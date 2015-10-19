@@ -1,11 +1,5 @@
-# The spec involves the hack that allows the app to write directly to the 
-# production location.  The following allows the production location path to be 
-# used in files that the rpm builds.
-%define __arch_install_post %{nil}
-#%define _unpackaged_files_terminate_build 0
-#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -36,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PETSc version 3.5.4
+%define summary_static a free software environment for statistical computing and graphics
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.5.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.r-project.org/
+#https://cran.r-project.org/src/base/R-3/R-3.2.2.tar.gz
+Source: R-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -59,7 +54,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -79,28 +73,28 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/1.9.2-fasrc01 cmake/2.8.12.2-fasrc01
-%define rundependencies Anaconda/1.9.2-fasrc01
+%define builddependencies jdk/1.8.0_45-fasrc01 
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Yoh Isogai <yohisogai@gmail.com>
+%define requestref RCRT:92114
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
 %define apppublication %{nil}
-
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism.
+R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
+R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,7 +102,6 @@ PETSc, pronounced PET-see (the S is silent), is a suite of data structures and r
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -116,9 +109,9 @@ PETSc, pronounced PET-see (the S is silent), is a suite of data structures and r
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf R-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
+cd R-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -132,7 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -143,36 +135,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-if [ "%{comp_name}" == "intel" ]
-then
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre --with-blas-lapack-dir=$MKL_HOME
-
-else
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre
-
-fi
+# Have to update the Rinterface.h file so that Rcpp stuff will work
+# https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15899
+#
+./configure --enable-R-shlib --with-tcltk \
+	--prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --with-blas \
+    --with-lapack
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -185,7 +173,6 @@ make
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -202,20 +189,13 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot}
+#export R_HOME=%{buildroot}/%{_prefix}
+#%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
-sudo mkdir -p "%{_prefix}"
-sudo chown -R pkrastev:rc_admin "%{_prefix}/"
-
-
-#unset PETSC_ARCH
-make install
-
-rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
-rm -r "%{_prefix}/"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -261,7 +241,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -285,7 +264,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -294,25 +272,25 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
-
----- environment changes (uncomment what is relevant)
-setenv("PETSC_DIR",                "%{_prefix}")
-setenv("PETSC_ARCH",               "")
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -336,6 +314,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

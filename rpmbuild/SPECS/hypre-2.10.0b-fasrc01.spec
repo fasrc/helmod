@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
+URL: https://computation.llnl.gov/project/linear_solvers/download/hypre-2.10.0b_reg.php
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -80,7 +80,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 %define apppublication %{nil}
 
 

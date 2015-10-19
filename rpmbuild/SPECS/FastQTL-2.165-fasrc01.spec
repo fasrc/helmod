@@ -1,9 +1,3 @@
-# The spec involves the hack that allows the app to write directly to the 
-# production location.  The following allows the production location path to be 
-# used in files that the rpm builds.
-%define __arch_install_post %{nil}
-#%define _unpackaged_files_terminate_build 0
-#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -36,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PETSc version 3.5.4
+%define summary_static FastQTL is a QTL mapper
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.5.4.tar.gz
+URL: http://fastqtl.sourceforge.net/files/FastQTL-2.165.linux.tgz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -79,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/1.9.2-fasrc01 cmake/2.8.12.2-fasrc01
-%define rundependencies Anaconda/1.9.2-fasrc01
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Richard Kim <richardskim111@gmail.com
+%define requestref RCRT: 93655
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Genomic sequencing
 %define apppublication %{nil}
 
 
@@ -100,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism.
+FastQTL is a QTL mapper.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -142,10 +136,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#
+#
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
@@ -161,18 +155,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #	--mandir=%{_prefix}/share/man \
 #	--infodir=%{_prefix}/share/info
 
-if [ "%{comp_name}" == "intel" ]
-then
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre --with-blas-lapack-dir=$MKL_HOME
-
-else
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre
-
-fi
-
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+#make
 
 
 
@@ -206,16 +191,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
+rsync -av --progress * %{buildroot}/%{_prefix}/
 
-sudo mkdir -p "%{_prefix}"
-sudo chown -R pkrastev:rc_admin "%{_prefix}/"
-
-
-#unset PETSC_ARCH
-make install
-
-rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
-rm -r "%{_prefix}/"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -305,14 +282,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PETSC_DIR",                "%{_prefix}")
-setenv("PETSC_ARCH",               "")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("FASTQTL_HOME",              "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

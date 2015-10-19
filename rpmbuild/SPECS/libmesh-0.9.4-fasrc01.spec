@@ -80,7 +80,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 %define apppublication %{nil}
 
 
@@ -138,7 +138,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.3-fasrc02 \
+./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -279,6 +279,7 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("LIBMESH_HOME",             "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("PATH",               "%{_prefix}/contrib/bin")
 prepend_path("CPATH",              "%{_prefix}/include")

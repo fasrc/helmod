@@ -1,3 +1,9 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+%define _unpackaged_files_terminate_build 0
+#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -37,7 +43,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
+URL: http://tau.uoregon.edu/pdt_lite.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -76,13 +82,13 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Sebastian Eastham <seastham@fas.harvard.edu>
+%define requestref RCRT: 93252
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Profiling
 %define apppublication %{nil}
 
 
@@ -160,7 +166,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #make
 
 
-
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
@@ -186,12 +191,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+# Configure
+if [ "%{comp_name}" == "intel" ]
+then
+    ./configure -ICPC -prefix=%{_prefix}
+
+else
+    ./configure -GNU -prefix=%{_prefix}
+fi
+
+# Compile and install
+gmake %{?_smp_mflags}
+gmake install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -280,12 +305,14 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("PDT_ROOT",                 "%{_prefix}/x86_64")
-setenv("PDT_INC",                  "%{_prefix}/x86_64/include")
-setenv("PDT_LIB",                  "%{_prefix}/x86_64/lib")
+setenv("PDT_HOME",                 "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/x86_64/bin")
-prepend_path("CPATH",              "%{_prefix}/x86_64/include")
-prepend_path("FPATH",              "%{_prefix}/x86_64/include")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/contrib/rose/roseparse/include")
+prepend_path("CPATH",              "%{_prefix}/contrib/rose/edg44/x86_64/roseparse/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/contrib/rose/roseparse/include")
+prepend_path("FPATH",              "%{_prefix}/contrib/rose/edg44/x86_64/roseparse/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/lib")
 EOF
