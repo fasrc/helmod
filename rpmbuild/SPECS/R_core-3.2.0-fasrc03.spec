@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MrJob version 0.4.2
+%define summary_static a free software environment for statistical computing and graphics
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL:
-Source: %{name}-%{version}.tar.gz
+URL: http://www.r-project.org/
+#http://cran.at.r-project.org/src/base/R-3/R-3.2.0.tar.gz
+Source: R-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,16 +54,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-mrjob lets you write MapReduce jobs in Python 2.5+ and run them on several platforms.
 
 #
 # Macros for setting app data 
@@ -82,18 +73,27 @@ mrjob lets you write MapReduce jobs in Python 2.5+ and run them on several platf
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies Python/2.7.8-fasrc01
+%define builddependencies jdk/1.8.0_45-fasrc01 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
+%define buildcomments Including the build of the standalone math library
+%define requestor Robert Freeman <robertfreeman@g.harvard.edu>
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
 %define apppublication %{nil}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
+R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -102,7 +102,6 @@ mrjob lets you write MapReduce jobs in Python 2.5+ and run them on several platf
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -110,9 +109,9 @@ mrjob lets you write MapReduce jobs in Python 2.5+ and run them on several platf
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf R-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
+cd R-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -126,7 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -137,30 +135,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 
-
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+# Have to update the Rinterface.h file so that Rcpp stuff will work
+# https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=15899
+#
+./configure --enable-R-shlib --with-tcltk \
+	--prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --with-blas \
+    --with-lapack
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make %{?_smp_mflags}
 
-python setup.py build
+cd src/nmath/standalone
+make
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -171,7 +176,6 @@ python setup.py build
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -187,30 +191,17 @@ python setup.py build
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-# +++ Installing python packages +++
-
-# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+cd src/nmath/standalone
+make install DESTDIR=%{buildroot}
+#export R_HOME=%{buildroot}/%{_prefix}
+#%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
-export PYTHONPATH=%{_prefix}/lib/python2.7/site-packages:$PYTHONPATH
-python setup.py install --prefix=%{_prefix}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -256,7 +247,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -292,17 +282,27 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
         if not isloaded(a) then
-           load(i)
+            load(i)
         end
     end
 end
 
 
----- environment changes (uncomment what is relevant)
+-- environment changes (uncomment what is relevant)
+setenv("R_HOME",                   "%{_prefix}")
+setenv("R_LIB",                    "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -310,7 +310,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -327,6 +326,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

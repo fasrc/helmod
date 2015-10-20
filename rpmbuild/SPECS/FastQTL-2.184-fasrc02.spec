@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A free and open source C++ library for Discrete Approximate Inference in graphical models
+%define summary_static FastQTL is a QTL mapper
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://staff.fnwi.uva.nl/j.m.mooij/libDAI/libDAI-0.2.5.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://fastqtl.sourceforge.net/files/FastQTL-2.184.linux.tgz
+Source: %{name}-%{version}.linux.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,10 +73,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies boost/1.40.0-fasrc01 python/2.7.6-fasrc01 matlab/R2015a-fasrc01 
+%define builddependencies boost/1.55.0-fasrc03 gsl/1.16-fasrc03 zlib/1.2.8-fasrc05 R_core/3.2.0-fasrc03 OpenBLAS/0.2.14-fasrc01 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
+%define buildcomments Binary does not work
+%define requestor Robert Freeman <robertfreeman@g.harvard.edu>
 %define requestref %{nil}
 
 # apptags
@@ -85,14 +86,19 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-libDAI is a free/open source C++ library that provides implementations of various (approximate) inference methods for discrete graphical models. libDAI supports arbitrary factor graphs with discrete variables; this includes discrete Markov Random Fields and Bayesian Networks
-
-
+FastQTL is a QTL mapper with several notable features:
+Fast; with a permutation scheme relying on Beta approximation. No need to perform millions of permutations to reach low significance levels, only 100 to 1,000 are needed!
+Flexible; association testing is implemented w/o qualitative/quantitative covariates. Phenotypes can be internally quantile normalized.
+User-friendly; only standard file formats are used and easy-to-use options implemented.
+Cluster-friendly; parallelization is easy to set up for large deployment on compute clusters.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,9 +114,9 @@ libDAI is a free/open source C++ library that provides implementations of variou
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.linux.tgz
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -130,20 +136,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-sed -e 's?^\(CCINC=.*\)?\1 -I"${BOOST_INCLUDE}" -I"${GMP_INCLUDE}"?' \
-    -e 's?^\(CCLIB=.*\)?\1 -L"${BOOST_LIB}" -L"${GMP_LIB}"?' \
-    -e 's?^MATLABDIR=.*?MATLABDIR="${MATLAB_HOME}"?' \
-    -e 's?^INCLUDE_PYTHON=.*?INCLUDE_PYTHON="${PYTHON_INCLUDE}"?' \
-    -e 's?^INCLUDE_BOOST=.*?INCLUDE_BOOST="${BOOST_INCLUDE}"?' \
-    -i Makefile.conf
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+# Add the standalone R math library
+sed -i -e 's?^RMATH.*?RMATH=$$R_HOME/lib64?' \
+       -e 's?^LIB_MATH.*?LIB_MATH=$(RMATH)/libRmath.a?' \
+       -e 's?-lblas?-lblas -lgslcblas?' Makefile
 make
 
 
@@ -174,11 +174,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r include lib swig scripts %{buildroot}/%{_prefix}
-
+cp -r bin %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -248,6 +247,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -267,15 +267,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBDAI_HOME",               "%{_prefix}")
-setenv("LIBDAI_INCLUDE",            "%{_prefix}/include")
-setenv("LIBDAI_LIB",                "%{_prefix}/lib")
-prepend_path("PATH",                "%{_prefix}/scripts")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+setenv("FASTQTL_HOME",       "%{_prefix}")
+prepend_path("PATH",         "%{_prefix}/bin")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

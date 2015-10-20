@@ -273,11 +273,15 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("samtools") then
-		load("samtools/0.1.19-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
 end
+
 
 -- environment changes (uncomment what is relevant)
 prepend_path("PATH",                "%{_prefix}/bin")

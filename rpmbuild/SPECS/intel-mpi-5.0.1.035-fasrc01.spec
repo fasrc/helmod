@@ -196,7 +196,7 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
--- environment changes (uncomment what's relevant)
+-- environment changes (uncomment what is relevant)
 
 -- copied from /n/sw/odyssey-apps/modules-3.2.6/Modules/modulefiles/math/matlab-R2014a
 

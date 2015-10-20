@@ -177,13 +177,12 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
 
-sed -i '/^#! \//,1 d' %{buildroot}%{_prefix}/etc/{mpi*.conf,mpe_help.*}
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
-# The uninstall script that is installed in this directory is not needed in rpm
-# packaging
-rm -rf %{buildroot}%{_prefix}/sbin/mpe*
+make install
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -281,6 +280,14 @@ prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 prepend_path("PATH",               "%{_prefix}/sbin")
+
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 #------------------- App data file

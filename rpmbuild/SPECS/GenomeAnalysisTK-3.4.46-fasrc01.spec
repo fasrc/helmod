@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static raxml version 8.1.5
+%define summary_static Genome Analysis ToolKit version 3.3.0
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+#URL:https://www.broadinstitute.org/gatk/download/auth?package=GATK 
+Source: %{name}-3.4-46.tar.bz2
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,11 +73,12 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define rundependencies jdk/1.8.0_45-fasrc01
+%define buildcomments Shell script created to easy use of the jar file. JDK included in runtime dependencies.
+%define requestor Tim Sackton <timsackton@gmail.com>
+%define requestref RCRT:93432
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -85,13 +87,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-RAxML (Randomized A(x)ccelerated Maximum Likelihood) is a program for sequential and parallel Maximum-Likelihood-based inference of large phylogenetic trees. This module has been built with OpenMPI 1.8.1 and Intel 13.0.079 by Plamen G. Krastev.
-
+The Genome Analysis Toolkit or GATK is a software package developed at the Broad Institute to analyse next-generation resequencing data. The toolkit offers a wide variety of tools, with a primary focus on variant discovery and genotyping as well as strong emphasis on data quality assurance. Its robust architecture, powerful processing engine and high-performance computing features make it capable of taking on projects of any size.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,9 +112,9 @@ RAxML (Randomized A(x)ccelerated Maximum Likelihood) is a program for sequential
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-3.4-46
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-3.4-46.tar.*
+cd %{name}-3.4-46
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -135,7 +139,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.4-46
+
 
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
@@ -156,7 +161,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #percent sign) to build in parallel
 #make
 
+cat <<EOF > GenomeAnalysisTK.sh
+#!/usr/bin/env bash
+java -jar %{_prefix}/GenomeAnalysisTK.jar \$@
+EOF
 
+chmod a+x GenomeAnalysisTK.sh
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -184,11 +194,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.4-46
+echo %{buildroot} | grep -q %{name}-3.4-46 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
-rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+rsync -av --progress * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -259,6 +269,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -267,27 +278,19 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("GATK_HOME",                 "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file

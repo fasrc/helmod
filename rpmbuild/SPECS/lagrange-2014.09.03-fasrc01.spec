@@ -180,10 +180,9 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
 
-mkdir %{buildroot}/%{_prefix}/bin/
-cp -a /odyssey/rc_admin/jab/sw/fasrcsw/rpmbuild/BUILD/lagrange-2014.09.03/src/lagrange_cpp %{buildroot}/%{_prefix}/bin/
+mkdir -p %{buildroot}/%{_prefix}/bin/
+cp -a src/lagrange_cpp %{buildroot}/%{_prefix}/bin/
 
 
 #(this should not need to be changed)
