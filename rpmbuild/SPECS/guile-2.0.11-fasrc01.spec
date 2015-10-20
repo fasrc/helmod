@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies readline/6.3-fasrc01 libtool/2.4.6-fasrc01 gmp/6.0.0-fasrc02 libunistring/0.9.6-fasrc01 libffi/3.2.1-fasrc01 gc/7.2-fasrc01
-%define rundependencies %{builddependencies}
+%define rundependencies readline/6.3-fasrc01 gmp/6.0.0-fasrc02 libunistring/0.9.6-fasrc01 libffi/3.2.1-fasrc01 gc/7.2-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

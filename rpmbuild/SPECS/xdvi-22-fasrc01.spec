@@ -191,7 +191,11 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/share/man/man1
+
+sed -i -e 's?\$(INSTALL_PROGRAM) xdvi \${bindir}/xdvi?\$(INSTALL_PROGRAM) xdvi \${DESTDIR}\${bindir}/xdvi?' Makefile
+sed -i -e 's?\$(INSTALL_DATA) xdvi.man \${mandir}/man\$(MANEXT)/xdvi.\$(MANEXT)?\$(INSTALL_DATA) xdvi.man \${DESTDIR}\${mandir}/man\$(MANEXT)/xdvi.\$(MANEXT)?' Makefile
 make install DESTDIR=%{buildroot}
 
 
@@ -258,7 +262,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}

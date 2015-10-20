@@ -37,9 +37,9 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/CompEvol/beast2/releases/download/v2.1.3/BEAST.v2.1.3.tgz
+URL: http://tree.bio.ed.ac.uk/download.php?id=92&num=3
 #BEAST.v2.1.3.tgz
-Source: %{name}.v%{version}.tgz
+Source: %{name}v%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -115,9 +115,9 @@ BE SURE TO EXPLICITLY USE THE "-THREADS (# CORES)" OPTION, AS THE DEFAULT WILL C
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.v%{version}.tgz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}v%{version}.tgz
 #mv BEAST beast2
-cd %{name}
+cd %{name}v%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -142,7 +142,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 # fix source code to not use all threads by default
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}v%{version}
 sed -i 's@^java@\n### patch from FASRC\nif [ -z $SLURM_NTASKS ]; then\n    SLURM_NTASKS=1\nfi\n\njava@' bin/beast
 sed -i 's@beast.app.beastapp.BeastMain *@beast.app.beastapp.BeastMain -threads ${SLURM_NTASKS} @' bin/beast
 
@@ -173,7 +173,7 @@ sed -i 's@beast.app.beastapp.BeastMain *@beast.app.beastapp.BeastMain -threads $
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}v%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 cp -r * %{buildroot}%{_prefix}

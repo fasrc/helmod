@@ -2,7 +2,6 @@
 set -e
 
 fasrcsw-env-check
-
 rpmbuild $RPMBUILD_OPTS --dbpath "$FASRCSW_PROD"/rpmdb "$@"
 
 echo fasrcsw-rpmbuild-Core SUCCESS

@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies netcdf/4.1.3-fasrc03
+%define builddependencies netcdf/4.3.2-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor Lu Shen <lshen@fas.harvard.edu>
@@ -134,7 +134,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-module load netcdf/4.3.2-fasrc03
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -291,11 +290,10 @@ prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -312,6 +310,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 

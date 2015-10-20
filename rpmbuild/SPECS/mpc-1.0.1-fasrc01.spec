@@ -224,6 +224,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("MPC_HOME",                  "%{_prefix}")
+setenv("MPC_INCLUDE",               "%{_prefix}/include")
+setenv("MPC_LIB",                   "%{_prefix}/lib64")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 prepend_path("CPATH",               "%{_prefix}/include")

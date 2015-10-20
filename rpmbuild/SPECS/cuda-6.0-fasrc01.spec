@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Module that activates CUDA libraries
+%define summary_static Module for CUDA libraries
 Summary: %{summary_static}
 
 #
@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 URL: http://...FIXME...
-#Source: %{name}-%{version}.tar.gz
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -75,9 +75,9 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Paul Edmon <pedmon@cfa.harvard.edu>
-%define requestref RCRT:90087
+%define buildcomments Activation module for CUDA libraries.  Doesn't actually install them, but updates PATH, LD_LIBRARY_PATH, etc.
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,32 +94,14 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Module that activates the CUDA libraries 
+Module for CUDA libraries
 
-#------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
-
-#------------------- %%build (~ configure && make) ----------------------------
-
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-
-
-#------------------- %%install (~ make install + create modulefile) -----------
-
 %install
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -190,13 +172,10 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
-
+---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
+        assert(os.execute("test -d /usr/local/cuda-6.0")==0,"Cuda 6.0 is not available from /usr/local/cuda-6.0")
     end
 end
 
@@ -205,10 +184,13 @@ end
 setenv("CUDA_HOME",                 "/usr/local/cuda-6.0")
 setenv("CUDA_LIB",                  "/usr/local/cuda-6.0/lib64")
 setenv("CUDA_INCLUDE",              "/usr/local/cuda-6.0/include")
-
 prepend_path("PATH",                "/usr/local/cuda-6.0/bin")
-prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda-6.0/lib64")
 prepend_path("CPATH",               "/usr/local/cuda-6.0/include")
+prepend_path("FPATH",               "/usr/local/cuda-6.0/include")
+prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda-6.0/lib")
+prepend_path("LIBRARY_PATH",        "/usr/local/cuda-6.0/lib")
+prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda-6.0/lib64")
+prepend_path("LIBRARY_PATH",        "/usr/local/cuda-6.0/lib64")
 EOF
 
 #------------------- App data file

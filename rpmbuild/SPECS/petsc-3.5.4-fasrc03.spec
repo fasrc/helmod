@@ -224,7 +224,7 @@ sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 #sudo mkdir -p "%{_prefix}"
 #sudo chown -R pkrastev:rc_admin "%{_prefix}/" 
 
-sudo make PETSC_DIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}" PETSC_ARCH=arch-linux2-c-debug install
+make PETSC_DIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} PETSC_ARCH=arch-linux2-c-debug install
 
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)

@@ -72,8 +72,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies boost/1.54.0-fasrc01 libxml2/2.7.8-fasrc02 zlib/1.2.8-fasrc05 mpc/1.0.2-fasrc03
+%define rundependencies boost/1.54.0-fasrc01 
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -129,14 +129,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-module load mpc
-module load zlib
-module load libxml2
-module load boost/1.54.0-fasrc01
 
 # Handle TYPE=Core
 test -z "$CC" && export CC=gcc
@@ -217,7 +209,6 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
 mkdir -p %{buildroot}/%{_prefix}
-module load boost/1.54.0-fasrc01
 make install DESTDIR=%{buildroot}
 
 
@@ -297,14 +288,39 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("boost/1.54.0-fasrc01") then
-		load("boost/1.54.0-fasrc01")
-	end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
 end
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment whats relevant)
 prepend_path("PATH",                "%{_prefix}/bin")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

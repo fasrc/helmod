@@ -72,8 +72,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies python/2.7.6-fasrc01
-%define rundependencies %{builddependencies}
+%define builddependencies scons/2.3.6-fasrc01
+%define rundependencies python/2.7.6-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

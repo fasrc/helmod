@@ -133,12 +133,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-for m in %{builddependencies}
-do
-    module load ${m}
-done
-
-
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static"
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel"
 test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
@@ -300,7 +294,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

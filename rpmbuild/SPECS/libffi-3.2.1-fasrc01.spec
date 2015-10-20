@@ -281,13 +281,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("CPATH",              "%{_prefix}/lib64/libffi-3.2.1/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/libffi-3.2.1/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
+setenv("LIBFFI_HOME",              "%{_prefix}")
+setenv("LIBFFI_LIB",               "%{_prefix}/lib64")
+setenv("LIBFFI_INCLUDE",           "%{_prefix}/lib/libffi-%{version}/include")
+prepend_path("CPATH",              "%{_prefix}/lib/libffi-%{version}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file

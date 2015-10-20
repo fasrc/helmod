@@ -280,6 +280,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("LIBUNISTRING_HOME",        "%{_prefix}")
+setenv("LIBUNISTRING_INCLUDE",     "%{_prefix}/include")
+setenv("LIBUNISTRING_LIB",         "%{_prefix}/lib64")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("INFOPATH",           "%{_prefix}/share/info")

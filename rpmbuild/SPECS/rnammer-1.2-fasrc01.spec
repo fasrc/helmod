@@ -100,20 +100,16 @@ The RNAmmer 1.2 server predicts 5s/8s, 16s/18s, and 23s/28s ribosomal RNA in ful
 
 %prep
 
-
-#
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
+# Must load p7zip to unpack
+module load p7zip
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
 mkdir %{name}-%{version}
 cd %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.src.tar.*
+7za x "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.src.tar.Z
+tar xvf %{name}-%{version}.src.tar
 #cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
