@@ -150,7 +150,7 @@ sed -i -e 's?^MPI_PATH .*?MPI_PATH = -L\${MPI_LIB}?' MAKE/Makefile.cuda
 test %{mpi_name} == 'mvapich2' && sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpich -lpthread?' MAKE/Makefile.cuda ||  sed -i -e 's?^MPI_LIB .*?MPI_LIB = -lmpi -lpthread?' MAKE/Makefile.cuda
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make cuda -j 4
+make cuda CUDA=yes 
 
 
 

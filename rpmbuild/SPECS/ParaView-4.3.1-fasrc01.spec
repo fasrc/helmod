@@ -283,28 +283,8 @@ end
 
 ---- environment changes (uncomment what is relevant)
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
-prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/include")
-prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/numarray/include")
-prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/include")
-prepend_path("CPATH",              "%{_prefix}/lib/paraview-4.3/site-packages/mpi4py/include")
-prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/distutils/tests/f2py_f90_ext/include")
-prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/include")
-prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/numarray/include")
-prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/include")
-prepend_path("FPATH",              "%{_prefix}/lib/paraview-4.3/site-packages/mpi4py/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/paraview-4.3/www/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages/numpy/core/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/share/paraview-4.3/www/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/paraview-4.3/lib/python2.7/site-packages")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/paraview-4.3/site-packages")
 EOF
 
 #------------------- App data file

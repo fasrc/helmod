@@ -189,27 +189,27 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+# Standard stuff.
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#
+## Make the symlink.
+#sudo mkdir -p "$(dirname %{_prefix})"
+#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+#
+#make install
+#
+## Clean up the symlink.  (The parent dir may be left over, oh well.)
+#sudo rm "%{_prefix}"
 
 
 #(this should not need to be changed)

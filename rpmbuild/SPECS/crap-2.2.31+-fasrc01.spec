@@ -1,47 +1,51 @@
-# MODULE_FILE_ONLY
-
-
 #------------------- package info ----------------------------------------------
 
+#
+# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
+# FIXME
+#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
+# FIXME
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
 %define release_short %{getenv:RELEASE}
 
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static the legacy set of modules for perl 5.8.8
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static Basic Local Alignment Search Tool (BLAST) is used to search query sequences against a sequence database
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-#URL: http://...
-#Source: %{name}-%{version}.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+URL: ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.2.31+-src.tar.gz
+#Source: %{name}-%{version}-src.tar.gz
 
 #
 # there should be no need to change the following
@@ -57,96 +61,20 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
 #
-# Macros for setting app data 
-# The first set can probably be left as is
-# the nil construct should be used for empty values
-#
-%define modulename %{name}-%{version}-%{release_short}
-%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
-%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
-%define appdescription %{summary_static}
-%define type %{getenv:TYPE}
-%define specauthor %{getenv:FASRCSW_AUTHOR}
-%define builddate %(date)
-%define buildhost %(hostname)
-%define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
-
-
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
-%define apppublication %{nil}
-
-
+# FIXME
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-In the legacy modules system, we had a module named hpc/perl5mods.
-This modules sets up your environment the same as the legacy module.
-See the latest perl-modules module for more up-to-date software.
-
-
-
-#------------------- %%prep (~ tar xvf) ---------------------------------------
-
+Alias for blast/2.2.31+-fasrc01
 %prep
-
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
-#
-
-
-
-#------------------- %%build (~ configure && make) ----------------------------
-
 %build
-
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-##prerequisite apps (uncomment and tweak if necessary)
-#module load NAME/VERSION-RELEASE
-
-
-
-#------------------- %%install (~ make install + create modulefile) -----------
-
 %install
-
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
-
-#this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
+%include fasrcsw_module_loads.rpmmacros 
+mkdir -p %{buildroot}%{_prefix}
 %if %{defined trial}
 	set +x
 	
@@ -182,6 +110,8 @@ done
 %endif
 
 # 
+# FIXME (but the above is enough for a "trial" build)
+#
 # - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
@@ -194,8 +124,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -208,18 +136,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
--- environment changes (uncomment what is relevant)
-append_path("PATH",                "/n/sw/odyssey-apps/perl5mods/bin")
-append_path("PERL5LIB",            "/n/sw/odyssey-apps/perl5mods/lib/perl5")
-append_path("PERL5LIB",            "/n/sw/odyssey-apps/perl5mods/lib64/perl5")
-append_path("PERL5LIB",            "/n/sw/odyssey-apps/perl5mods/lib/perl5/site_perl")
-append_path("PERL5LIB",            "/n/sw/odyssey-apps/perl5mods/lib64/perl5/site_perl")
+
+---- environment changes (uncomment what is relevant)
 EOF
 
 #------------------- App data file
@@ -227,6 +153,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

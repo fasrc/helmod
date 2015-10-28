@@ -72,13 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies perl-modules/5.10.1-fasrc11
-module load trf/404-fasrc01
-module load ncbi-rmblastn/2.2.28-fasrc01
-module load hmmer/3.1b1-fasrc01
-
-
-%{nil}
+%define builddependencies perl-modules/5.10.1-fasrc11 trf/404-fasrc01 ncbi-rmblastn/2.2.28-fasrc01 hmmer/3.1b1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -288,37 +282,43 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
--- prerequisite apps (uncomment and tweak if necessary)
-if mode()=="load" then
-	if not isloaded("perl") then
-		load("perl/5.10.1-fasrc01")
-	end
-end
-if mode()=="load" then
-	if not isloaded("perl-modules") then
-		load("perl-modules/5.10.1-fasrc07")
-	end
-end
-if mode()=="load" then
-	if not isloaded("trf") then
-		load("trf/404-fasrc01")
-	end
-end
-if mode()=="load" then
-	if not isloaded("ncbi-rmblastn") then
-		load("ncbi-rmblastn/2.2.28-fasrc01")
-	end
-end
-if mode()=="load" then
-	if not isloaded("hmmer") then
-		load("hmmer/3.1b1-fasrc01")
-	end
+---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
 end
 
 
----- environment changes (uncomment what's relevant)
+
+---- environment changes (uncomment what is relevant)
 setenv("REPEATMASKER_HOME",         "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

@@ -81,7 +81,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies python/2.7.6-fasrc01
+%define builddependencies python/2.7.6-fasrc01 boost/1.41.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -140,7 +140,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #
 # configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
 #prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
@@ -152,17 +151,18 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 export RDBASE="$PWD"
 export LD_LIBRARY_PATH="$RDBASE/lib:$LD_LIBRARY_PATH"
 export PYTHONPATH="$RDBASE:$PYTHONPATH"
+export BOOST_ROOT=$BOOST_HOME
 
 mkdir build
 cd build
 cmake \
 	-D CMAKE_INSTALL_PREFIX=%{_prefix} \
-	-D PYTHON_LIBRARY=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/lib/python2.7/config/libpython2.7.a \
-	-D PYTHON_INCLUDE_DIR=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/include/python2.7/ \
-	-D PYTHON_EXECUTABLE=/n/sw/fasrcsw/apps/Core/Anaconda/1.9.2-fasrc01/x/bin/python \
+	-D PYTHON_LIBRARY=$PYTHON_HOME/lib/python2.7/config/libpython2.7.a \
+	-D PYTHON_INCLUDE_DIR=$PYTHON_HOME/include/python2.7/ \
+	-D PYTHON_EXECUTABLE=$PYTHON_HOME/bin/python \
 	..
 #(all the python stuff, including PYTHON_EXECUTABLE, is definitely needed (even though doc says some is not if PATHs are right))
-make %{?_smp_mflags}
+make 
 
 
 

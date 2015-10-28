@@ -99,6 +99,9 @@ Built against the fasrc02 release of perl-5.10, which includes threads.  There i
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
 
 
 %define builddependencies  perl/5.10.1-fasrc03 gd/2.0.28-fasrc01
@@ -131,11 +134,6 @@ Built against the fasrc02 release of perl-5.10, which includes threads.  There i
 %build
 
 %include fasrcsw_module_loads.rpmmacros
-
-for m in %{builddependencies}
-do
-    module load ${m}
-done
 
 
 export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
@@ -301,7 +299,6 @@ EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}

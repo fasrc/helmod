@@ -172,6 +172,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #	https://github.com/JuliaLang/julia/issues/7240#issuecomment-45972436
 #	$ echo override USE_SYSTEM_BLAS = 1 >> Make.user
 sed -i -e 's?^OPENBLAS_TARGET_ARCH.*?OPENBLAS_TARGET_ARCH=BULLDOZER?' Make.inc
+(make %{?_smp_mflags})
+make clean
 make %{?_smp_mflags}
 
 

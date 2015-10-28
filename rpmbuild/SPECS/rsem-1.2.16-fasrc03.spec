@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result.
+%define summary_static RSEM version 1.2.16
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.multiprecision.org/mpc/download/mpc-0.8.2.tar.gz
+URL: http://deweylab.biostat.wisc.edu/rsem/src/rsem-1.2.16.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -72,10 +72,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies R/3.1.0-fasrc01 bowtie2/2.2.2-fasrc01 bowtie/1.1.1-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
+%define requestor Tim Sackton <tsackton@oeb.harvard.edu>
 %define requestref %{nil}
 
 # apptags
@@ -90,7 +90,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result. It extends the principles of the IEEE-754 standard for fixed precision real floating point numbers to complex numbers, providing well-defined semantics for every operation. At the same time, speed of operation at high precision is a major design goal.
+RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -136,21 +137,23 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# Here we skip this as it requires "make" only!
 
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
@@ -186,8 +189,9 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+##make install DESTDIR=%{buildroot}
+# Here we simply copy the compiled binaries!!!
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -275,15 +279,12 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("MPC_HOME",                  "%{_prefix}")
-setenv("MPC_LIB",                   "%{_prefix}/lib64")
-setenv("MPC_INCLUDE",               "%{_prefix}/include")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+setenv("RSEM_HOME",                "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}")
+prepend_path("CPATH",              "%{_prefix}/boost/fusion/include")
+prepend_path("FPATH",              "%{_prefix}/boost/fusion/include")
 EOF
 
 #------------------- App data file
@@ -317,7 +318,6 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-
 
 
 #------------------- scripts (there should be no need to change these) --------

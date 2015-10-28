@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result.
+%define summary_static GNU gperf is a perfect hash function generator. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.multiprecision.org/mpc/download/mpc-0.8.2.tar.gz
+URL: http://ftp.gnu.org/pub/gnu/gperf/gperf-3.0.4.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -74,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for Qt -> RStudio
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,13 +86,16 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result. It extends the principles of the IEEE-754 standard for fixed precision real floating point numbers to complex numbers, providing well-defined semantics for every operation. At the same time, speed of operation at high precision is a major design goal.
-
+GNU gperf is a perfect hash function generator. For a given list of strings, it produces a hash function and hash table, in form of C or C++ code, for looking up a value depending on the input string. The hash function is perfect, which means that the hash table has no collisions, and the hash table lookup needs a single string comparison only.
+GNU gperf is highly customizable. There are options for generating C or C++ code, for emitting switch statements or nested ifs instead of a hash table, and for tuning the algorithm employed by gperf.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -135,6 +139,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -257,6 +262,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -276,14 +282,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPC_HOME",                  "%{_prefix}")
-setenv("MPC_LIB",                   "%{_prefix}/lib64")
-setenv("MPC_INCLUDE",               "%{_prefix}/include")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+setenv("GPERF_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
@@ -307,7 +309,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

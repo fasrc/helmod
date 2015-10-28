@@ -139,28 +139,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-cat <<EOF | patch external/libi/conf/Makefile.in
-85,86c85,86
-< 	        \$(MKDIR_P) \$\$dir ; \\
-< 	        chmod 755 \$\$dir ; \\
----
-> 	        \$(MKDIR_P) \$(DESTDIR)\$\$dir ; \\
-> 	        chmod 755 \$(DESTDIR)\$\$dir ; \\
-97,98c97,98
-< 	        \$(MKDIR_P) \$\$dir ; \\
-< 	        chmod 755 \$\$dir ; \\
----
-> 	        \$(MKDIR_P) \$(DESTDIR)\$\$dir ; \\
-> 	        chmod 755 \$(DESTDIR)\$\$dir ; \\
-104c104
-< 	\$(INSTALL) -m 644 \$< \$(@D)
----
-> 	\$(INSTALL) -m 644 \$< \$(DESTDIR)\$(@D)
-108c108
-< 	\$(INSTALL) -m 755 \$(TARGETS) \$(ILIBDIR)/
----
-> 	\$(INSTALL) -m 755 \$(TARGETS) \$(DESTDIR)\$(ILIBDIR)/
-EOF
+sed -i -e 's?\$(MKDIR_P) \$\$dir ;?$(MKDIR_P) $(DESTDIR)$$dir ;?' \
+       -e 's?chmod 755 \$\$dir ;?chmod 755 $(DESTDIR)$$dir ;?' \
+       -e 's?\$(INSTALL) -m 644 \$< \$(@D)?$(INSTALL) -m 644 $< $(DESTDIR)$(@D)?' \
+       -e 's?\$(INSTALL) -m 755 \$(TARGETS) \$(ILIBDIR)/?$(INSTALL) -m 755 $(TARGETS) $(DESTDIR)$(ILIBDIR)/?' external/libi/conf/Makefile.in 
 
 ./configure --prefix=%{_prefix}
 #	--program-prefix= \

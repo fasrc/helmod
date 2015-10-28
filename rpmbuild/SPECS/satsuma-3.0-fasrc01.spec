@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result.
+%define summary_static Program to align genomes 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.multiprecision.org/mpc/download/mpc-0.8.2.tar.gz
+URL:https://www.broadinstitute.org/ftp/distribution/software/spines/satsuma-3.0.tar.gz 
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -85,13 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result. It extends the principles of the IEEE-754 standard for fixed precision real floating point numbers to complex numbers, providing well-defined semantics for every operation. At the same time, speed of operation at high precision is a major design goal.
-
+High-sensitivity alignments through cross-correlation.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -107,9 +110,9 @@ Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily hi
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf satsuma-code-0
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd satsuma-code-0
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,25 +137,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/satsuma-code-0
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+make clean
 make
 
 
@@ -183,11 +170,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/satsuma-code-0
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp {BlockDisplaySatsuma,ChainMatches,FilterGridSeeds,HomologyByXCorr,HomologyByXCorrSlave,MergeXCorrMatches,MicroSyntenyPlot,ReverseSatsumaOut,Satsuma,SatsumaPop,SatsumaProt,SatsumaStruct,SatsumaSummary,SatsumaSynteny,SatsumaToFasta,TestSComm} %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -257,6 +243,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -276,14 +263,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPC_HOME",                  "%{_prefix}")
-setenv("MPC_LIB",                   "%{_prefix}/lib64")
-setenv("MPC_INCLUDE",               "%{_prefix}/include")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+setenv("SATSUMA_HOME",              "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -307,7 +288,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

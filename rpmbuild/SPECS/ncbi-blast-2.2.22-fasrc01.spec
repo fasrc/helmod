@@ -256,11 +256,34 @@ whatis("Description: %{summary_static}")
 --	end
 --end
 
----- environment changes (uncomment what's relevant)
+---- environment changes (uncomment what is relevant)
 setenv("BLASTDB",                   "/n/bluearc/mol/seq/blastdb")
 setenv("BLASTMAT",                  "/n/sw/ncbi-blast-2.2.22/data")
 prepend_path("PATH",                "/n/sw/ncbi-blast-2.2.22/bin")
 EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
+
 
 #------------------- %%files (there should be no need to change this ) --------
 
