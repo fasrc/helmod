@@ -2,7 +2,8 @@
 # production location.  The following allows the production location path to be 
 # used in files that the rpm builds.
 %define __arch_install_post %{nil}
-
+#%define _unpackaged_files_terminate_build 0
+#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -74,10 +75,12 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies intel-mkl/11.0.0.079-fasrc02 Anaconda/1.9.2-fasrc01
-%define rundependencies %{builddependencies}
+%define builddependencies Anaconda/1.9.2-fasrc01 cmake/2.8.12.2-fasrc01
+%define rundependencies Anaconda/1.9.2-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -85,7 +88,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
 %define apppublication %{nil}
 
 
@@ -119,6 +122,7 @@ cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
+
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -141,6 +145,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
@@ -156,18 +161,19 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #	--mandir=%{_prefix}/share/man \
 #	--infodir=%{_prefix}/share/info
 
-#./configure --prefix=%{_prefix} --with-mpi-dir=/n/sw/fasrcsw/apps/Comp/intel/15.0.0-fasrc01/openmpi/1.8.3-fasrc02 --with-blas-lapack-dir=/n/sw/intel-cluster-studio-2015/mkl
 if [ "%{comp_name}" == "intel" ]
 then
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --with-blas-lapack-dir=$MKL_HOME
-else
-    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME
-fi
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre --with-blas-lapack-dir=$MKL_HOME
 
+else
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --download-hypre
+
+fi
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -195,34 +201,18 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-#cd %{buildroot}
-#cp -r bin/  conf/  include/  lib/  share/ %{buildroot}/%{_prefix}/
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-#sudo mkdir -p "$(dirname %{_prefix})"
-#test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+#make install DESTDIR=%{buildroot}
 
 sudo mkdir -p "%{_prefix}"
-sudo chown -R pkrastev:rc_admin "%{_prefix}/" 
+sudo chown -R pkrastev:rc_admin "%{_prefix}/"
 
+
+#unset PETSC_ARCH
 make install
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
 
 rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
 rm -r "%{_prefix}/"
@@ -313,9 +303,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
 setenv("PETSC_DIR",                "%{_prefix}")
-setenv("PETSC_ARCH",               "linux-gnu-intel")
+setenv("PETSC_ARCH",               "")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
@@ -325,11 +316,10 @@ prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
-cat > $FASRCSW_DEV/appdata/%{modulename}.dat <<EOF
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

@@ -1,3 +1,7 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
 #------------------- package info ----------------------------------------------
 #
 #
@@ -30,14 +34,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+%define summary_static Qt libraries
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://computation.llnl.gov/project/linear_solvers/download/hypre-2.10.0b_reg.php
+URL: http://download.qt.io/archive/qt/5.5/5.5.0/single/qt-everywhere-opensource-src-5.5.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,17 +77,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies %{nil}
+%define builddependencies gstreamer/0.10.30-fasrc01 gst-plugins-base/0.10.30-fasrc01 Anaconda/1.9.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Yoh Isogai <yohisogai@gmail.com>
+%define requestref RCRT:92114
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:GUI
 %define apppublication %{nil}
 
 
@@ -95,7 +98,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+Qt is a cross-platform application and UI framework for developers using C++ or QML, a CSS & JavaScript like language.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -138,10 +141,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+./configure -prefix %{_prefix} -opensource -qt-xcb
 
-./configure CC=mpicc CXX=mpicxx F77=mpif77 --prefix=%{_prefix} --with-MPI --with-blas --with-lapack --enable-fortran
+#./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -187,20 +191,28 @@ make %{?_smp_mflags}
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+
+# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
 # Make the symlink.
-# sudo mkdir -p "$(dirname %{_prefix})"
-# test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-# sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
-make install DESTDIR=%{buildroot}
+make install
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
-# sudo rm "%{_prefix}"
+sudo rm "%{_prefix}"
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -288,11 +300,19 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
+setenv("QT_HOME",                  "%{_prefix}")
+setenv("QT_INCLUDE",               "%{_prefix}/include")
+setenv("QT_LIB",                   "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/include/QtCore")
+prepend_path("CPATH",              "%{_prefix}/include/QtGui")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -300,11 +320,12 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

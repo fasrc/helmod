@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+%define summary_static ITT's IDL, version 8.4.1
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://computation.llnl.gov/project/linear_solvers/download/hypre-2.10.0b_reg.php
-Source: %{name}-%{version}.tar.gz
+URL: http://www.exelisvis.com/ProductsServices/IDL.aspx
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,6 +54,9 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+%description
+IDL, short for Interactive Data Language, is a programming language used for data analysis. It is popular in particular areas of science, such as astronomy and medical imaging. IDL shares a common syntax with PV-Wave and originated from the same codebase, though the languages have subsequently diverged in detail. There are also two free implementations, GNU Data Language (GDL) and Fawlty Language (FL).
 
 #
 # Macros for setting app data 
@@ -73,92 +76,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
-%define apppublication %{nil}
-
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
-
-#------------------- %%prep (~ tar xvf) ---------------------------------------
-
-%prep
-
-
-#
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
-
-#------------------- %%build (~ configure && make) ----------------------------
-
-%build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
-
-
-./configure CC=mpicc CXX=mpicxx F77=mpif77 --prefix=%{_prefix} --with-MPI --with-blas --with-lapack --enable-fortran
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+%define requestor Robert Yantosca <ryantosca@seas.harvard.edu>
 
 
 
@@ -187,20 +108,7 @@ make %{?_smp_mflags}
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
 
-# Make the symlink.
-# sudo mkdir -p "$(dirname %{_prefix})"
-# test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-# sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-# sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -288,11 +196,13 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("IDL_HOME",              "/n/sw/idl-8.4.1")
+setenv("LM_LICENSE_FILE",       "27001@rclic1")
+prepend_path("PATH",                "/n/sw/idl-8.4.1/idl84/bin")
+prepend_path("PATH",                "/n/sw/idl-8.4.1/envi/bin")
+prepend_path("PATH",                "/n/sw/idl-8.4.1/envi/classic/bin")
 EOF
 
 #------------------- App data file
@@ -300,11 +210,12 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}
@@ -324,7 +235,6 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-
 
 
 #------------------- scripts (there should be no need to change these) --------

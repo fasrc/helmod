@@ -1,0 +1,18 @@
+appname             : knitro
+appversion          : 9.1.0
+description         : KNITRO ver. 9.1.0-z, KNITRO is a solver for nonlinear optimization.
+tags                : 
+publication         : 
+modulename          : knitro-9.1.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Oct  8 17:13:00 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

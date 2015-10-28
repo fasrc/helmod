@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+%define summary_static RStudio version 0.99.486
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://computation.llnl.gov/project/linear_solvers/download/hypre-2.10.0b_reg.php
+URL: https://github.com/rstudio/rstudio/archive/v0.99.486.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,6 +56,13 @@ Prefix: %{_prefix}
 
 
 #
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+RStudio is an integrated development environment (IDE) for R.
+
+#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -69,33 +76,20 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies R/3.2.2-fasrc01 cmake/2.8.12.2-fasrc01 boost/1.59.0-fasrc01
+%define rundependencies R/3.2.2-fasrc01 boost/1.59.0-fasrc01
+%define buildcomments Built against R/3.2.2
+%define requestor Yoh Isogai <yohisogai@gmail.com>
+%define requestref RCRT:92114
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:R
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -135,13 +129,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure CC=mpicc CXX=mpicxx F77=mpif77 --prefix=%{_prefix} --with-MPI --with-blas --with-lapack --enable-fortran
+#./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -155,6 +148,23 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 #	--sharedstatedir=%{_prefix}/var/lib \
 #	--mandir=%{_prefix}/share/man \
 #	--infodir=%{_prefix}/share/info
+
+cd dependencies/common
+./install-gwt
+./install-dictionaries
+./install-mathjax
+./install-pandoc
+./install-libclang
+./install-packages
+./install-cef
+cd ../linux
+./install-qt-sdk
+cd ../../
+mkdir build
+cd build
+cmake .. -DRSTUDIO_TARGET=Desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+         -DBoost_DIR=$BOOST_LIB \
+         -DBoost_INCLUDE_DIR=$BOOST_INCLUDE
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -188,19 +198,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-# sudo mkdir -p "$(dirname %{_prefix})"
-# test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-# sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
 make install DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-# sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -270,7 +271,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -288,15 +288,19 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("RSTUDIO_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/resources/presentation/revealjs/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/resources/presentation/revealjs/lib")
+prepend_path("MANPATH",            "%{_prefix}/R/packages/rstudio/man")
+prepend_path("MANPATH",            "%{_prefix}/R/packages/manipulate/man")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
@@ -305,6 +309,8 @@ tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}
@@ -315,6 +321,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

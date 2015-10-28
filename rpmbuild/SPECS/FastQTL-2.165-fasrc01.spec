@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+%define summary_static FastQTL is a QTL mapper
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://computation.llnl.gov/project/linear_solvers/download/hypre-2.10.0b_reg.php
+URL: http://fastqtl.sourceforge.net/files/FastQTL-2.165.linux.tgz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,17 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Richard Kim <richardskim111@gmail.com
+%define requestref RCRT: 93655
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Genomic sequencing
 %define apppublication %{nil}
 
 
@@ -95,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Hypre is a library for solving large, sparse linear systems of equations on massively parallel computers.
+FastQTL is a QTL mapper.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -137,11 +136,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
-
-
-./configure CC=mpicc CXX=mpicxx F77=mpif77 --prefix=%{_prefix} --with-MPI --with-blas --with-lapack --enable-fortran
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#
+#
+#./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -158,7 +157,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+#make
 
 
 
@@ -188,19 +187,12 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+rsync -av --progress * %{buildroot}/%{_prefix}/
 
-# Make the symlink.
-# sudo mkdir -p "$(dirname %{_prefix})"
-# test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-# sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-# sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -288,11 +280,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("FASTQTL_HOME",              "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -300,11 +291,12 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
 specauthor          : %{specauthor}
 builddate           : %{builddate}
 buildhost           : %{buildhost}

@@ -1,0 +1,18 @@
+appname             : mrnet
+appversion          : 5.0.0
+description         : MRNet is a customizable, high-performance software infrastructure for building scalable tools and applications.
+tags                : 
+publication         : 
+modulename          : mrnet-5.0.0-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Sep 14 18:02:10 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

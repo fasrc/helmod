@@ -1,0 +1,18 @@
+appname             : R_packages
+appversion          : 3.2.2
+description         : a bunch of R packages from CRAN
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+publication         : 
+modulename          : R_packages-3.2.2-fasrc02
+type                : MPI
+compiler            : gcc/4.8.2-fasrc01
+mpi                 : mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Oct 19 10:29:49 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : R_core/3.2.2-fasrc02 gsl/1.16-fasrc03 netcdf/3.6.3-fasrc02 hdf5/1.8.12-fasrc06
+rundependencies     : R_core/3.2.2-fasrc02 gsl/1.16-fasrc03 netcdf/3.6.3-fasrc02 hdf5/1.8.12-fasrc06
+buildcomments       : 
+requestor           : 
+requestref          : 

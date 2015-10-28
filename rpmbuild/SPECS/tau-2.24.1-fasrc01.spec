@@ -1,3 +1,9 @@
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+%define _unpackaged_files_terminate_build 0
+#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -37,7 +43,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
+URL: https://www.cs.uoregon.edu/research/tau/downloads.php
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -76,13 +82,13 @@ Prefix: %{_prefix}
 %define builddependencies pdtoolkit/3.20-fasrc01 jdk/1.8.0_45-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Sebastian Eastham <seastham@fas.harvard.edu>
+%define requestref RCRT: 93252
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Profiling
 %define apppublication %{nil}
 
 
@@ -139,21 +145,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #umask 022
 #cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+    
+#./configure -c++=mpicxx                  \
+#            -cc=mpicc                    \
+#            -fortran=mpif90              \
+#            -mpi                         \
+#            -openmp                      \
+#            -ompt=download               \
+#            -bfd=download                \
+#            -unwind=download             \
+#            -mpiinc=${MPI_HOME}/include  \
+#            -mpilib=${MPI_HOME}/lib64    \
+#            -pdt=${PDT_HOME}/..          \
+#            -prefix="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/sw/tau
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -186,12 +191,36 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+# Configure
+./configure -c++=mpicxx                  \
+            -cc=mpicc                    \
+            -fortran=mpif90              \
+            -mpi                         \
+            -openmp                      \
+            -ompt=download               \
+            -bfd=download                \
+            -unwind=download             \
+            -mpiinc=${MPI_HOME}/include  \
+            -mpilib=${MPI_HOME}/lib64    \
+            -pdt=${PDT_HOME}             \
+            -prefix=%{_prefix}
+
+# Compile and install
+make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -256,6 +285,15 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
+# +++ Set up TAU_MAKEFILE +++
+if [ "%{comp_name}" == "intel" ]
+then
+    export TAU_MAKE="Makefile.tau-icpc-ompt-mpi-pdt-openmp"
+
+else
+    export TAU_MAKE="Makefile.tau-ompt-mpi-pdt-openmp"
+fi
+
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
@@ -281,13 +319,30 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("TAU_HOME",                 "%{_prefix}")
-setenv("TAU_MAKEFILE",             "%{_prefix}/x86_64/lib/Makefile.tau-icpc-mpi-pdt")
+setenv("TAU_MAKEFILE",             "%{_prefix}/x86_64/lib/${TAU_MAKE}")
+prepend_path("PATH",               "%{_prefix}/x86_64/binutils-2.23.2/bin")
+prepend_path("PATH",               "%{_prefix}/x86_64/binutils-2.23.2/x86_64-unknown-linux-gnu/bin")
 prepend_path("PATH",               "%{_prefix}/x86_64/bin")
+prepend_path("PATH",               "%{_prefix}/examples/NPB2.3/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64/binutils-2.23.2/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64/libunwind-1.1-icc/include")
 prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64/binutils-2.23.2/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64/libunwind-1.1-icc/include")
+prepend_path("INFOPATH",           "%{_prefix}/x86_64/binutils-2.23.2/share/info")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/binutils-2.23.2/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/binutils-2.23.2/x86_64-unknown-linux-gnu/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/libunwind-1.1-icc/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/binutils-2.23.2/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/binutils-2.23.2/x86_64-unknown-linux-gnu/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/libunwind-1.1-icc/lib")
+prepend_path("MANPATH",            "%{_prefix}/x86_64/binutils-2.23.2/share/man")
+prepend_path("MANPATH",            "%{_prefix}/x86_64/libunwind-1.1-icc/share/man")
 prepend_path("MANPATH",            "%{_prefix}/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/x86_64/libunwind-1.1-icc/lib/pkgconfig")
 EOF
 
 #------------------- App data file
