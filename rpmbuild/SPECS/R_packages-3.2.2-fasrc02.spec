@@ -633,7 +633,8 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 -- environment changes (uncomment what is relevant)
-prepend_path("R_LIBS_USER",         "%{_prefix}")
+setenv("R_PROFILE",             "%{_prefix}/Rmpi/Rprofile")
+prepend_path("R_LIBS_USER",     "%{_prefix}")
 EOF
 
 #------------------- App data file
