@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libMesh version 0.9.4
+%define summary_static RStudio is an integrated development environment (IDE) for the R programming language. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/libMesh/libmesh/releases/download/v0.9.4/libmesh-0.9.4.tar.gz
+URL: https://github.com/rstudio/rstudio/archive/v0.99.734.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,9 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies petsc/3.5.4-fasrc03
-%define rundependencies %{builddependencies}
+%define builddependencies R/3.2.0-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01 cmake/2.8.12.2-fasrc01
+%define rundependencies  R/3.2.0-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -83,7 +82,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -95,7 +94,12 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The libMesh library provides a framework for the numerical simulation of partial differential equations using arbitrary unstructured discretizations on serial and parallel platforms. A major goal of the library is to provide support for adaptive mesh refinement (AMR) computations in parallel while allowing a research scientist to focus on the physics they are modeling.
+RStudio is an integrated development environment (IDE) for the R programming language. Some of its features include:
+Customizable workbench with all of the tools required to work with R in one place (console, source, plots, workspace, help, history, etc.).
+Syntax highlighting editor with code completion.
+Execute code directly from the source editor (line, selection, or file).
+Full support for authoring Sweave and TeX documents.
+Runs on all major platforms (Windows, Mac, and Linux) and can also be run as a server, enabling multiple users to access the RStudio IDE using a web browser.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,25 +144,30 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# Fix header error
+sed -i '/#include <QCoreApplication>/a #include <QDataStream>' src/cpp/desktop/3rdparty/qtsingleapplication/qtlocalpeer.cpp
 
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# Install dependencies
+cd dependencies/common
+./install-dictionaries 
+./install-mathjax
+./install-pandoc 
+./install-packages 
+./install-libclang
+./install-gwt 
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+# Fix a cmake problem finding qt bin dir
+sed -i '/get_filename_component(QT_BIN_DIR ${QT_QMAKE_EXECUTABLE} PATH)/d' src/cpp/desktop/CMakeLists.txt 
+sed -i '/set(CMAKE_PREFIX_PATH "${QT_BIN_DIR}\/\/..\/\/lib\/\/cmake")/i \
+set(QT_BIN_DIR "$QT_HOME/bin")' src/cpp/desktop/CMakeLists.txt
+
+mkdir build; cd build
+
+cmake -DCMAKE_INCLUDE_PATH:STRING="$BOOST_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$BOOST_LIB" -DRSTUDIO_TARGET=Desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
+
+make
 
 
 
@@ -188,7 +197,7 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -273,8 +282,7 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
@@ -282,15 +290,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBMESH_HOME",             "%{_prefix}")
+setenv("RSTUDIO_HOME",       "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/contrib/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -314,7 +315,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
