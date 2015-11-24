@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static RStudio version 0.99.486
+%define summary_static Transrate, version 1.0.0, is software for de-novo transcriptome assembly quality analysis.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/rstudio/rstudio/archive/v0.99.486.tar.gz
+URL: https://bintray.com/artifact/download/blahah/generic/transrate-1.0.1-linux-x86_64.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,13 +56,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-RStudio is an integrated development environment (IDE) for R.
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -76,20 +69,32 @@ RStudio is an integrated development environment (IDE) for R.
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R/3.2.2-fasrc01 cmake/2.8.12.2-fasrc01 boost/1.59.0-fasrc01 qt/5.5.1-fasrc01 qt-creator/3.5.1-fasrc01
-%define rundependencies R/3.2.2-fasrc01 
-%define buildcomments Built against R/3.2.2
-%define requestor Yoh Isogai <yohisogai@gmail.com>
-%define requestref RCRT:92114
+%define builddependencies blast/2.2.29+-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor melissa whitaker <melliwhitaker@gmail.com>
+%define requestref RCRT:94228 
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:R
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:sequence alignment
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Transrate, version 1.0.0, is software for de-novo transcriptome assembly quality analysis.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -129,10 +134,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
 
 #./configure --prefix=%{_prefix} \
 #	--program-prefix= \
@@ -149,26 +155,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #	--mandir=%{_prefix}/share/man \
 #	--infodir=%{_prefix}/share/info
 
-cd dependencies/common
-./install-gwt
-./install-dictionaries
-./install-mathjax
-./install-pandoc
-./install-libclang
-./install-packages
-./install-cef
-#cd ../linux
-#./install-qt-sdk
-cd ../../
-mkdir build
-cd build
-cmake .. -DRSTUDIO_TARGET=Desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} \
-         -DBoost_DIR=$BOOST_LIB \
-         -DBoost_INCLUDE_DIR=$BOOST_INCLUDE
-
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+#make
 
 
 
@@ -198,10 +187,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -271,6 +261,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -290,21 +281,18 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("RSTUDIO_HOME",             "%{_prefix}")
+setenv("TRANSRATE_HOME",           "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/resources/presentation/revealjs/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/resources/presentation/revealjs/lib")
-prepend_path("MANPATH",            "%{_prefix}/R/packages/rstudio/man")
-prepend_path("MANPATH",            "%{_prefix}/R/packages/manipulate/man")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -321,7 +309,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

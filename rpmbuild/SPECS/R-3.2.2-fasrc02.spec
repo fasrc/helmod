@@ -279,7 +279,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("R_PROFILE", "${R_LIBS_USER}/Rmpi/Rprofile")
+---- setenv("R_PROFILE", "${R_LIBS_USER}/Rmpi/Rprofile")
 EOF
 
 #------------------- App data file
