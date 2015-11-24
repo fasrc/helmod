@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libMesh version 0.9.4
+%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/libMesh/libmesh/releases/download/v0.9.4/libmesh-0.9.4.tar.gz
+URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/v2.1.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,8 +74,8 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies petsc/3.5.4-fasrc03
-%define rundependencies %{builddependencies}
+%define builddependencies %{nil}
+%define rundependencies bowtie/1.1.1-fasrc01 samtools/1.1-fasrc02 perl-modules/5.10.1-fasrc11
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -83,8 +83,8 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
+%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
 
 
 
@@ -95,7 +95,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The libMesh library provides a framework for the numerical simulation of partial differential equations using arbitrary unstructured discretizations on serial and parallel platforms. A major goal of the library is to provide support for adaptive mesh refinement (AMR) computations in parallel while allowing a research scientist to focus on the physics they are modeling.
+Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -141,24 +142,25 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# ./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make -j 4
+make -j 4 plugins
 
 
 
@@ -191,7 +193,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -282,15 +285,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBMESH_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/contrib/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PATH",               "%{_prefix}")
+setenv("TRINITY_HOME",             "%{_prefix}")
 EOF
 
 #------------------- App data file

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libMesh version 0.9.4
+%define summary_static MRIcron is a cross-platform NIfTI format image viewer. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/libMesh/libmesh/releases/download/v0.9.4/libmesh-0.9.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://www.nitrc.org/frs/download.php/7765/lx.zip
+Source: %{name}-%{version}.zip
 
 #
 # there should be no need to change the following
@@ -73,17 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies petsc/3.5.4-fasrc03
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Stephanie McMains <smcmains@fas.harvard.edu>
+%define requestref RCRT:95010
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -95,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The libMesh library provides a framework for the numerical simulation of partial differential equations using arbitrary unstructured discretizations on serial and parallel platforms. A major goal of the library is to provide support for adaptive mesh refinement (AMR) computations in parallel while allowing a research scientist to focus on the physics they are modeling.
+MRIcron is a cross-platform NIfTI format image viewer. It can load multiple layers of images, generate volume renderings and draw volumes of interest. It also provides dcm2nii for converting DICOM images to NIfTI format and NPM for statistics. MRIcron is a mature and useful tool, however you may want to consider the more recent MRIcroGL as an alternative.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +110,9 @@ The libMesh library provides a framework for the numerical simulation of partial
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}_lx
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.zip
+cd %{name}_lx
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -126,39 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 
@@ -188,11 +154,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_lx
+echo %{buildroot} | grep -q %{name}_lx && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -282,15 +247,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBMESH_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/contrib/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("MRICRON_HOME",            "%{_prefix}")
+prepend_path("PATH",              "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -314,7 +272,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -172,7 +172,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/bin
 cd rsem-eval
-cp extract-transcript-to-gene-map-from-trinity rsem-bam2readdepth rsem-bam2wig rsem-build-read-index rsem-calculate-credibility-intervals rsem-eval-calculate-score rsem-eval-estimate-transcript-length-distribution rsem-extract-reference-transcripts rsem-gen-transcript-plots rsem-get-unique rsem-parse-alignments rsem-plot-model rsem-plot-transcript-wiggles rsem-preref rsem-run-em rsem-run-gibbs rsem-sam-validator rsem-scan-for-paired-end-reads rsem-simulate-reads rsem-synthesis-reference-transcripts rsem-tbam2gbam %{buildroot}/%{_prefix}/bin
+cp extract-transcript-to-gene-map-from-trinity rsem-bam2readdepth rsem-bam2wig rsem-build-read-index rsem-calculate-credibility-intervals rsem-eval-calculate-score rsem-eval-estimate-transcript-length-distribution rsem-extract-reference-transcripts rsem-gen-transcript-plots rsem-get-unique rsem-parse-alignments rsem-plot-model rsem-plot-transcript-wiggles rsem-preref rsem-run-em rsem-run-gibbs rsem-sam-validator rsem-scan-for-paired-end-reads rsem-simulate-reads rsem-synthesis-reference-transcripts rsem-tbam2gbam rsem_perl_utils.pm %{buildroot}/%{_prefix}/bin
 cd ../ref-eval
 cp ref-eval ref-eval-estimate-true-assembly %{buildroot}/%{_prefix}/bin 
 cd ..

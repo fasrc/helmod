@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libMesh version 0.9.4
+%define summary_static Stampy is a package for the mapping of short reads from illumina sequencing machines onto a reference genome.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/libMesh/libmesh/releases/download/v0.9.4/libmesh-0.9.4.tar.gz
+URL: http://www.well.ox.ac.uk/software-download-registration
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,17 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies petsc/3.5.4-fasrc03
+%define builddependencies python/2.7.6-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Pierre Baduel <pbaduel@g.harvard.edu>
+%define requestref RCRT:94635
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -95,7 +94,18 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The libMesh library provides a framework for the numerical simulation of partial differential equations using arbitrary unstructured discretizations on serial and parallel platforms. A major goal of the library is to provide support for adaptive mesh refinement (AMR) computations in parallel while allowing a research scientist to focus on the physics they are modeling.
+Stampy is a package for the mapping of short reads from illumina sequencing machines onto a reference genome. It's recommended for most workflows, including those for genomic resequencing, RNA-Seq and Chip-seq. Stampy excels in the mapping of reads containing that contain sequence variation relative to the reference, in particular for those containing insertions or deletions. It can map reads from a highly divergent species to a reference genome for instance. Stampy achieves high sensitivity and speed by using a fast hashing algorithm and a detailed statistical model. Stampy has the following features:
+Maps single, paired-end and mate pair Illumina reads to a reference genome
+Fast: about 20 Gbase per hour in hybrid mode (using BWA)
+Low memory footprint: 2.7 Gb shared memory for a 3Gbase genome
+High sensitivity for indels and divergent reads, up to 10-15%
+Low mapping bias for reads with SNPs
+Well calibrated mapping quality scores
+Input: Fastq and Fasta; gzipped or plain
+Output: SAM, Maq's map file
+Optionally calculates per-base alignment posteriors
+Optionally processes part of the input
+Handles reads of up to 4500 bases
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,25 +150,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -191,8 +183,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -282,15 +273,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBMESH_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/contrib/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("STAMPY_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -314,7 +298,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libMesh version 0.9.4
+%define summary_static IQ-TREE is a very efficient maximum likelihood phylogenetic software 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/libMesh/libmesh/releases/download/v0.9.4/libmesh-0.9.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.cibiv.at/software/iqtree/download/iqtree-1.3.10/iqtree-1.3.10-Source.tar.gz
+Source: %{name}-%{version}-Source.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,17 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies petsc/3.5.4-fasrc03
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies cmake/2.8.12.2-fasrc01 eigen/3.2.2-fasrc01 
+%define rundependencies %{nil}
+%define buildcomments OpenMP version with SSE3
+%define requestor David Combosch <combosch@oeb.harvard.edu>
+%define requestref RCRT:94971
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -95,7 +94,17 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The libMesh library provides a framework for the numerical simulation of partial differential equations using arbitrary unstructured discretizations on serial and parallel platforms. A major goal of the library is to provide support for adaptive mesh refinement (AMR) computations in parallel while allowing a research scientist to focus on the physics they are modeling.
+IQ-TREE is a very efficient maximum likelihood phylogenetic software with following key features among others:
+- A novel fast and effective stochastic algorithm to estimate maximum likelihood trees. IQ-TREE outperforms both RAxML and PhyML in terms of likelihood while requiring similar amount of computing time (see Nguyen et al., 2015)
+- An ultrafast bootstrap approximation to assess branch supports (see Minh et al., 2013).
+- Ultrafast and automatic model selection (10 to 100 times faster than jModelTest and ProtTest) and best partitioning scheme selection (like PartitionFinder).
+The strength of IQ-TREE is the availability of a wide range of models:
+- All common substitution models for DNA, protein, codon, binary and morphological data.
+- Rate heterogeneity among sites including invariable site [+I] model, discrete Gamma [+G], and FreeRate model [+R].
+- Phylogenomic partition models allowing for mixed data types between partitions, linked or unlinked branch lengths, and different rate types (e.g. one partition under GTR+G and another under WAG+I+G).
+- Mixture models such as predefined protein mixture models (e.g., LG4X, CAT C10-C60), customizable mixture models (e.g., "MIX{HKY,GTR}"), and frequency/profile mixture models.
+- Ascertainment bias correction [+ASC] model for data where constant sites are missing (e.g., SNPs or morphological data).
+- New models can be defined and imported via a NEXUS file (see Manual).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +120,9 @@ The libMesh library provides a framework for the numerical simulation of partial
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}-Source
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-Source.tar.*
+cd %{name}-%{version}-Source
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,27 +147,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-Source
 
+mkdir build; cd build
 
-./configure --prefix=%{_prefix} CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --with-mpi=${MPI_HOME} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH=$EIGEN_INCLUDE -DIQTREE_FLAGS="omp" ..
+make
 
 
 
@@ -188,7 +182,7 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-Source/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -282,15 +276,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBMESH_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/contrib/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("IQTREE_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -314,7 +301,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
