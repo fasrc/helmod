@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Ogg Vorbis is a completely open, patent-free, professional audio encoding and streaming technology
+%define summary_static RStudio version 0.99.486
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.gz
+URL: https://github.com/rstudio/rstudio/archive/v0.99.486.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -60,8 +60,7 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Audio library
-
+RStudio is an integrated development environment (IDE) for R.
 
 #
 # Macros for setting app data 
@@ -77,21 +76,21 @@ Audio library
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies R/3.2.2-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01 cmake/2.8.12.2-fasrc01
+%define rundependencies R/3.2.2-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01 
+%define buildcomments Built against R/3.2.2
+%define requestor Yoh Isogai <yohisogai@gmail.com>
+%define requestref RCRT:92114
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Utilities aci-ref-app-tag:Audio
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:R
 %define apppublication %{nil}
+
+
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -130,25 +129,43 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# Fix header error
+sed -i '/#include <QCoreApplication>/a #include <QDataStream>' src/cpp/desktop/3rdparty/qtsingleapplication/qtlocalpeer.cpp
+
+# Install dependencies
+cd dependencies/common
+./install-gwt
+./install-dictionaries
+./install-mathjax
+./install-pandoc
+./install-libclang
+./install-packages
+./install-cef
+
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+# Fix a cmake problem finding qt bin dir
+sed -i '/get_filename_component(QT_BIN_DIR ${QT_QMAKE_EXECUTABLE} PATH)/d' src/cpp/desktop/CMakeLists.txt 
+sed -i '/set(CMAKE_PREFIX_PATH "${QT_BIN_DIR}\/\/..\/\/lib\/\/cmake")/i \
+set(QT_BIN_DIR "$QT_HOME/bin")' src/cpp/desktop/CMakeLists.txt
+
+mkdir build
+cd build
+
+#cmake .. -DRSTUDIO_TARGET=Desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+#         -DBoost_DIR=$BOOST_LIB \
+#         -DBoost_INCLUDE_DIR=$BOOST_INCLUDE
+
+cmake -DCMAKE_INCLUDE_PATH:STRING="$BOOST_INCLUDE" \
+      -DCMAKE_LIBRARY_PATH:STRING="$BOOST_LIB"     \
+      -DRSTUDIO_TARGET=Desktop                     \
+      -DCMAKE_BUILD_TYPE=Release                   \
+      -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -181,11 +198,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -263,23 +279,23 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("RSTUDIO_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
@@ -300,6 +316,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

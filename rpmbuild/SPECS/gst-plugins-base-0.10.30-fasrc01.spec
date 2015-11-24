@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies gstreamer/0.10.30-fasrc01 libvorbis/1.3.4-fasrc01 libogg/1.3.2-fasrc01  
+%define builddependencies gstreamer/0.10.30-fasrc01 orc/0.4.24-fasrc01 libogg/1.3.2-fasrc01 libvorbis/1.3.4-fasrc01 libtheora/1.1.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor Christopher Horvat <horvat@fas.harvard.edu>
@@ -158,7 +158,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -279,7 +279,6 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
         end
     end
 end
-
 
 ---- environment changes (uncomment what is relevant)
 setenv("GST_PLUGINS_BASE_HOME",    "%{_prefix}")

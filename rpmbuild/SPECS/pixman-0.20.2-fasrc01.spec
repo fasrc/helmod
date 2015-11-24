@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static gst-plugins-base
+%define summary_static Pixman is a low-level software library for pixel manipulation, providing features such as image compositing and trapezoid rasterization.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gstreamer.freedesktop.org/src/gst-plugins-base/gst-plugins-base-1.5.91.tar.xz
-Source: %{name}-%{version}.tar.xz
+URL: http://cairographics.org/releases/pixman-0.20.2.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies gstreamer/1.5.91-fasrc01 libvorbis/1.3.4-fasrc01 libogg/1.3.2-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for GTK+ and GStreamer
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GStreamer Base Plug-ins is a well-groomed and well-maintained collection of GStreamer plug-ins and elements, spanning the range of possible types of elements one would want to write for GStreamer. It also contains helper libraries and base classes useful for writing elements. A wide range of video and audio decoders, encoders, and filters are included.
+Pixman is a low-level software library for pixel manipulation, providing features such as image compositing and trapezoid rasterization.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -281,16 +281,12 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("GST_PLUGINS_BASE_HOME",    "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("PIXMAN_HOME",              "%{_prefix}")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-prepend_path("GST_PLUGIN_PATH",    "%{_prefix}/lib64")
-prepend_path("GST_PLUGIN_PATH",    "%{_prefix}/lib64/gstreamer-1.0")
 EOF
 
 #------------------- App data file
