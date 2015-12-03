@@ -25,23 +25,19 @@ Version: %{getenv:VERSION}
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-
-#
-# FIXME
 #
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static A module that represents a large list of individual Perl modules
+%define summary_static The RDP Classifier is a naive Bayesian classifier which was developed to provide rapid taxonomic placement based on rRNA sequence data. 
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#http://...FIXME...
+URL:https://github.com/rdpstaff/classifier/archive/2.10.2.tar.gz 
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -58,26 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# The list of modules installed via cpan
-#
-%define MODULES ExtUtils-MakeMaker-6.98 IO-String-1.08 Test-Deep-0.112 Tree-DAG_Node-1.20 Test-Warn-0.24 Class-Data-Inheritable-0.08 Algorithm-Diff-1.1902 Scalar-List-Utils-1.38 Parse-CPAN-Meta-1.4409 CPAN-Meta-YAML-0.010 CPAN-Meta-Requirements-2.125 CPAN-Meta-2.133380 Module-Metadata-1.000019 version-0.9907 Sub-Uplevel-0.24 Test-Exception-0.32 Test-Simple-1.001002 Data-Dumper-2.145 Carp-1.32 File-Slurp-9999.19 ExtUtils-CBuilder-0.280212 ExtUtils-ParseXS-3.22 Perl-OSType-1.007 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41 DBI-1.631 Devel-StackTrace-1.31 Exception-Class-1.37 GD-2.50 JSON-PP-2.27203 Data-Stag-0.14 URI-1.60 Module-Build-0.4204 DBD-SQLite-1.40 IPC-Run-0.92 Graph-0.96 GraphViz-2.15 XML-NamespaceSupport-1.11 XML-SAX-Base-1.08 XML-Parser-2.41 XML-SAX-0.99 XML-Simple-2.20 XML-Twig-3.44 XML-SAX-Writer-0.54 XML-Filter-BufferText-1.01 Acme-Damn-0.02 Bit-Vector-7.3 DBD-Pg-3.0.0 Clone-0.36 Class-Load-0.20 Task-Weaken-1.04 Sub-Exporter-Progressive-0.001011 Devel-GlobalDestruction-0.12 Sub-Name-0.05 Eval-Closure-0.11 Dist-CheckConflicts-0.10 Data-OptList-0.109 Moose-2.1202 Module-Runtime-0.013 Params-Util-1.07 Sub-Install-0.927 Module-Implementation-0.07 Try-Tiny-0.19 List-MoreUtils-0.33 Package-Stash-0.36 Package-DeprecationManager-0.13 MRO-Compat-0.12 Sub-Exporter-0.987 Compress-Raw-Zlib-2.065 Compress-Raw-Bzip2-2.064 Convert-Binary-C-0.76 Mozilla-CA-20130114 WWW-RobotRules-6.02 HTTP-Cookies-6.01 HTTP-Daemon-6.01 HTML-Tagset-3.20 HTML-Parser-3.71 HTTP-Negotiate-6.01 File-Listing-6.04 HTTP-Date-6.02 IO-HTML-1.00 HTTP-Message-6.06 Encode-Locale-1.03 LWP-MediaTypes-6.02 libwww-perl-6.05 Net-HTTP-6.06 Net-SSLeay-1.58 IO-Socket-SSL-1.966 LWP-Protocol-https-6.04 MIME-Base64-3.14 Crypt-SSLeay-0.64 Math-Random-0.71 Perl-Unsafe-Signals-0.02 Socket6-0.25 Storable-2.45 String-Approx-3.26 Tk-804.032 Sys-SigAction-0.21 XML-LibXML-2.0110 Data-Utilities-0.04 Time-HiRes-1.9726 Time-Piece-1.27 Want-0.22 DIYA-1.0 YAML-0.95 local-lib-2.000012 Statistics-Descriptive-3.0607 File-Copy-Link-0.113 Math-Matrix-0.8 Math-MatrixReal-1.9 ExtUtils-F77-1.16 SVG-2.28 Text-Glob-0.09 Spreadsheet-WriteExcel-2.40 TermReadKey-2.32 Hash-Merge-0.200 forks-0.36 IO-All-0.86 File-ShareDir-Install-0.10 IO-Prompt-0.997003 File-Which-1.19 Logger-Simple-2.0 Parallel-ForkManager-1.15 Parse-RecDescent-1.967012 Inline-0.79 Inline-C-0.76 
-
-%define BUILDPL BioPerl-1.6.923 Class-Load-XS-0.06 Astro-FITS-Header-3.07
-
-%define PDL PDL-2.007 
-# Module-Build-0.4204 Tree-DAG_Node-1.20 Test-Warn-0.24 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41
-
-#
-# FIXME
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-Built against the fasrc02 release of perl-5.10, which includes threads.  There is a lot of stuff here including the following:
-%{MODULES} %{BUILDPL}
 
 #
 # Macros for setting app data 
@@ -97,132 +73,135 @@ Built against the fasrc02 release of perl-5.10, which includes threads.  There i
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies  perl/5.10.1-fasrc04 gd/2.0.28-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Set HTTP_CA_FILE, "Module list: %{MODULES}"
+%define buildcomments Qiime dependency
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Perl
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-# %%setup
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
+
+
 
 #------------------- %%build (~ configure && make) ----------------------------
+
 %build
 
+#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
 
-
-export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:%{buildroot}/%{_prefix}/lib/%{version}:$PERL5LIB
-#export PERL_MM_USE_DEFAULT=true
-
-mkdir -p %{buildroot}/%{_prefix}
-for m in %{MODULES}; do 
-  cd %{_topdir}/BUILD
-  tar xvf %{_topdir}/SOURCES/$m.tar.*
-
-  cd %{_topdir}/BUILD/$m
-  case $m in 
-    XML-Twig*)
-      perl Makefile.PL -y PREFIX=%{_prefix}
-      ;;
-    IO-Compress*)
-      perl Makefile.PL INSTALL_BASE=%{_prefix}
-      ;;
-    *)
-      perl Makefile.PL PREFIX=%{_prefix} 
-      ;;
-  esac
-  make
-#  echo %{buildroot} | grep -q $m && rm -rf %{buildroot}
-  make install DESTDIR=%{buildroot}
-done
-
-
-for m in %{BUILDPL}; do
-  cd %{_topdir}/BUILD
-  tar xvf %{_topdir}/SOURCES/$m.tar.*
-
-  cd %{_topdir}/BUILD/$m
-  case $m in 
-    BioPerl*)
-      perl Build.PL --install_base %{_prefix} --accept
-      ;;
-    *) 
-      perl Build.PL --install_base %{_prefix} 
-      ;;
-   esac
-  ./Build
-  ./Build install --destdir %{buildroot}
-done
-
 #
-# Doing PDL as a special case because it is dependent on a Build.PL
-# module (Astro::FITS::Header) and there are problems with the build
+# FIXME
 #
-cd %{_topdir}/BUILD
-tar xvf %{_topdir}/SOURCES/%{PDL}.tar.*
-cd %{_topdir}/BUILD/%{PDL}
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
 
-sed -i -e 's?sub MY::postamble {.*?sub MY::postamble {\
-   return "";? ' Makefile.PL
-perl Makefile.PL PREFIX=%{_prefix}
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#
-# FIXME
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-# %%makeinstall
-export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
 
-for m in %{MODULES}; do 
-  cd %{_topdir}/BUILD/$m
-  make install DESTDIR=%{buildroot}
-done
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
 
-for m in %{BUILDPL}; do
-  cd %{_topdir}/BUILD/$m
-  ./Build install --destdir %{buildroot}
-done
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-test -e '%{buildroot}/%{_prefix}' || mkdir -p '%{buildroot}/%{_prefix}' 
 
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -239,6 +218,14 @@ done
 
 	echo
 	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -252,9 +239,13 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# - uncomment any applicable prepend_path things
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
 #
-# - do any other customizing of the module, e.g. load dependencies
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -264,10 +255,13 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -278,20 +272,31 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("PERLMODULES_HOME",          "%{_prefix}")
-setenv("HTTPS_CA_FILE",             "/etc/ssl/certs/ca-bundle.crt")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("PERL5LIB",              "%{_prefix}/lib")
-prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")
-prepend_path("PERL5LIB",              "%{_prefix}/lib/perl5")
-prepend_path("MANPATH",             "%{_prefix}/man")
+--setenv("TEMPLATE_HOME",       "%{_prefix}")
+
+--prepend_path("PATH",                "%{_prefix}/bin")
+--prepend_path("CPATH",               "%{_prefix}/include")
+--prepend_path("FPATH",               "%{_prefix}/include")
+--prepend_path("INFOPATH",            "%{_prefix}/info")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+--prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+--prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+--prepend_path("MANPATH",             "%{_prefix}/man")
+--prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
+--prepend_path("PATH",                "%{_prefix}/sbin")
+--prepend_path("INFOPATH",            "%{_prefix}/share/info")
+--prepend_path("MANPATH",             "%{_prefix}/share/man")
+--prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
 EOF
 
 #------------------- App data file
@@ -299,7 +304,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
