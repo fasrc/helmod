@@ -6,7 +6,6 @@ trial:
 	fasrcsw-rpmbuild-$$TYPE --define 'trial yes' -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
 build:
-	@echo "FASRCSW_DEV is $$FASRCSW_DEV"
 	fasrcsw-rpmbuild-$$TYPE -ba "$$NAME-$$VERSION-$$RELEASE".spec
 
 filelist:

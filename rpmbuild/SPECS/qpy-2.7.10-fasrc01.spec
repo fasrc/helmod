@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static QIIME version 1.9.0
+%define summary_static Clean python installation for use with qiime
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-#Source: %{name}-%{version}.tar.gz
+URL: https://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz
+Source: Python-%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -73,8 +74,8 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies jre/1.6.0_20-fasrc01 ncbi-blast/2.2.22-fasrc01 cd-hit/3.1.1-fasrc01 chimeraslayer/2011.05.19-fasrc01 muscle/3.8.31-fasrc01 mothur/1.25.0-fasrc01 clearcut/1.0.9-fasrc01 raxml/7.3.0-fasrc01 infernal/1.0.2-fasrc01 muscle/3.8.31-fasrc01 rtax/0.984-fasrc01 usearch/5.2.236-fasrc01 sumaclust/1.0.00-fasrc01 swarm/1.2.19-fasrc01 sortmerna/2.0-fasrc01 ghc/7.8.3-fasrc01 gsl/1.16-fasrc02 AmpliconNoise/1.27-fasrc01 cytoscape/2.7.0-fasrc01 R/3.1.0-fasrc01 fasttree/2.1.3-fasrc01 pplacer/1.0.0-fasrc01 ParsInsert/1.04-fasrc01 ea-utils/1.1.2.537-fasrc01 SeqPrep/1.1-fasrc01 hdf5/1.8.12-fasrc04 gmp/6.0.0-fasrc02
-%define buildcomments Built using a pip freeze from the pip qiime install
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -84,14 +85,16 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
-%define PACKAGES numpy-1.9.3 scipy-0.16.0 cogent-1.5.3 natsort-3.5.6 six-1.9.0 python_dateutil-2.4.2 pytz-2015.6 pyparsing-2.0.3 nose-1.3.7 funcsigs-0.4 pbr-1.8.0 mock-1.3.0 matplotlib-1.4.3 pynast-1.2.2 qcli-0.1.1 gdata-2.0.18 pyqi-0.3.2 biom-format-2.1.4 pandas-0.16.2 future-0.15.2 decorator-4.0.4 simplegeneric-0.8.1 pexpect-3.3 ipython_genutils-0.1.0 traitlets-4.0.0 path.py-8.1.1 pickleshare-0.5 ipython-4.0.0 emperor-0.9.51 scikit-bio-0.2.3 burrito-0.9.1 burrito-fillings-0.1.1 qiime-default-reference-0.1.3 qiime-1.9.1
+
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-QIIME: Quantitative Insights Into Microbial Ecology. This module was built by Plamen G. Krastev.
-
+Clean build of the Python interpreter for use with Qiime
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -99,13 +102,19 @@ QIIME: Quantitative Insights Into Microbial Ecology. This module was built by Pl
 
 
 #
+# FIXME
+#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
+
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
+rm -rf Python-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Python-%{version}.tgz
+cd Python-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -117,9 +126,25 @@ mkdir %{name}-%{version}
 
 
 #
+# FIXME
+#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/Python-%{version}
+
+
+./configure --prefix=%{_prefix} --enable-shared
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -129,18 +154,31 @@ mkdir %{name}-%{version}
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-for p in %{PACKAGES}; do
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
 
-    source=''
-    for suffix in .tar.gz .tgz -py2.py3-none-any.whl -py2-none-any.whl .zip; do
-        f="$FASRCSW_DEV/rpmbuild/SOURCES/${p}${suffix}"
-        test -e ${f} && source="${f}"
-    done 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/Python-%{version}
+echo %{buildroot} | grep -q Python-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-done
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -210,6 +248,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -218,49 +257,47 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
--- Dependencies --
-load("pip/6.0.8-fasrc01")
-load("jre/1.6.0_20-fasrc01")
-load("ncbi-blast/2.2.22-fasrc01")
-load("cd-hit/3.1.1-fasrc01")
-load("chimeraslayer/2011.05.19-fasrc01")
-load("muscle/3.8.31-fasrc01")
-load("mothur/1.25.0-fasrc01")
-load("clearcut/1.0.9-fasrc01")
-load("raxml/7.3.0-fasrc01")
-load("infernal/1.0.2-fasrc01")
-load("muscle/3.8.31-fasrc01")
-load("rtax/0.984-fasrc01")
-load("usearch/5.2.236-fasrc01")
-load("sumaclust/1.0.00-fasrc01")
-load("swarm/1.2.19-fasrc01")
-load("sortmerna/2.0-fasrc01")
-load("ghc/7.8.3-fasrc01")
-load("gsl/1.16-fasrc02")
-load("AmpliconNoise/1.27-fasrc01")
-load("cytoscape/2.7.0-fasrc01")
-load("R/3.1.0-fasrc01")
-load("fasttree/2.1.3-fasrc01") 
-load("pplacer/1.0.0-fasrc01")
-load("ParsInsert/1.04-fasrc01")
-load("ea-utils/1.1.2.537-fasrc01")
-load("SeqPrep/1.1-fasrc01")
-load("hdf5/1.8.12-fasrc04")
-load("gmp/6.0.0-fasrc02")
 
--- environment changes (uncomment what's relevant)
-prepend_path("PATH",                              "/n/sw/centos6/qiime-1.9.0/bin")
-prepend_path("PYTHONPATH",                        "/n/sw/centos6/qiime-1.9.0/lib/python2.7/site-packages")
-setenv("QIIME_CONFIG_FP",                         "/n/sw/centos6/qiime-1.9.0/etc/qiime_config")
-setenv("OMPI_MCA_btl_base_warn_component_unused", "0")
-setenv("SOURCETRACKER_PATH",                      "/n/sw/centos6/sourcetracker-0.9.5")
-setenv("RDP_JAR_PATH",                            "/n/sw/rdp_classifier_2.2/rdp_classifier-2.2.jar")
+---- environment changes (uncomment what is relevant)
+setenv("PYTHONHOME",               "%{_prefix}")
+setenv("PYTHON_LIB",               "%{_prefix}/lib64")
+setenv("PYTHON_INCLUDE",           "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+EOF
+
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
 EOF
 
 

@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A module that loads the qiime dependencies
+%define summary_static QIIME version 1.9.0
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# URL: http://...FIXME...
-# Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,9 +72,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies jdk/1.7.0_60-fasrc01 ncbi-blast/2.2.22-fasrc01 cd-hit/3.1.1-fasrc01 chimeraslayer/2011.05.19-fasrc01 muscle/3.8.31-fasrc01 mothur/1.25.0-fasrc01 clearcut/1.0.9-fasrc01 raxml/7.3.0-fasrc01 infernal/1.0.2-fasrc01 muscle/3.8.31-fasrc01 rtax/0.984-fasrc01 usearch/5.2.236-fasrc01 ghc/7.8.3-fasrc01 gsl/1.16-fasrc02 AmpliconNoise/1.27-fasrc01 cytoscape/2.7.0-fasrc01 R/3.1.0-fasrc01 pplacer/1.0.0-fasrc01 ParsInsert/1.04-fasrc01 ea-utils/1.1.2.537-fasrc01 SeqPrep/1.1-fasrc01 hdf5/1.8.12-fasrc04 gmp/6.0.0-fasrc02
-%define buildcomments %{nil}
+%define builddependencies qiime-dependencies/1.9-fasrc01 qpy/2.7.10-fasrc01 
+%define rundependencies %{builddependencies}
+%define buildcomments Built using a pip freeze from the pip qiime install
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,21 +84,33 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
+# These three must be built separately in order for the others to build correctly
+%define SETUPTOOLS setuptools-18.7.1  
+%define CYTHON Cython-0.20.1 
+%define NUMPY numpy-1.9.3 
 
-
+%define PACKAGES nose-1.3.0 pkgconfig-1.1.0 h5py-2.5.0 scipy-0.16.0 cogent-1.5.3 natsort-3.5.6 six-1.9.0 python-dateutil-2.4.2 pytz-2015.6 pyparsing-2.0.3 funcsigs-0.4 pbr-1.8.0 mock-1.3.0 matplotlib-1.4.3 pynast-1.2.2 qcli-0.1.1 gdata-2.0.18 pyqi-0.3.2 biom-format-2.1.4 pandas-0.16.2 future-0.15.2 decorator-4.0.4 simplegeneric-0.8.1 pexpect-3.3 ipython_genutils-0.1.0 traitlets-4.0.0 path.py-8.1.1 pickleshare-0.5 ipython-4.0.0 emperor-0.9.51 scikit-bio-0.2.3 burrito-0.9.1 burrito-fillings-0.1.1 qiime-default-reference-0.1.3
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-This module loads external tools used by Qiime.  This is designed to work with a locally installed qiime.
+QIIME: Quantitative Insights Into Microbial Ecology.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# style things -- hopefully it'll just work as-is.
+#
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+mkdir %{name}-%{version}
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -111,10 +122,10 @@ This module loads external tools used by Qiime.  This is designed to work with a
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -123,7 +134,41 @@ This module loads external tools used by Qiime.  This is designed to work with a
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
 
+export PYTHONPATH="%{buildroot}%{_prefix}/lib/python2.7/site-packages"
+export HDF5_DIR=$HDF5_HOME
+
+tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{SETUPTOOLS}.tar.gz" 
+cd %{SETUPTOOLS} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+
+tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{CYTHON}.tar.gz" 
+cd %{CYTHON} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+
+tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{NUMPY}.tar.gz" 
+cd %{NUMPY} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+
+for p in %{PACKAGES}; do
+    f="$FASRCSW_DEV/rpmbuild/SOURCES/${p}.tar.gz"
+    tar xvf ${f}
+    cd ${p} && python setup.py build
+    cd ${p} && python setup.py --skip-build install --prefix=%{_prefix} --root=%{buildroot}
+done
+
+git clone https://github.com/biocore/qiime.git
+cd qiime
+git checkout 3c23a0063ea61b8d99400fd8ef534fecbf4b7c27
+python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -186,7 +231,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -204,10 +248,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH",                              "%{_prefix}/bin")
+prepend_path("PYTHONPATH",                        "%{_prefix}/lib/python2.7/site-packages")
 setenv("OMPI_MCA_btl_base_warn_component_unused", "0")
 setenv("RDP_JAR_PATH",                            "/n/sw/rdp_classifier_2.2/rdp_classifier-2.2.jar")
-
 EOF
 
 #------------------- App data file
