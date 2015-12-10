@@ -1,0 +1,18 @@
+appname             : atk
+appversion          : 1.91.92
+description         : ATK is the Accessibility Toolkit. It provides a set of generic interfaces allowing accessibility technologies such as screen readers to interact with a graphical user interface.
+tags                : 
+publication         : 
+modulename          : atk-1.91.92-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 14:08:11 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 

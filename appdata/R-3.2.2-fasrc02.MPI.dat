@@ -1,0 +1,18 @@
+appname             : R
+appversion          : 3.2.2
+description         : a module for loading R_core and R_packages.
+tags                : 
+publication         : 
+modulename          : R-3.2.2-fasrc02
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Oct 28 17:23:25 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : R_core/3.2.2-fasrc02 R_packages/3.2.2-fasrc02
+rundependencies     : R_core/3.2.2-fasrc02 R_packages/3.2.2-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

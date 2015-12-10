@@ -1,0 +1,18 @@
+appname             : gdk-pixbuf
+appversion          : 2.22.1
+description         : The GdkPixbuf library provides facilities for loading images in a variety of file formats.
+tags                : 
+publication         : 
+modulename          : gdk-pixbuf-2.22.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 14:46:51 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 

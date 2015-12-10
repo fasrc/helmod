@@ -5,10 +5,10 @@ tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:In
 publication         : 
 modulename          : R_packages-3.2.2-fasrc02
 type                : MPI
-compiler            : gcc/4.8.2-fasrc01
-mpi                 : mvapich2/2.0-fasrc03
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Mon Oct 19 10:29:49 EDT 2015
+builddate           : Thu Oct 29 15:45:35 EDT 2015
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : R_core/3.2.2-fasrc02 gsl/1.16-fasrc03 netcdf/3.6.3-fasrc02 hdf5/1.8.12-fasrc06

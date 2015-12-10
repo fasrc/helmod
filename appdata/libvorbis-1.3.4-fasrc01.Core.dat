@@ -1,0 +1,19 @@
+appname     		: libvorbis
+appversion  		: 1.3.4
+description 		: Ogg Vorbis is a fully open, non-proprietary, patent-and-royalty-free, general-purpose compressed audio format
+module      		: libvorbis-1.3.4-fasrc01
+tags        		: aci-ref-app-category:Utilites aci-ref-app-tag:Audio
+publication 		: 
+modulename          : libvorbis-1.3.4-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Nov  4 16:27:26 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libogg/1.3.2-fasrc01
+rundependencies     : libogg/1.3.2-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

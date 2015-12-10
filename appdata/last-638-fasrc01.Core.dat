@@ -1,0 +1,18 @@
+appname             : last
+appversion          : 638
+description         : LAST finds similar regions between sequences.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence comparison
+publication         : 
+modulename          : last-638-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Oct 20 15:55:54 EDT 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Yung Wa Sin <yungwasin@fas.harvard.edu>
+requestref          : RCRT:93849

@@ -1,0 +1,18 @@
+appname             : ngsTools
+appversion          : 0.615
+description         : ngsTools is a collection of programs for population genetics analyses from NGS data, taking into account its statistical uncertainty.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis and processing
+publication         : 
+modulename          : ngsTools-0.615-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Nov 20 19:25:40 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : glib/2.32.4-fasrc01 gsl/1.16-fasrc02 zlib/1.2.8-fasrc05
+rundependencies     : glib/2.32.4-fasrc01 gsl/1.16-fasrc02 zlib/1.2.8-fasrc05
+buildcomments       : 
+requestor           : Allison Shultz <ashultz@fas.harvard.edu>
+requestref          : RCRT:94812

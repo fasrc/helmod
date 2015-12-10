@@ -1,0 +1,18 @@
+appname             : gst-plugins-good
+appversion          : 1.5.91
+description         : gst-plugins-good
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : gst-plugins-good-1.5.91-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Nov  4 14:58:12 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gst-libav/1.5.91-fasrc01
+rundependencies     : gst-libav/1.5.91-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : gst-libav
+appversion          : 1.5.91
+description         : GStreamer Libav plug-in contains one plugin with a set of elements using the Libav library code. It contains many popular decoders and encoders.
+tags                : apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : gst-libav-1.5.91-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Nov  4 14:27:42 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gstreamer/1.5.91-fasrc01 gst-plugins-base/1.5.91-fasrc01 orc/0.4.24-fasrc01 ffmpeg/2.7.2-fasrc01
+rundependencies     : gstreamer/1.5.91-fasrc01 gst-plugins-base/1.5.91-fasrc01 orc/0.4.24-fasrc01 ffmpeg/2.7.2-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

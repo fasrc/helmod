@@ -1,0 +1,18 @@
+appname             : gstreamer
+appversion          : 0.10.30
+description         : GStreamer is a library for constructing graphs of media-handling components. The applications it supports range from simple Ogg/Vorbis playback, audio/video streaming to complex audio (mixing) and video (non-linear editing) processing
+tags                : 
+publication         : 
+modulename          : gstreamer-0.10.30-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 11:01:02 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : glib/2.20.4-fasrc01
+rundependencies     : glib/2.20.4-fasrc01
+buildcomments       : Built for videprocessing with MATLAB
+requestor           : 
+requestref          : 
