@@ -1,0 +1,18 @@
+appname             : binutils
+appversion          : 2.25.1
+description         : The GNU Binutils are a collection of binary tools.
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Libraries
+publication         : 
+modulename          : binutils-2.25.1-fasrc01
+type                : Comp
+compiler            : gcc/4.9.3-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Dec 10 15:07:53 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Gregory Green <ggreen@cfa.harvard.edu>
+requestref          : RCRT:95643

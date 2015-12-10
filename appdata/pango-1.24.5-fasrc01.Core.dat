@@ -1,0 +1,18 @@
+appname             : pango
+appversion          : 1.24.5
+description         : Pango is a library for internationalized text handling.
+tags                : 
+publication         : 
+modulename          : pango-1.24.5-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 19:13:03 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cairo/1.8.8-fasrc01
+rundependencies     : cairo/1.8.8-fasrc01
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 

@@ -1,0 +1,20 @@
+---
+appname             : rstudio
+appversion          : 0.99.486
+description         : RStudio version 0.99.486
+module              : rstudio-0.99.486-fasrc02
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:R
+publication         : 
+modulename          : rstudio-0.99.486-fasrc02
+type                : Comp
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Nov 24 13:01:35 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : R/3.2.2-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01 cmake/2.8.12.2-fasrc01
+rundependencies     : R/3.2.2-fasrc01 boost/1.59.0-fasrc01 qt-creator/3.5.1-fasrc01
+buildcomments       : Built against R/3.2.2
+requestor           : Yoh Isogai <yohisogai@gmail.com>
+requestref          : RCRT:92114

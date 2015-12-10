@@ -1,0 +1,18 @@
+appname             : orc
+appversion          : 0.4.24
+description         : Orc is basically a simplified assembly language for data processing (no loops/jumps etc.)
+tags                : apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : orc-0.4.24-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 11:47:49 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gstreamer/0.10.30-fasrc01
+rundependencies     : gstreamer/0.10.30-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

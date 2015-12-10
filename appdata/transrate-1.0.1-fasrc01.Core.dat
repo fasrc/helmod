@@ -1,0 +1,18 @@
+appname             : transrate
+appversion          : 1.0.1
+description         : Transrate, version 1.0.0, is software for de-novo transcriptome assembly quality analysis.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:sequence alignment
+publication         : 
+modulename          : transrate-1.0.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Nov  2 16:11:13 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : blast/2.2.29+-fasrc01
+rundependencies     : blast/2.2.29+-fasrc01
+buildcomments       : 
+requestor           : melissa whitaker <melliwhitaker@gmail.com>
+requestref          : RCRT:94228

@@ -1,0 +1,18 @@
+appname             : gcc
+appversion          : 4.9.3
+description         : the GNU Compiler Collection version 4.9.3
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+publication         : 
+modulename          : gcc-4.9.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Dec 10 13:05:55 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gmp/6.0.0-fasrc01 mpfr/3.1.2-fasrc02 mpc/1.0.2-fasrc01
+rundependencies     : gmp/6.0.0-fasrc01 mpfr/3.1.2-fasrc02 mpc/1.0.2-fasrc01
+buildcomments       : 
+requestor           : Gregory Green <ggreen@cfa.harvard.edu>
+requestref          : RCRT:95643

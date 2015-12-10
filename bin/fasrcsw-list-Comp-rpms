@@ -4,11 +4,7 @@ set -e
 fasrcsw-env-check
 
 for p in "$@"; do
-<<<<<<< HEAD
-	for comp in ${FASRCSW_COMPS}; do
-=======
 	for comp in $FASRCSW_COMPS; do
->>>>>>> 9502061a0c3477c6fed96278e701289530da0861
 		IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
 		IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
 

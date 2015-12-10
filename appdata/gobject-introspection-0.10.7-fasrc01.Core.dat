@@ -1,0 +1,18 @@
+appname             : gobject-introspection
+appversion          : 0.10.7
+description         : Gobject Introspection is a framework for making introspection data available to language bindings.
+tags                : 
+publication         : 
+modulename          : gobject-introspection-0.10.7-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 15:04:40 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libffi/3.2.1-fasrc01
+rundependencies     : libffi/3.2.1-fasrc01
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 

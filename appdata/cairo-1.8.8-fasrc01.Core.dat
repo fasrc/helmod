@@ -1,0 +1,18 @@
+appname             : cairo
+appversion          : 1.8.8
+description         : Cairo graphics library
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : cairo-1.8.8-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 19:08:55 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 

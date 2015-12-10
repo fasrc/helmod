@@ -1,0 +1,19 @@
+appname             : libogg
+appversion          : 1.3.2
+description         : Ogg Vorbis is a completely open, patent-free, professional audio encoding and streaming technology
+module              : libogg-1.3.2-fasrc01
+tags                : aci-ref-app-category:Utilities aci-ref-app-tag:Audio
+publication         : 
+modulename          : libogg-1.3.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Nov  4 16:14:40 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

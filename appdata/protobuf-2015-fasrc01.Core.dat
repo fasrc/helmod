@@ -1,0 +1,18 @@
+appname             : protobuf
+appversion          : 2015
+description         : Protocol buffers are a flexible, efficient, automated mechanism for serializing structured data – think XML, but smaller, faster, and simpler.
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+publication         : 
+modulename          : protobuf-2015-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Nov 30 11:56:11 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : autoconf/2.69-fasrc01 Anaconda/1.9.2-fasrc01
+rundependencies     : Anaconda/1.9.2-fasrc01
+buildcomments       : 
+requestor           : Yoon Kim <yoonkim@fas.harvard.edu>
+requestref          : RCRT:95198

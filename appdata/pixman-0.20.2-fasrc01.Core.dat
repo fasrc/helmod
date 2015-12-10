@@ -1,0 +1,18 @@
+appname             : pixman
+appversion          : 0.20.2
+description         : Pixman is a low-level software library for pixel manipulation, providing features such as image compositing and trapezoid rasterization.
+tags                : 
+publication         : 
+modulename          : pixman-0.20.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Nov  5 14:22:08 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Built for GTK+ and GStreamer
+requestor           : 
+requestref          : 
