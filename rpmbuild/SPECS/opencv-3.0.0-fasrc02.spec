@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A module that loads the qiime dependencies
+%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# URL: http://...FIXME...
+URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
 # Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,11 +72,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies jdk/1.7.0_60-fasrc01 ncbi-blast/2.2.22-fasrc01 cd-hit/3.1.1-fasrc01 chimeraslayer/2011.05.19-fasrc01 muscle/3.8.31-fasrc01 mothur/1.25.0-fasrc01 clearcut/1.0.9-fasrc01 raxml/7.3.0-fasrc01 infernal/1.0.2-fasrc01 muscle/3.8.31-fasrc01 rtax/0.984-fasrc01 usearch/5.2.236-fasrc01 ghc/7.8.3-fasrc01 gsl/1.16-fasrc02 AmpliconNoise/1.27-fasrc01 cytoscape/2.7.0-fasrc01 R/3.1.0-fasrc01 pplacer/1.0.0-fasrc01 ParsInsert/1.04-fasrc01 ea-utils/1.1.2.537-fasrc01 SeqPrep/1.1-fasrc01 hdf5/1.8.12-fasrc04 gmp/6.0.0-fasrc02
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01
+%define rundependencies ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01
+%define buildcomments Removed Anaconda from build to avoid mkl expiration problem.
+%define requestor David Zwicker <dzwicker@seas.harvard.edu>
+%define requestref RCRT:95446
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -86,20 +85,35 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-This module loads external tools used by Qiime.  This is designed to work with a locally installed qiime.
+The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
+#
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# style things -- hopefully it'll just work as-is.
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}
+git clone https://github.com/Itseez/opencv.git
+cd %{name}
+git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
+chmod -Rf a+rX,u+w,g-w,o-w .
+mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
+wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -115,6 +129,22 @@ This module loads external tools used by Qiime.  This is designed to work with a
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+
+
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHON_HOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHON_HOME/lib" ..
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make 
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -124,6 +154,37 @@ This module loads external tools used by Qiime.  This is designed to work with a
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -186,7 +247,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -197,7 +257,8 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
@@ -205,10 +266,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OMPI_MCA_btl_base_warn_component_unused", "0")
-setenv("RDP_JAR_PATH",                            "/n/sw/rdp_classifier_2.2/rdp_classifier-2.2.jar")
-
+setenv("OPENCV_HOME",              "%{_prefix}")
+setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
+setenv("OPENCV_LIB",               "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A module that loads the qiime dependencies
+%define summary_static Open source audio and video processing tools
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-# URL: http://...FIXME...
-# Source: %{name}-%{version}.tar.gz
+URL:https://libav.org/releases/libav-0.8.17.tar.gz 
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies jdk/1.7.0_60-fasrc01 ncbi-blast/2.2.22-fasrc01 cd-hit/3.1.1-fasrc01 chimeraslayer/2011.05.19-fasrc01 muscle/3.8.31-fasrc01 mothur/1.25.0-fasrc01 clearcut/1.0.9-fasrc01 raxml/7.3.0-fasrc01 infernal/1.0.2-fasrc01 muscle/3.8.31-fasrc01 rtax/0.984-fasrc01 usearch/5.2.236-fasrc01 ghc/7.8.3-fasrc01 gsl/1.16-fasrc02 AmpliconNoise/1.27-fasrc01 cytoscape/2.7.0-fasrc01 R/3.1.0-fasrc01 pplacer/1.0.0-fasrc01 ParsInsert/1.04-fasrc01 ea-utils/1.1.2.537-fasrc01 SeqPrep/1.1-fasrc01 hdf5/1.8.12-fasrc04 gmp/6.0.0-fasrc02
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies ffmpeg/2.3.2-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments Built with ffmpeg for opencv
+%define requestor David Zwicker <dzwicker@seas.harvard.edu> 
+%define requestref RCRT:95446
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,11 +94,26 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-This module loads external tools used by Qiime.  This is designed to work with a locally installed qiime.
+Libav provides cross-platform tools and libraries to convert, manipulate and stream a wide range of multimedia formats and protocols.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
+
+
+#
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# style things -- hopefully it'll just work as-is.
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -115,6 +130,22 @@ This module loads external tools used by Qiime.  This is designed to work with a
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+./configure --prefix=%{_prefix} --enable-shared 
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -124,6 +155,37 @@ This module loads external tools used by Qiime.  This is designed to work with a
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -205,9 +267,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OMPI_MCA_btl_base_warn_component_unused", "0")
-setenv("RDP_JAR_PATH",                            "/n/sw/rdp_classifier_2.2/rdp_classifier-2.2.jar")
-
+setenv("LIBAV_HOME",                "%{_prefix}")
+setenv("LIBAV_INCLUDE",            "%{_prefix}/include")
+setenv("LIBAV_LIB",                "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
