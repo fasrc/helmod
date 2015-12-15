@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF5 version 1.8.16
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.gz
+URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.3.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies hdf5/1.8.16-fasrc01 zlib/1.2.8-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The HDF5 technology suite is designed to organize, store, discover, access, analyze, share, and preserve diverse, complex data in continuously evolving heterogeneous computing and storage environments.
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. Distributions are provided for Java and C/C++/Fortran. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,7 +140,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} \
+./configure CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -154,17 +154,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--enable-fortran \
-	--enable-parallel \
-	--enable-threadsafe \
-	--enable-cxx \
-	--enable-fortran2003 \
-	--enable-unsupported \
-	CC=mpicc CXX=mpicxx FC=mpif90
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
