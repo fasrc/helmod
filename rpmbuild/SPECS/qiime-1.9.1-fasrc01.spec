@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies qiime-dependencies/1.9-fasrc01 qpy/2.7.10-fasrc01 
+%define builddependencies qiime-dependencies/1.9-fasrc01 qpy/2.7.10-fasrc01 qiime-packages/1.9.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments Built using a pip freeze from the pip qiime install
 %define requestor %{nil}
@@ -84,12 +84,8 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
-# These three must be built separately in order for the others to build correctly
-%define SETUPTOOLS setuptools-18.7.1  
-%define CYTHON Cython-0.20.1 
-%define NUMPY numpy-1.9.3 
-
-%define PACKAGES nose-1.3.0 pkgconfig-1.1.0 h5py-2.5.0 scipy-0.16.0 cogent-1.5.3 natsort-3.5.6 six-1.9.0 python-dateutil-2.4.2 pytz-2015.6 pyparsing-2.0.3 funcsigs-0.4 pbr-1.8.0 mock-1.3.0 matplotlib-1.4.3 pynast-1.2.2 qcli-0.1.1 gdata-2.0.18 pyqi-0.3.2 biom-format-2.1.4 pandas-0.16.2 future-0.15.2 decorator-4.0.4 simplegeneric-0.8.1 pexpect-3.3 ipython_genutils-0.1.0 traitlets-4.0.0 path.py-8.1.1 pickleshare-0.5 ipython-4.0.0 emperor-0.9.51 scikit-bio-0.2.3 burrito-0.9.1 burrito-fillings-0.1.1 qiime-default-reference-0.1.3
+# These must be done in separate build and install steps to avoid *.so issues 
+%define PACKAGES h5py-2.5.0 scipy-0.16.0 cogent-1.5.3 matplotlib-1.4.3 biom-format-2.1.4  pandas-0.16.2 scikit-bio-0.2.3 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -138,25 +134,17 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
-export PYTHONPATH="%{buildroot}%{_prefix}/lib/python2.7/site-packages"
+export PYTHONPATH="%{buildroot}%{_prefix}/lib/python2.7/site-packages":$PYTHONPATH
 export HDF5_DIR=$HDF5_HOME
 
-tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{SETUPTOOLS}.tar.gz" 
-cd %{SETUPTOOLS} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-
-tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{CYTHON}.tar.gz" 
-cd %{CYTHON} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-
-tar xvf "$FASRCSW_DEV/rpmbuild/SOURCES/%{NUMPY}.tar.gz" 
-cd %{NUMPY} && python setup.py install --prefix=%{_prefix} --root=%{buildroot}
 
 for p in %{PACKAGES}; do
     f="$FASRCSW_DEV/rpmbuild/SOURCES/${p}.tar.gz"
     tar xvf ${f}
-    cd ${p} && python setup.py build
-    cd ${p} && python setup.py --skip-build install --prefix=%{_prefix} --root=%{buildroot}
+    cd ${p}
+    python setup.py build
+    python setup.py install --skip-build --prefix=%{_prefix} --root=%{buildroot}
 done
-
 git clone https://github.com/biocore/qiime.git
 cd qiime
 git checkout 3c23a0063ea61b8d99400fd8ef534fecbf4b7c27

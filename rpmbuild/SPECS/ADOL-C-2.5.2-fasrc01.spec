@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
+%define summary_static The package ADOL-C (Automatic Differentiation by OverLoading in C++) facilitates the evaluation of first and higher derivatives of vector functions that are defined by computer programs written in C or C++. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
-# Source: %{name}-%{version}.tar.gz
+URL: http://www.coin-or.org/download/source/ADOL-C/ADOL-C-2.5.2.tgz
+Source: %{name}-%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define rundependencies ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define buildcomments Removed Anaconda from build to avoid mkl expiration problem.
-%define requestor David Zwicker <dzwicker@seas.harvard.edu>
-%define requestref RCRT:95446
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor Joel Nitta <jnitta@fas.harvard.edu>
+%define requestref RCRT:95410
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -85,13 +86,17 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+The package ADOL-C (Automatic Differentiation by OverLoading in C++) facilitates the evaluation of first and higher derivatives of vector functions that are defined by computer programs written in C or C++. The resulting derivative evaluation routines may be called from C/C++, Fortran, or any other language that can be linked with C.
 
+The numerical values of derivative vectors are obtained free of truncation errors at a small multiple of the run time and randomly accessed memory of the given function evaluation program.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -107,13 +112,11 @@ The library has more than 2500 optimized algorithms, which includes a comprehens
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/Itseez/opencv.git
-cd %{name}
-git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tgz
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
-wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -133,17 +136,17 @@ wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippi
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHONHOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHONHOME/lib" ..
+./configure --prefix=%{_prefix} --with-openmp-flag=-fopenmp 
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make 
+make
 
 
 
@@ -173,7 +176,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -247,6 +250,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,19 +270,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENCV_HOME",              "%{_prefix}")
-setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
-setenv("OPENCV_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("ADOL_C_HOME",              "%{_prefix}")
+setenv("ADOL_C_LIB",               "%{_prefix}/lib64")
+setenv("ADOL_C_INCLUDE",           "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

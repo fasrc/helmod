@@ -1,3 +1,11 @@
+#
+# Building requires:
+#     cmake tk-devel readline-devel zlib-devel bzip2-devel sqlite-devel @development-tools
+# We have those packages installed, but our repos don't have groups enabled; I 
+# think @development-tools are covered, though.
+#
+
+
 #------------------- package info ----------------------------------------------
 
 #
@@ -30,15 +38,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
+%define summary_static cheminformatics and machine learning software
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
-# Source: %{name}-%{version}.tar.gz
+URL: https://github.com/rdkit/rdkit/archive/Release_2015_09_2.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -72,11 +80,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define rundependencies ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define buildcomments Removed Anaconda from build to avoid mkl expiration problem.
-%define requestor David Zwicker <dzwicker@seas.harvard.edu>
-%define requestref RCRT:95446
+%define builddependencies python/2.7.6-fasrc01 boost/1.54.0-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments Includes Inchi support
+%define requestor Dimitri Rappoport <rappoport@chemistry.harvard.edu>
+%define requestref RCRT:95677
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -90,7 +98,16 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+An open source toolkit for cheminformatics:
+BSD licensed,
+Core data structures and algorithms in C++,
+Python (2.x) wrapper generated using Boost.Python,
+Java and C# wrappers generated with SWIG,
+2D and 3D molecular operations,
+Descriptor generation for machine learning,
+Molecular database cartridge for PostgreSQL,
+Cheminformatics nodes for KNIME
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -99,21 +116,17 @@ The library has more than 2500 optimized algorithms, which includes a comprehens
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/Itseez/opencv.git
-cd %{name}
-git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
+rm -rf rdkit-Release_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
+cd rdkit-Release_%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
-wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -125,24 +138,33 @@ wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippi
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+#prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+#make sure to add them to modulefile.lua below, too!
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/rdkit-Release_%{version}
 
+export RDBASE="$PWD"
+export LD_LIBRARY_PATH="$RDBASE/lib:$LD_LIBRARY_PATH"
+export PYTHONPATH="$RDBASE:$PYTHONPATH"
+export BOOST_ROOT=$BOOST_HOME
+
+# Add inchi support
+(cd External/INCHI-API && bash download-inchi.sh)
 
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHONHOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHONHOME/lib" ..
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+cmake \
+	-D CMAKE_INSTALL_PREFIX=%{_prefix} \
+	-D PYTHON_LIBRARY=$PYTHON_HOME/lib/python2.7/config/libpython2.7.a \
+	-D PYTHON_INCLUDE_DIR=$PYTHON_HOME/include/python2.7/ \
+	-D PYTHON_EXECUTABLE=$PYTHON_HOME/bin/python \
+	-D RDK_BUILD_INCHI_SUPPORT=ON \
+	..
+#(all the python stuff, including PYTHON_EXECUTABLE, is definitely needed (even though doc says some is not if PATHs are right))
 make 
 
 
@@ -155,8 +177,6 @@ make
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -173,10 +193,25 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/rdkit-Release_%{version}
+cd build
+
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+
+#the above actually installs to 
+#%{buildroot}/"$FASRCSW_DEV"/rpmbuild/BUILD/RDKit_2014_03_1 rather than 
+#%{buildroot}/%{_prefix} as expected.  I don't know why.  Just adjust it after:
+rmdir %{buildroot}/%{_prefix}
+mv %{buildroot}/"$FASRCSW_DEV"/rpmbuild/BUILD/rdkit-Release_2015_09_2 %{buildroot}/%{_prefix}
+
+#no idea why python files are not in the build dir and not installed by `make install`...
+cd ..
+for p in $(find rdkit -name '*.py');
+	do mkdir -p %{buildroot}/%{_prefix}/"$(dirname "$p")"
+	cp "$p" %{buildroot}/%{_prefix}/"$p"
+done
 
 
 #(this should not need to be changed)
@@ -265,20 +300,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("OPENCV_HOME",              "%{_prefix}")
-setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
-setenv("OPENCV_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+-- environment changes (uncomment what is relevant)
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("PYTHONPATH",          "%{_prefix}")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -301,6 +327,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
