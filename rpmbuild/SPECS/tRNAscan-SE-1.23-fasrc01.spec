@@ -78,8 +78,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies perl/5.10.1-fasrc01
-%define rundependencies %{builddependencies}
+%define builddependencies perl/5.10.1-fasrc01 p7zip/9.38.1-fasrc01
+%define rundependencies perl/5.10.1-fasrc01 
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -102,8 +102,7 @@ tRNAscan-SE detects ~99% of eukaryotic nuclear or prokaryotic tRNA genes, with a
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
-
-
+%include fasrcsw_module_loads.rpmmacros
 #
 # FIXME
 #
@@ -126,8 +125,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %build
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
 
+%include fasrcsw_module_loads.rpmmacros
 
 #
 # FIXME
@@ -141,7 +140,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-sed -i -e 's?^PERLDIR.*?PERLDIR = ${PERL_HOME}/bin?' \
+
+%define perlhome ${PERL_HOME}
+
+sed -i -e 's?^PERLDIR.*?PERLDIR = %{perlhome}/bin?' \
        -e 's?^BINDIR.*?BINDIR = %{_prefix}/bin?' \
        -e 's?^LIBDIR.*?LIBDIR = %{_prefix}/lib/tRNAscan-SE?' \
        -e 's?^MANDIR.*?MANDIR = %{_prefix}/man?' \

@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
+%define summary_static Pipeline for the inference of orthologs among complete genomes
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
-# Source: %{name}-%{version}.tar.gz
+URL: http://omabrowser.org/standalone/OMA.1.0.3.tgz
+Source: %{name}.%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,25 +73,29 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define rundependencies ffmpeg/2.3.2-fasrc02 qpy/2.7.10-fasrc01 numpy/1.5.1-fasrc01
-%define buildcomments Removed Anaconda from build to avoid mkl expiration problem.
-%define requestor David Zwicker <dzwicker@seas.harvard.edu>
-%define requestref RCRT:95446
+
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic Analysis
+%define apppublication Inferring hierarchical orthologous groups from orthologous gene pairs. Altenhoff AM, Gil M, Gonnet GH, Dessimoz C. PLoS One. 2013;8(1):e53786. doi: 10.1371/journal.pone.0053786. Epub 2013 Jan 14.
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+The OMA (“Orthologous MAtrix”) is a pipeline for the inference of orthologs among complete genomes. The distinctive features of OMA are its broad scope and size, high quality of inferences, feature-rich web interface, availability of data in a wide range of formats and interfaces, and frequent update schedule of two releases per year. OMA’s inference algorithm consists of three main phases. First, to infer homologous sequences (sequences of common ancestry), all-against-all Smith-Waterman alignments are computed and significant matches are retained. Second, to infer orthologous pairs (the subset of homologs related by speciation events), mutually closest homologs are identified based on evolutionary distances, taking into account distance inference uncertainty and the possibility for differential gene losses (for more details, see Roth et al 2008). Third, these orthologs are clustered in two different ways, which are useful for different purposes: (a) we identify cliques of orthologous pairs (“OMA groups”), which are useful as marker genes for phylogenetic reconstruction and tend to be very specific; (b) we identify hierarchical orthologous groups (“HOGs”), groups of genes defined for particular taxonomic ranges and identify all genes that have descended from a common ancestral gene in that taxonomic range. Fore more details on the algorithm to infer HOGs from orthologous pairs, see Altenhoff et al. 2013. The OMA pipeline can also run on custom genomic/transcriptomic data using the OMA stand-alone software, and it is even possible to combine precomputed data with custom data by exporting parts of the OMA database.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -107,13 +112,12 @@ The library has more than 2500 optimized algorithms, which includes a comprehens
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/Itseez/opencv.git
-cd %{name}
-git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.%{version}.tgz
+mv %{name}.%{version} %{name}-%{version}
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
-wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -133,17 +137,30 @@ wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippi
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHONHOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHONHOME/lib" ..
+#./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make 
+#make
 
 
 
@@ -173,10 +190,18 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd bin
+ln -s oma OMA
+cd ..
+
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
+#./install.sh %{buildroot}/%{_prefix}
+for f in bin darwinlib DB install.sh lib LICENSE Manual OMA.drw README.oma ToyExample; do
+	cp -aR "$f" '%{buildroot}/%{_prefix}/'
+done
 
 
 #(this should not need to be changed)
@@ -247,6 +272,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,17 +292,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENCV_HOME",              "%{_prefix}")
-setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
-setenv("OPENCV_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+setenv("OMA_HOME",                  "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 
@@ -301,7 +320,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 #------------------- %%files (there should be no need to change this ) --------
 
