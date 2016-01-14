@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP.
+%define summary_static MPICH version 3.2, a high-performance and widely portable implementation of the Message Passing Interface (MPI) standard (MPI-1, MPI-2 and MPI-3)
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.2b.tar.gz
+URL: http://www.mpich.org/static/downloads/3.2/mpich-3.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -94,12 +94,15 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+MPICH version 3.2, a high-performance and widely portable implementation of the Message Passing Interface (MPI) standard (MPI-1, MPI-2 and MPI-3).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -121,6 +124,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+#
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -148,19 +154,14 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-    --enable-fc \
-    --enable-f77 \
-    --with-device=ch3:nemesis:ib \
-    --enable-threads=multiple \
+    --enable-fortran \
     --enable-cxx \
     --with-pmi \
     --with-slurm
 
-
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -171,6 +172,8 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -278,7 +281,6 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
         end
     end
 end
-
 
 ---- environment changes (uncomment what is relevant)
 setenv("MPI_HOME",                 "%{_prefix}")
