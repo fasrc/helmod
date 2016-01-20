@@ -279,7 +279,8 @@ EOF
 
 %files
 
-%defattr(-,root,root,-)
+# This software is licensed only to dsouza_lab
+%defattr(-,root,dsouza_lab,-)
 
 %{_prefix}/*
 
