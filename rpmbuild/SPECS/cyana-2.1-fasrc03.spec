@@ -160,7 +160,7 @@ make install
 sudo chgrp -R dsouza_lab %{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
+cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}  %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
