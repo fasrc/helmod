@@ -111,7 +111,6 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
-chmod -Rf u+rwX,g+rX,o-rwx .
 
 #------------------- %%build (~ configure && make) ----------------------------
 
@@ -156,11 +155,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 export BINDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin
 export LIBDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
 make install
+sudo chgrp -R dsouza_lab "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
 
-sudo chgrp -R dsouza_lab %{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
+chmod -Rf u+rwX,g+rX,o-rwx %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like

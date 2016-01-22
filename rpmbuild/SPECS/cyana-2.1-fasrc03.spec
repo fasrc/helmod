@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 URL: http://www.cyana.org/wiki/index.php/Tutorials
-Source: %{name}-%{version}-exp2025.tar.gz
+Source: %{name}-%{version}-%{release_short}.tar.gz
 
 #
 # there should be no need to change the following
@@ -110,9 +110,7 @@ CYANA (© by Peter Güntert) is a program for automated structure calculation of
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
-chmod -Rf u+rwX,g+rX,o-rwx .
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-%{release_short}.tar.gz
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -121,9 +119,8 @@ chmod -Rf u+rwX,g+rX,o-rwx .
 %include fasrcsw_module_loads.rpmmacros
 
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+make config
 make 
-
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -156,11 +153,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 export BINDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin
 export LIBDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
 make install
+sudo chgrp -R dsouza_lab "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
 
-sudo chgrp -R dsouza_lab %{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}  %{buildroot}/%{_prefix}
+cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
+chmod -Rf u+rwX,g+rX,o-rwx %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
