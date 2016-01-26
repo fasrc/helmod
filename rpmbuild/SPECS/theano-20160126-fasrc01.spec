@@ -40,7 +40,7 @@ Summary: %{summary_static}
 # applicable
 #
 #URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+Source: %{vcs_commit}.tar.gz
 
 #
 # there should be no need to change the following
@@ -113,9 +113,11 @@ Optimizing compiler for evaluating mathematical expressions on CPUs and GPUs.
 #
 
 umask 022
+cd "$FASRCSW_DEV"/rpmbuild/SOURCES
+cp %{vcs_commit}.tar.gz %{name}-%{version}.tar.gz
 cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{vcs_commit}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
 mv Theano-%{vcs_commit} %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
@@ -162,7 +164,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one
 #percent sign) to build in parallel
 #make
-python configure.py
 python setup.py build
 
 
