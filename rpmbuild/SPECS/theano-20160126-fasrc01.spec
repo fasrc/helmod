@@ -116,7 +116,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{vcs_commit}.tar.*
-mv Theano-${vcs_commit} %{name}-%{version}
+mv Theano-%{vcs_commit} %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
