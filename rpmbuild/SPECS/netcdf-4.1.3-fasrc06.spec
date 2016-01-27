@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies hdf5/1.8.12-fasrc07 zlib/1.2.8-fasrc05
+%define builddependencies hdf5/1.8.12-fasrc09
 %define rundependencies %{builddependencies}
 %define buildcomments Setup to be PGI friendly
 %define requestor Robert Yantosca <yantosca@seas.harvard.edu>
@@ -138,17 +138,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-test "%{type}" == "MPI" && export FC=mpif90 F90=mpif90 CC=mpicc
-test "%{comp_name}" == "pgi" && export FC=pgf90 F90=pgf90 CC=pgcc CPPFLAGS="-DNDEBUG -DpgiFortran" FCFLAGS="-fPIC" F90FLAGS="-fPIC"
-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-%define ccdef "mpicc -I$HDF5_INCLUDE -L$HDF5_LIB"
-export CFLAGS=-fPIC
-export CXXFLAGS=-fPIC
 autoreconf
-CC=%{ccdef} CXX=mpicxx FC=mpif90 F77=mpif77 ./configure --prefix=%{_prefix} \
+./configure --prefix=%{_prefix} \
     --enable-netcdf-4 \
     --with-temp-large=/scratch
 
