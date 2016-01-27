@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 URL: http://www.cyana.org/wiki/index.php/Tutorials
-Source: %{name}-%{version}-exp2025.tar.gz
+Source: %{name}-%{version}-%{release_short}.tar.gz
 
 #
 # there should be no need to change the following
@@ -110,8 +110,7 @@ CYANA (© by Peter Güntert) is a program for automated structure calculation of
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-%{release_short}.tar.gz
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -120,9 +119,8 @@ tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
 %include fasrcsw_module_loads.rpmmacros
 
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+make config
 make 
-
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
