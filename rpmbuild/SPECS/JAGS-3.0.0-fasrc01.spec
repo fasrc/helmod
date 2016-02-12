@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MPICH is a high performance and widely portable implementation of the Message Passing Interface (MPI) standard.
+%define summary_static JAGS is Just Another Gibbs Sampler. It is a program for the statistical analysis of Bayesian hierarchical models by Markov Chain Monte Carlo.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1.tar.gz
+URL: https://sourceforge.net/projects/mcmc-jags/files/JAGS/3.x/Source/JAGS-3.0.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -76,13 +76,13 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Kathryn McKeough <kathrynmckeough@g.harvard.edu>
+%define requestref RCRT:97361
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics
 %define apppublication %{nil}
 
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-MPICH is a high performance and widely portable implementation of the Message Passing Interface (MPI) standard.
+JAGS is Just Another Gibbs Sampler. It is a program for the statistical analysis of Bayesian hierarchical models by Markov Chain Monte Carlo.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -141,27 +141,23 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 ./configure --prefix=%{_prefix} \
-            --enable-shared --enable-f77 --enable-fc --enable-cxx \
-            --with-device=ch3:nemesis \
-            --enable-lib-depend
-            
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -190,25 +186,12 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -298,15 +281,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
+setenv("JAGS_HOME",                "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
-prepend_path("PATH",               "%{_prefix}/sbin")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file

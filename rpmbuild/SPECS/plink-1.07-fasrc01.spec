@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MPICH is a high performance and widely portable implementation of the Message Passing Interface (MPI) standard.
+%define summary_static PLINK is a free, open-source whole genome association analysis toolset, designed to perform a range of basic, large-scale analyses in a computationally efficient manner.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.mpich.org/static/tarballs/1.4.1p1/mpich2-1.4.1p1.tar.gz
+URL: http://pngu.mgh.harvard.edu/~purcell/plink/dist/plink-1.07-x86_64.zip
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -76,15 +76,14 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Yichen Guo <yig315@mail.harvard.edu>
+%define requestref RCRT:96968
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
+%define apptags apptags aci-ref-app-category: Applications; aci-ref-app-tag: Whole genome association
 %define apppublication %{nil}
-
 
 
 #
@@ -94,7 +93,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-MPICH is a high performance and widely portable implementation of the Message Passing Interface (MPI) standard.
+PLINK is a free, open-source whole genome association analysis toolset, designed to perform a range of basic, large-scale analyses in a computationally efficient manner.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -136,15 +135,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} \
-            --enable-shared --enable-f77 --enable-fc --enable-cxx \
-            --with-device=ch3:nemesis \
-            --enable-lib-depend
-            
+#./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -161,7 +156,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+#make
 
 
 
@@ -190,25 +185,12 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+#make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}/
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -298,15 +280,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
+setenv("PLINK_HOME",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
-prepend_path("PATH",               "%{_prefix}/sbin")
 EOF
 
 #------------------- App data file
