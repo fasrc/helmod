@@ -78,7 +78,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R_core/3.2.2-fasrc01 netcdf/4.3.2-fasrc03 hdf5/1.8.12-fasrc08 gsl/1.16-fasrc02
+%define builddependencies R_core/3.2.2-fasrc03 netcdf/4.3.2-fasrc03 hdf5/1.8.12-fasrc08 gsl/1.16-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments Some problems with stringi
 %define requestor %{nil}

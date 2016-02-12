@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,19 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Automatically Tuned Linear Algebra Software
+%define summary_static The Gurobi Optimizer is a state-of-the-art solver for mathematical programming.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#wget http://downloads.sourceforge.net/project/math-atlas/Stable/3.10.2/atlas3.10.2.tar.bz2
-#wget http://www.netlib.org/lapack/lapack-3.5.0.tgz
-URL: http://math-atlas.sourceforge.net/
-Source0: %{name}%{version}.tar.bz2
-Source1: lapack-3.5.0.tgz
-%define lapack_version 3.5.0
+URL: http://user.gurobi.com/download/gurobi-optimizer
+Source: gurobi6.5.0_linux64.tar.gz
 
 #
 # there should be no need to change the following
@@ -58,13 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing research effort focusing on applying empirical techniques in order to provide portable performance. At present, it provides C and Fortran77 interfaces to a portably efficient BLAS implementation, as well as a few routines from LAPACK.
 
 #
 # Macros for setting app data 
@@ -84,12 +73,11 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Unpacked directly to deployment location
+%define requestor Shiwu Liao <shiwuliao@g.harvard.edu>
+%define requestref RCRT:95851
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -99,25 +87,26 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 
 
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+The Gurobi Optimizer is a state-of-the-art solver for mathematical programming. The solvers in the Gurobi Optimizer were designed from the ground up to exploit modern architectures and multi-core processors, using the most advanced implementations of the latest algorithms. It includes the following solvers:
+
+linear programming solver (LP)
+mixed-integer linear programming solver (MILP)
+mixed-integer quadratic programming solver (MIQP)
+quadratic programming solver (QP)
+quadratically constrained programming solver (QCP)
+mixed-integer quadratically constrained programming solver (MIQCP)
+
+
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
-
-
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -fr ATLAS
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
-mv ATLAS %{name}-%{version}
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -129,62 +118,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-mkdir build
-cd $_
-
-../configure --prefix=%{_prefix} --shared \
-	--with-netlib-lapack-tarfile="$FASRCSW_DEV"/rpmbuild/SOURCES/lapack-%{lapack_version}.tgz \
-	-b 64  -t -1  -Fa alg -fPIC  -D c -DPentiumCPS=2000
-
-
-#%%{?_smp_mflags} causes this to fail
-make
-
-
-
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-cd build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}/%{_prefix}
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -247,6 +186,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -257,7 +197,8 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
@@ -265,13 +206,13 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("ATLAS_HOME",                "%{_prefix}")
-setenv("ATLAS_LIB",                 "%{_prefix}/lib")
-setenv("ATLAS_INCLUDE",             "%{_prefix}/include")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+setenv("GUROBI_HOME",               "/n/sw/gurobi/gurobi650/linux64")
+setenv("GUROBI_LIB",                "/n/sw/gurobi/gurobi650/linux64/lib")
+setenv("GUROBI_INCLUDE",            "/n/sw/gurobi/gurobi650/linux64/include")
+prepend_path("PATH",                "/n/sw/gurobi/gurobi650/linux64/bin")
+prepend_path("CPATH",               "/n/sw/gurobi/gurobi650/linux64/include")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/gurobi/gurobi650/linux64/lib")
+prepend_path("LIBRARY_PATH",        "/n/sw/gurobi/gurobi650/linux64/lib")
 EOF
 
 #------------------- App data file
@@ -279,7 +220,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -296,7 +236,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

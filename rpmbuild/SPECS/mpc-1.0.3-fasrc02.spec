@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,19 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Automatically Tuned Linear Algebra Software
+%define summary_static A C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#wget http://downloads.sourceforge.net/project/math-atlas/Stable/3.10.2/atlas3.10.2.tar.bz2
-#wget http://www.netlib.org/lapack/lapack-3.5.0.tgz
-URL: http://math-atlas.sourceforge.net/
-Source0: %{name}%{version}.tar.bz2
-Source1: lapack-3.5.0.tgz
-%define lapack_version 3.5.0
+URL: ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -58,13 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing research effort focusing on applying empirical techniques in order to provide portable performance. At present, it provides C and Fortran77 interfaces to a portably efficient BLAS implementation, as well as a few routines from LAPACK.
 
 #
 # Macros for setting app data 
@@ -84,10 +73,9 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies %{nil}
+%define builddependencies gmp/6.1.0-fasrc01 mpfr/3.1.3-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Using updated gmp and mpfr
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -99,10 +87,18 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 
 
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result. It extends the principles of the IEEE-754 standard for fixed precision real floating point numbers to complex numbers, providing well-defined semantics for every operation. At the same time, speed of operation at high precision is a major design goal.
+
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
-
 
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
@@ -111,10 +107,8 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -fr ATLAS
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
-mv ATLAS %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -128,21 +122,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-mkdir build
-cd $_
 
-../configure --prefix=%{_prefix} --shared \
-	--with-netlib-lapack-tarfile="$FASRCSW_DEV"/rpmbuild/SOURCES/lapack-%{lapack_version}.tgz \
-	-b 64  -t -1  -Fa alg -fPIC  -D c -DPentiumCPS=2000
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
-
-#%%{?_smp_mflags} causes this to fail
-make
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
 
 
 
@@ -154,8 +164,6 @@ make
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -173,10 +181,9 @@ make
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-cd build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -222,8 +229,6 @@ done
 	set -x
 %endif
 
-# 
-# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -247,6 +252,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -257,7 +263,8 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
             load(i)
         end
     end
@@ -265,13 +272,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("ATLAS_HOME",                "%{_prefix}")
-setenv("ATLAS_LIB",                 "%{_prefix}/lib")
-setenv("ATLAS_INCLUDE",             "%{_prefix}/include")
+setenv("MPC_HOME",                 "%{_prefix}")
+setenv("MPC_INCLUDE",              "%{_prefix}/include")
+setenv("MPC_LIB",                  "%{_prefix}/lib64")
 prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 EOF
 
 #------------------- App data file
@@ -279,7 +287,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -296,7 +303,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

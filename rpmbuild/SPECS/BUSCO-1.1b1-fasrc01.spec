@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,19 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Automatically Tuned Linear Algebra Software
+%define summary_static Assessing genome assembly and annotation completeness with Benchmarking Universal Single-Copy Orthologs
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#wget http://downloads.sourceforge.net/project/math-atlas/Stable/3.10.2/atlas3.10.2.tar.bz2
-#wget http://www.netlib.org/lapack/lapack-3.5.0.tgz
-URL: http://math-atlas.sourceforge.net/
-Source0: %{name}%{version}.tar.bz2
-Source1: lapack-3.5.0.tgz
-%define lapack_version 3.5.0
+URL: http://busco.ezlab.org/files/BUSCO_v1.1b1.tar.gz
+Source: %{name}_v1.1b1.tar.gz
 
 #
 # there should be no need to change the following
@@ -58,13 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing research effort focusing on applying empirical techniques in order to provide portable performance. At present, it provides C and Fortran77 interfaces to a portably efficient BLAS implementation, as well as a few routines from LAPACK.
 
 #
 # Macros for setting app data 
@@ -83,13 +72,11 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-
-
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies python/3.4.1-fasrc01
+%define rundependencies ncbi-blast/2.2.31+-fasrc01 hmmer/3.1b1-fasrc01 augustus/3.0.3-fasrc02 emboss/6.6.0-fasrc01
+%define buildcomments Python 3 build dependency is used to hard-code the python interpreter in the shebang.  Otherwise, there is a conflict with the python2 used in dammit.
+%define requestor Lauren O'Connell <aloconnell@fas.harvard.edu>
+%define requestref RCRT:96129
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -99,11 +86,29 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 
 
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+BUSCO completeness assessment employs sets of Benchmarking Universal Single-Copy
+Orthologs from OrthoDB (www.orthodb.org) to provide quantitative measures of the
+completeness of genome assemblies, annotated gene sets, and transcriptomes in terms of
+expected gene content. Genes that make up the BUSCO sets for each major lineage are
+selected from orthologous groups with genes present as single-copy orthologs in at least 90% of
+the species. While allowing for rare gene duplications or losses, this establishes an evolutionary
+informed expectation that these genes should be found as single-copy orthologs in the genome
+of any newly-sequenced species.
+
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
 
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -111,11 +116,9 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -fr ATLAS
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
-mv ATLAS %{name}-%{version}
-cd %{name}-%{version}
+rm -rf %{name}_v1.1b1
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_v1.1b1.tar.*
+cd %{name}_v1.1b1 
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -127,24 +130,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v1.1b1
 
+# Set shebang to the full path of python3 so that BUSCO can be used with dammit (python2 only)
+sed -i -e "s?^#!.*?#!$PYTHON_HOME/bin/python3?" BUSCO_v1.1b1.py
 
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-mkdir build
-cd $_
-
-../configure --prefix=%{_prefix} --shared \
-	--with-netlib-lapack-tarfile="$FASRCSW_DEV"/rpmbuild/SOURCES/lapack-%{lapack_version}.tgz \
-	-b 64  -t -1  -Fa alg -fPIC  -D c -DPentiumCPS=2000
-
-
-#%%{?_smp_mflags} causes this to fail
-make
-
-
+chmod +x BUSCO_v1.1b1.py
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -172,11 +163,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-cd build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_v1.1b1
+echo %{buildroot} | grep -q %{name}_v1.1b1 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}/%{_prefix}
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -247,6 +237,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -257,21 +248,14 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        if not isloaded(i) then
             load(i)
-        end
     end
 end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("ATLAS_HOME",                "%{_prefix}")
-setenv("ATLAS_LIB",                 "%{_prefix}/lib")
-setenv("ATLAS_INCLUDE",             "%{_prefix}/include")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+setenv("BUSCO_HOME",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -279,7 +263,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -296,7 +279,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

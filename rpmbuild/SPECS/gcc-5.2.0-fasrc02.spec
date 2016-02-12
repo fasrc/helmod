@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpfr/3.1.3-fasrc01 mpc/1.0.3-fasrc01
+%define builddependencies gmp/6.1.0-fasrc01 mpfr/3.1.3-fasrc02 mpc/1.0.3-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments Removed gmp dependency
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
