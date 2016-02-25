@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static A modular scientific software framework. It provides all the functionalities needed to deal with big data processing, statistical analysis, visualisation and storage.
+%define summary_static breseq is a computational pipeline for finding mutations relative to a reference sequence in short-read DNA re-sequencing data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://root.cern.ch/download/root_v6.06.00.source.tar.gz
+URL: https://github.com/barricklab/breseq/releases/download/v0.27.1/breseq-0.27.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,18 +73,17 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies python/2.7.6-fasrc01
+%define builddependencies R/3.2.0-fasrc01 ssaha2/2.5.5-fasrc01 bowtie2/2.2.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Benjamin Garber <bengarber@college.harvard.edu>
-%define requestref RCRT:96650
+%define requestor Daniel Rice <danielrice@fas.harvard.edu>
+%define requestref RCRT:97658
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Data tools 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics 
 %define apppublication %{nil}
-
 
 
 #
@@ -94,7 +93,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-A modular scientific software framework. It provides all the functionalities needed to deal with big data processing, statistical analysis, visualisation and storage.
+breseq is a computational pipeline for finding mutations relative to a reference sequence in short-read DNA re-sequencing data. It is intended for haploid microbial genomes (<20 Mb). breseq is a command line tool implemented in C++ and R.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,33 +139,24 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure linuxx8664gcc --prefix=%{_prefix}                           \
-                          --all                                         \
-                          --with-cc=x86_64-unknown-linux-gnu-gcc-5.2.0  \
-                          --with-cxx=x86_64-unknown-linux-gnu-g++       \
-                          --with-ld=x86_64-unknown-linux-gnu-g++        \
-                          --with-f77=x86_64-unknown-linux-gnu-gfortran  \
-                          --with-gcc-toolchain=/n/sw/fasrcsw/apps/Core/gcc/5.2.0-fasrc02/lib64/gcc/x86_64-unknown-linux-gnu/5.2.0
-
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
-
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -288,22 +278,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("BRESEQ_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
