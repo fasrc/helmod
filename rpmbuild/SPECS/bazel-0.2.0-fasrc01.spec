@@ -138,10 +138,10 @@ GCC_MODULE_ROOT=$(readlink -f "$(dirname $(which gcc))/..")
 
 cat <<EOF | patch -p1
 diff --git a/tools/cpp/CROSSTOOL b/tools/cpp/CROSSTOOL
-index 269edea..8f0aa87 100644
+index 269edea..fdd22fd 100644
 --- a/tools/cpp/CROSSTOOL
 +++ b/tools/cpp/CROSSTOOL
-@@ -86,18 +86,20 @@ toolchain {
+@@ -86,18 +86,24 @@ toolchain {
 
    tool_path { name: "ar" path: "/usr/bin/ar" }
    tool_path { name: "compat-ld" path: "/usr/bin/ld" }
@@ -154,6 +154,10 @@ index 269edea..8f0aa87 100644
    linker_flag: "-lstdc++"
 -  linker_flag: "-B/usr/bin/"
 +  linker_flag: "-B${GCC_MODULE_ROOT}/bin/"
++  linker_flag: "-Wl,-rpath,${GCC_MODULE_ROOT}/lib64"
++  linker_flag: "-Wl,-rpath,${MPC_LIB}"
++  linker_flag: "-Wl,-rpath,${MPFR_LIB}"
++  linker_flag: "-Wl,-rpath,${GMP_LIB}"
 
    # TODO(bazel-team): In theory, the path here ought to exactly match the path
    # used by gcc. That works because bazel currently doesn't track files at
