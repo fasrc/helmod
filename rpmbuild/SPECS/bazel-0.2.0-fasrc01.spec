@@ -135,7 +135,6 @@ done
 # configure CROSSTOOL
 
 GCC_MODULE_ROOT=$(readlink -f "$(dirname $(which gcc))/..")
-JDK_MODULE_ROOT=$(readlink -f "$(dirname $(which javac))/..")
 
 cat <<EOF | patch -p1
 diff --git a/tools/cpp/CROSSTOOL b/tools/cpp/CROSSTOOL
@@ -163,7 +162,7 @@ index 269edea..8f0aa87 100644
 -  cxx_builtin_include_directory: "/usr/lib/gcc/"
 +  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/lib64/gcc"
 +  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/include"
-+  cxx_builtin_include_directory: "${JDK_MODULE_ROOT}/include"
++  cxx_builtin_include_directory: "${JAVA_HOME}/include"
    cxx_builtin_include_directory: "/usr/local/include"
    cxx_builtin_include_directory: "/usr/include"
    tool_path { name: "gcov" path: "/usr/bin/gcov" }
