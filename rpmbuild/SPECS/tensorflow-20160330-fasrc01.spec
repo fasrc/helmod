@@ -83,8 +83,8 @@ Built from git on 03-30-2016 using commit: 16254e7
 %define buildhostversion 1
 
 
-%define builddependencies bazel/20160330-fasrc01 gcc/4.8.2-fasrc01 %{rundependencies}
-%define rundependencies Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
+%define builddependencies bazel/20160330-fasrc01 %{rundependencies}
+%define rundependencies gcc/4.8.2-fasrc01 Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -220,6 +220,8 @@ mkdir -p %{buildroot}/%{_prefix}
 mkdir -p %{site_packages}
 export PYTHONPATH=%{site_packages}:$PYTHONPATH
 pip install --target=%{site_packages} ./wheels/%{name}-0.7.1-py2-none-any.whl
+# not sure why this is missing but just touch for now
+touch %{site_packages}/google/__init__.py
 
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
