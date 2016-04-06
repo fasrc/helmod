@@ -151,7 +151,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--infodir=%{_prefix}/share/info \
 	--enable-openmp \
 	--enable-mpi \
-    --enable-shared
+    --enable-shared \
+    --enable-threads 
 
 export CFLAGS="-fPIC"
 export LDFLAGS="-fPIC"
@@ -208,7 +209,8 @@ make clean
 	--enable-openmp \
 	--enable-mpi \
     --enable-shared \
-    --enable-float
+    --enable-float \
+    --enable-threads 
 
 export CFLAGS="-fPIC"
 export LDFLAGS="-fPIC"
