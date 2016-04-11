@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,16 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a free software environment for statistical computing and graphics
+%define summary_static RABIT is a general package for feature selection 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.r-project.org/
-#http://cran.at.r-project.org/src/base/R-3/R-3.1.0.tar.gz
-Source: R-%{version}.tar.gz
+URL: http://rabit.dfci.harvard.edu/RABIT_net/data/Rabit.tar.gz
+Source: %{name}.tar.gz
 
 #
 # there should be no need to change the following
@@ -57,13 +56,46 @@ Prefix: %{_prefix}
 
 
 #
+# Macros for setting app data 
+# The first set can probably be left as is
+# the nil construct should be used for empty values
+#
+%define modulename %{name}-%{version}-%{release_short}
+%define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
+%define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
+%define appdescription %{summary_static}
+%define type %{getenv:TYPE}
+%define specauthor %{getenv:FASRCSW_AUTHOR}
+%define builddate %(date)
+%define buildhost %(hostname)
+%define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+
+
+%define builddependencies atlas/3.10.2-fasrc01
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor Zachary McCaw <zmccaw@g.harvard.edu>
+%define requestref RCRT:99109
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags %{nil} 
+%define apppublication %{nil}
+
+
+
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
-R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
-
+RABIT is a general package for feature selection, even though we only applied it on regulatory inference in current study. 
+It can also be applied for high dimensional data when the number of features is much larger than the number of data points. 
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -72,6 +104,7 @@ R provides a wide variety of statistical (linear and nonlinear modelling, classi
 
 
 #
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -79,9 +112,9 @@ R provides a wide variety of statistical (linear and nonlinear modelling, classi
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf R-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
-cd R-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -95,6 +128,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -105,17 +139,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-#w/ mkl, dynamic:
-#	--with-blas="-L$MKLPATH -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread" --with-lapack="-L$MKLPATH -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread"
-#w/ mkl, static :
-#	--with-blas="$MKLPATH/libmkl_solver_lp64_sequential.a -Wl,--start-group $MKLPATH/libmkl_intel_lp64.a $MKLPATH/libmkl_sequential.a $MKLPATH/libmkl_core.a -Wl,--end-group -lpthread" --with-lapack="$MKLPATH/libmkl_solver_lp64_sequential.a -Wl,--start-group  $MKLPATH/libmkl_intel_lp64.a $MKLPATH/libmkl_sequential.a $MKLPATH/libmkl_core.a -Wl,--end-group -lpthread"
-#w/ custom tcltk:
-#	--with-tcltk=/n/sw/centos6/tcl8.5.14 --with-tcl-config=/n/sw/centos6/tcl8.5.14/lib/tclConfig.sh --with-tk-config=/n/sw/centos6/tk8.5.14/lib/tkConfig.sh
 
-./configure CC=gcc F77=gfortran CXX=g++ --enable-R-shlib --with-tcltk \
-	--prefix=%{_prefix} \
+./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -132,7 +159,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -145,6 +172,7 @@ make %{?_smp_mflags}
 
 
 #
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -161,12 +189,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-export R_HOME=%{buildroot}/%{_prefix}
-%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
 
 #(this should not need to be changed)
@@ -213,6 +239,7 @@ done
 %endif
 
 # 
+# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -236,6 +263,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -244,27 +272,42 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
 
--- environment changes (uncomment what's relevant)
-prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+
+---- environment changes (uncomment what is relevant)
+setenv("RABIT_HOME",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
+#------------------- App data file
+cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+appname             : %{appname}
+appversion          : %{appversion}
+description         : %{appdescription}
+tags                : %{apptags}
+publication         : %{apppublication}
+modulename          : %{modulename}
+type                : %{type}
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : %{specauthor}
+builddate           : %{builddate}
+buildhost           : %{buildhost}
+buildhostversion    : %{buildhostversion}
+builddependencies   : %{builddependencies}
+rundependencies     : %{rundependencies}
+buildcomments       : %{buildcomments}
+requestor           : %{requestor}
+requestref          : %{requestref}
+EOF
 
 
 #------------------- %%files (there should be no need to change this ) --------
