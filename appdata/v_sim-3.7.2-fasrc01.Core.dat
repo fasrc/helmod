@@ -1,0 +1,18 @@
+appname             : v_sim
+appversion          : 3.7.2
+description         : V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+tags                : 
+publication         : 
+modulename          : v_sim-3.7.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Mar 16 11:56:13 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Sooran Kim <sok673@g.harvard.edu>
+requestref          : RCRT:98570

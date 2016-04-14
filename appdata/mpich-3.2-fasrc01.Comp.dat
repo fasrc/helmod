@@ -1,0 +1,18 @@
+appname             : mpich
+appversion          : 3.2
+description         : MPICH version 3.2, a high-performance and widely portable implementation of the Message Passing Interface (MPI) standard (MPI-1, MPI-2 and MPI-3)
+tags                : 
+publication         : 
+modulename          : mpich-3.2-fasrc01
+type                : Comp
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 14 15:08:14 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

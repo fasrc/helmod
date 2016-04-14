@@ -1,0 +1,18 @@
+appname             : openmpi
+appversion          : 1.6.5
+description         : An open source MPI-2 implementation.
+tags                : 
+publication         : 
+modulename          : openmpi-1.6.5-fasrc03
+type                : Comp
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jan 20 13:02:42 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

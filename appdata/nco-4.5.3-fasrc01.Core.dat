@@ -1,0 +1,19 @@
+appname             : nco
+appversion          : 4.5.3
+description         : The NCO toolkit manipulates and analyzes data stored in netCDF-accessible formats, including DAP, HDF4, and HDF5
+module              : nco-4.5.3-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : nco-4.5.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Dec 16 12:14:36 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : hdf5/1.8.12-fasrc04 netcdf/4.3.2-fasrc03 gsl/1.16-fasrc02 udunits/2.2.18-fasrc01 antlr/2.7.7-fasrc01
+rundependencies     : hdf5/1.8.12-fasrc04 netcdf/4.3.2-fasrc03 gsl/1.16-fasrc02 udunits/2.2.18-fasrc01 antlr/2.7.7-fasrc01
+buildcomments       : 
+requestor           : Pak Wah Chan <packard.chan@gmail.com>
+requestref          : RCRT:95753

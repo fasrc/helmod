@@ -1,0 +1,18 @@
+appname             : mvapich2
+appversion          : 2.2b
+description         : MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP.
+tags                : 
+publication         : 
+modulename          : mvapich2-2.2b-fasrc01
+type                : Comp
+compiler            : intel/13.0.079-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jan 12 15:28:56 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : breseq
+appversion          : 0.27.1
+description         : breseq is a computational pipeline for finding mutations relative to a reference sequence in short-read DNA re-sequencing data.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics
+publication         : 
+modulename          : breseq-0.27.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 25 17:01:33 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : R/3.2.0-fasrc01 ssaha2/2.5.5-fasrc01 bowtie2/2.2.2-fasrc01
+rundependencies     : R/3.2.0-fasrc01 ssaha2/2.5.5-fasrc01 bowtie2/2.2.2-fasrc01
+buildcomments       : 
+requestor           : Daniel Rice <danielrice@fas.harvard.edu>
+requestref          : RCRT:97658

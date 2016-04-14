@@ -1,0 +1,18 @@
+appname             : netcdf-cxx
+appversion          : 4.2
+description         : NetCDF C++ libraries
+tags                : 
+publication         : 
+modulename          : netcdf-cxx-4.2-fasrc02
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.10.2-fasrc01
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Mar  8 17:49:09 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : netcdf/4.4.0-fasrc01
+rundependencies     : netcdf/4.4.0-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

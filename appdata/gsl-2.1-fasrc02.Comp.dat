@@ -1,0 +1,18 @@
+appname             : gsl
+appversion          : 2.1
+description         : GSL, The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers.
+tags                : 
+publication         : 
+modulename          : gsl-2.1-fasrc02
+type                : Comp
+compiler            : intel/15.0.0-fasrc01 gcc/4.7.4-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 28 13:56:26 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

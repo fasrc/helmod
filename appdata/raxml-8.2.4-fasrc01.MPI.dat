@@ -1,0 +1,19 @@
+appname             : raxml
+appversion          : 8.2.4
+description         : RAxML (Randomized Axelerated Maximum Likelihood) is a program for sequential and parallel Maximum Likelihood based inference of large phylogenetic trees.
+module              : raxml-8.2.4-fasrc01
+tags                : aci-ref-app-category:Applications aci-ref-app-tag:Phylogenetic analysis
+publication         : PMID: A. Stamatakis: "RAxML Version 8: A tool for Phylogenetic Analysis and Post-Analysis of Large Phylogenies". In Bioinformatics, 2014
+modulename          : raxml-8.2.4-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 19 14:03:02 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : Building with SSE3 instructions.  Some, but not all compute nodes have AVX. Spec file can be used properly as either Comp or MPI. When building as Comp, the CC line is removed from the Makefile so that the environment value is picked up.
+requestor           : 
+requestref          : 

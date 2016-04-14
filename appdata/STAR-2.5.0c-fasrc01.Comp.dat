@@ -1,0 +1,18 @@
+appname             : STAR
+appversion          : 2.5.0c
+description         : STAR version 2.5.0c, Spliced Transcripts Alignment to a Reference
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics
+publication         : 
+modulename          : STAR-2.5.0c-fasrc01
+type                : Comp
+compiler            : gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 14 12:34:39 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : John L Pulice <jpulice@broadinstitute.org>
+requestref          : RCRT:96296

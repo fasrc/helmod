@@ -1,0 +1,18 @@
+appname             : intel-mpi
+appversion          : 5.1.2.150
+description         : Intel MPI version 5.1.2.150
+tags                : 
+publication         : 
+modulename          : intel-mpi-5.1.2.150-fasrc01
+type                : Comp
+compiler            : intel/15.0.0-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Dec 21 14:58:41 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

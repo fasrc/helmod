@@ -1,0 +1,18 @@
+appname             : mvapich2
+appversion          : 1.9a
+description         : MPI over InfiniBand, 10GigE/iWARP and RoCE
+tags                : 
+publication         : 
+modulename          : mvapich2-1.9a-fasrc01
+type                : Comp
+compiler            : intel/13.0.079-fasrc01 gcc/4.7.4-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb  5 12:30:58 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

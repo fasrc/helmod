@@ -1,0 +1,18 @@
+appname             : gfold
+appversion          : 1.1.2
+description         : GFOLD version 1.1.2, a generalized fold change for ranking differentially expressed genes from RNA-seq data
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics
+publication         : http://www.ncbi.nlm.nih.gov/pubmed/22923299
+modulename          : gfold-1.1.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 14 13:46:02 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gsl/1.16-fasrc02
+rundependencies     : gsl/1.16-fasrc02
+buildcomments       : 
+requestor           : John L. Pulice <jpulice@broadinstitute.org>
+requestref          : RCRT:96296
