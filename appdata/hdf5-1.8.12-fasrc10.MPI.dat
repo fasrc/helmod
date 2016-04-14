@@ -9,7 +9,7 @@ type                : MPI
 compiler            : %{compiler}
 mpi                 : %{mpi}
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Tue Mar  8 15:48:44 EST 2016
+builddate           : Thu Apr 14 12:20:00 EDT 2016
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : zlib/1.2.8-fasrc03
