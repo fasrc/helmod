@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static a module for loading R_core and R_packages
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,14 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -76,10 +68,12 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define rundependencies R_core/%{version}-%{release_short} R_packages/%{version}-%{release_short}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -87,8 +81,16 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
 %define apppublication %{nil}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+The RPM is simply a modulefile that loads R_core (the base R package), and R_packages (a large set of the most popular packages from CRAN).
 
 
 
@@ -98,18 +100,12 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(n/a)
 
 
 
@@ -122,7 +118,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -132,31 +127,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
+#(n/a)
 
 
 
@@ -169,7 +140,6 @@ make -j8
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -185,39 +155,7 @@ make -j8
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
-
-
+#(n/a)
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -295,34 +233,22 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        if not isloaded(i) then
+            load(i)
+        end
+    end
+end
 
----- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
+
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -339,6 +265,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 

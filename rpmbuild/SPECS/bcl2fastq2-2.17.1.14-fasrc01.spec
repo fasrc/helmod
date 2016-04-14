@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/software/bcl2fastq/bcl2fastq2-v2.17.1.14.tar.zip
+Source: bcl2fastq2-v2.17.1.14.tar.zip
+
 
 #
 # there should be no need to change the following
@@ -54,14 +55,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -76,19 +69,29 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies mpc/1.0.2-fasrc03 zlib/1.2.8-fasrc05 libxml2/2.7.8-fasrc02 boost/1.54.0-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Updated some dependencies so that they would have specific versions
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
 
 
 
@@ -106,11 +109,10 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf bcl2fastq  
+unzip -p "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.zip | tar xzvf -
+cd bcl2fastq
 chmod -Rf a+rX,u+w,g-w,o-w .
-
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -132,31 +134,53 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+# Handle TYPE=Core
+test -z "$CC" && export CC=gcc
+test -z "$CXX" && export CXX=g++
+
+export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
+export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
+export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
+export BOOST_ROOT=$BOOST_HOME
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
+# Patch the bcl2fastq redist macros cmake file
+cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
+33a34
+>        set(\${\${libname}_UPPER}_FOUND "TRUE")
+EOF
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
+# Patch the cxxConfigure cmake file
+cat <<EOF | patch src/cmake/cxxConfigure.cmake
+110c110,116
+< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
+---
+> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
+>   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
+>   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
+>   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
+> endif(LIBXML2_FOUND)
+> 
+> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
+117c123
+< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
+---
+> endif(NOT LIBXML2_FOUND)
+EOF
+
+
+# Create the build directory if it isn't here
+test -d build && rm -rf build
+mkdir build
+cd build
+
+../src/configure --prefix=%{_prefix}
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -186,37 +210,10 @@ make -j8
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
-
 
 
 #(this should not need to be changed)
@@ -295,34 +292,25 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

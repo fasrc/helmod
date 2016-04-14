@@ -1,5 +1,8 @@
 #------------------- package info ----------------------------------------------
 
+# binary package
+%define __prelink_undo_cmd %{nil}
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +33,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static a Python distribution for large-scale data processing, predictive analytics, and scientific computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda2-2.5.0-Linux-x86_64.sh
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,14 +57,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -76,19 +71,30 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Remove mkl mkl-service hdf5 h5py mpich2 mpi4py
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+A completely free enterprise-ready Python distribution for large-scale data processing, predictive analytics, and scientific computing, from Continuum Analytics.
 
 
 
@@ -96,20 +102,12 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 %prep
 
-
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(do nothing)
 
 
 
@@ -117,46 +115,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
+#(do nothing)
 
 
 
@@ -164,70 +134,56 @@ make -j8
 
 %install
 
+#
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
+#
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+#--- This app insists on writing directly to the prefix.  Complicating, things, 
+#    it also insists that the prefix not exist, so even the symlink hack needs 
+#    to be further hacked (introduce an additional sub-directory).
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+# Standard stuff.
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-make clean
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
+# Symlink the final prefix (which the build insists on using), to the 
+# buildroot (the temporary place where we want to install it now).  
+# Note that this will fail if this is not the first build of this 
+# NAME/VERSION/RELEASE/TYPE.
+sudo mkdir -p "$(dirname %{_prefix})"
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
+#base sharball execution
+#-b ~ batch, -p ~ prefix
+unset PYTHONPATH
+bash %{_topdir}/SOURCES/%{name}2-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
 
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+# Remove mkl due to license issues
+# Remove hdf5 so that a local version can be created when needed.
+%{_prefix}/x/bin/conda install nomkl numpy scipy scikit-learn numexpr --yes
+for pkg in mkl mkl-service hdf5 h5py; do
+    %{_prefix}/x/bin/conda remove --yes $pkg
 done
 
-#(this should not need to be changed)
+# After mkl removal, need to replace numpy, scipy
+# %{_prefix}/x/bin/conda remove --yes numpy
+# %{_prefix}/x/bin/pip install numpy==1.10.4
+
+# %{_prefix}/x/bin/conda remove --yes scipy
+# %{_prefix}/x/bin/pip install scipy==0.17.0
+
+# Clean up that symlink.  The parent dir may be left over, oh well.
+sudo rm "%{_prefix}"
+
+#---
+
+
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -263,15 +219,9 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
+# - uncomment any applicable prepend_path things
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
-#
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -282,7 +232,8 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-mkdir -p %{buildroot}/%{_prefix}
+# FIXME (but the above is enough for a "trial" build)
+
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -294,35 +245,19 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
-
----- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
+-- environment changes (uncomment what is relevant)
+setenv("PYTHONHOME",                "%{_prefix}/x")
+setenv("PYTHON_HOME",               "%{_prefix}/x")
+setenv("PYTHON_INCLUDE",            "%{_prefix}/x/include")
+setenv("PYTHON_LIB",                "%{_prefix}/x/lib")
+prepend_path("PATH",                "%{_prefix}/x/bin")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -360,7 +295,7 @@ EOF
 # everything in fasrcsw is installed in an app hierarchy in which some 
 # components may need creating, but no single rpm should own them, since parts 
 # are shared; only do this if it looks like an app-specific prefix is indeed 
-# being used (that's the fasrcsw default)
+# being used (that is the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 #

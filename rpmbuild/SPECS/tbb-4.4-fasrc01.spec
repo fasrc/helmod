@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static Widely used C++ template library for task parallelism
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://www.threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb44_20160128oss_src_0.tgz 
+Source: tbb44_20160128oss_src_0.tgz
 
 #
 # there should be no need to change the following
@@ -56,13 +56,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -76,21 +69,32 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Christopher Tabone <ctabone@morgan.harvard.edu> 
+%define requestref RCRT:98706
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Intel® Threading Building Blocks (Intel® TBB) lets you easily write parallel C++ programs that take full advantage of multicore performance, that are portable and composable, and that have future-proof scalability.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -106,9 +110,9 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf tbb44_20160128oss
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/tbb44_20160128oss_src_0.tgz
+cd tbb44_20160128oss
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -133,30 +137,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/tbb44_20160128oss
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
+cat <<EOF | patch build/linux.gcc.inc
+52,54c52,54
+< ifneq (,\$(shell gcc -dumpversion | egrep  "^(4\.[8-9]|[5-9])"))
+<     RTM_KEY = -mrtm
+< endif
+---
+> # ifneq (,\$(shell gcc -dumpversion | egrep  "^(4\.[8-9]|[5-9])"))
+> #     RTM_KEY = -mrtm
+> # endif
+EOF
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
+make
 
 
 
@@ -186,38 +180,11 @@ make -j8
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
-
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/tbb44_20160128oss
+echo %{buildroot} | grep -q tbb44_20160128oss && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/lib
+cp -r include %{buildroot}/%{_prefix}
+cp -r build/linux_intel64_gcc_cc4.8.2_libc2.12_kernel2.6.32_release/* %{buildroot}/%{_prefix}/lib
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -287,6 +254,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -295,34 +263,31 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-EOF
+setenv("TBB_HOME",                  "%{_prefix}")
+setenv("TBB_INCLUDE",               "%{_prefix}/include")
+setenv("TBB_LIB",                   "%{_prefix}/lib")
 
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -339,7 +304,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

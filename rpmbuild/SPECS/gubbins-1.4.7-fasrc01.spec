@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,16 +30,18 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static Rapid phylogenetic analysis of large samples of recombinant bacterial whole genome sequences
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
-
+URL: https://github.com/sanger-pathogens/gubbins/archive/v1.4.7.tar.gz
+Source0: %{name}-%{version}.tar.gz
+Source1: biopython-1.66.tar.gz
+Source2: DendroPy-4.1.0.tar.gz
+Source3: reportlab-3.3.0.tar.gz
 #
 # there should be no need to change the following
 #
@@ -56,13 +58,6 @@ Prefix: %{_prefix}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
-#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -76,21 +71,34 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies python/3.4.1-fasrc01 FastML/3.1-fasrc01 fasttree/2.1.9-fasrc01 raxml/8.1.5-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Taj Azarian <tazarian@hsph.harvard.edu>
+%define requestref RCRT:99360
+
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
+%define PACKAGES  biopython-1.66 DendroPy-4.1.0 reportlab-3.3.0
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Since the introduction of high-throughput, second-generation DNA sequencing technologies, there has been an enormous increase in the size of datasets being used for estimating bacterial population phylodynamics. Although many phylogenetic techniques are scalable to hundreds of bacterial genomes, methods which have been used for mitigating the effect of mechanisms of horizontal sequence transfer on phylogenetic reconstructions cannot cope with these new datasets. Gubbins (Genealogies Unbiased By recomBinations In Nucleotide Sequences) is an algorithm that iteratively identifies loci containing elevated densities of base substitutions while concurrently constructing a phylogeny based on the putative point mutations outside of these regions. Simulations demonstrate the algorithm generates highly accurate reconstructions under realistic models of short-term bacterial evolution, and can be run in only a few hours on alignments of hundreds of bacterial genome sequences.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -121,42 +129,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
 
 
 
@@ -168,56 +142,27 @@ make -j8
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+umask 022
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+
+
+export PYTHONPATH="%{buildroot}%{_prefix}/lib/python2.7/site-packages"
+
+for p in %{PACKAGES}; do
+    f="$FASRCSW_DEV/rpmbuild/SOURCES/${p}.tar.gz"
+    tar xvf ${f}
+    (cd ${p} && python setup.py install --prefix=%{_prefix} --root=%{buildroot})
+done
+
+# Fix error in python/Makefile.am
+sed -i -e 's?${PYTHON} setup.py install?${PYTHON} setup.py install --prefix=${prefix} --root=${DESTDIR}?' python/Makefile.am
+autoreconf --force --install
+./configure --prefix=%{_prefix}
+make
+
 make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
-
-
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -287,6 +232,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -295,34 +241,31 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-EOF
+setenv("GUBBINS_HOME",             "%{_prefix}")
+setenv("GUBBINS_LIB",              "%{_prefix}/lib")
 
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("PYTHONPATH",          "%{_prefix}/lib/python3.4/site-packages")
+EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -339,7 +282,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

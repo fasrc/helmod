@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Fastest Fourier Transform in the West
+%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.fftw.org/fftw-3.3.4.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,14 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -76,20 +68,29 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.7.2-fasrc01 python/2.7.11-fasrc01
+%define rundependencies ffmpeg/2.7.2-fasrc01 python/2.7.11-fasrc01
+%define buildcomments Anaconda without mkl,etc. Newer ffmpeg
+%define requestor David Zwicker <dzwicker@seas.harvard.edu>
+%define requestref RCRT:97266
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+%define apptags %{nil} 
 %define apppublication %{nil}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -106,11 +107,13 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+git clone https://github.com/Itseez/opencv.git
+cd %{name}
+git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
 chmod -Rf a+rX,u+w,g-w,o-w .
-
+mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
+wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -130,33 +133,17 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-threads 
 
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHONHOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHONHOME/lib" ..
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make 
 
 
 
@@ -186,37 +173,10 @@ make -j8
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-make clean
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-openmp \
-	--enable-mpi \
-    --enable-shared \
-    --enable-float \
-    --enable-threads 
-
-export CFLAGS="-fPIC"
-export LDFLAGS="-fPIC"
-make -j8
-make install DESTDIR=%{buildroot}
-
 
 
 #(this should not need to be changed)
@@ -295,34 +255,36 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
---if mode()=="load" then
---	if not isloaded("NAME") then
---		load("NAME/VERSION-RELEASE")
---	end
---end
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    if mode()=="load" then
+        a = string.match(i,"^[^/]+")
+        if not isloaded(a) then
+            load(i)
+        end
+    end
+end
+
 
 ---- environment changes (uncomment what is relevant)
-setenv("FFTW_HOME",                 "%{_prefix}")
-setenv("FFTW_INCLUDE",              "%{_prefix}/include")
-setenv("FFTW_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
+setenv("OPENCV_HOME",              "%{_prefix}")
+setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
+setenv("OPENCV_LIB",               "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
----
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -339,7 +301,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
