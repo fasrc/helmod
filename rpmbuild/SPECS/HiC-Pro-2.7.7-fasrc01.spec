@@ -282,8 +282,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HiC-Pro_HOME",             "%{_prefix}")
-setenv("Hic-Pro_LIB",              "%{_prefix}/lib")
+setenv("HICPRO_HOME",             "%{_prefix}")
+setenv("HICPRO_LIB",              "%{_prefix}/lib")
 
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
