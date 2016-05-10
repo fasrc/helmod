@@ -242,10 +242,10 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("SPM_HOME",             "%{_prefix}")
-
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("_HVD_SPM_DIR",         "%{_prefix}")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/R")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/R")
+prepend_path("MATLABPATH", "%{_prefix}")
 EOF
 
 #------------------- App data file
