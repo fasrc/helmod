@@ -1,0 +1,33 @@
+;   MEGA-CC (Molecular Evolutionary Genetics Analysis Compute Core)
+;
+;   Suggested Citation for MEGA-CC:
+;   MEGA-CC: Computing Core of Molecular Evolutionary Genetics
+;   Analysis Program for Automated and Iterative Data Analysis.
+;   Bioinformatics (2012) 28:2685-2686 (Epub 2012 Aug 24)
+
+
+; ****************************************************************************
+;        Please see the important message(s) at the bottom of this file 
+; ****************************************************************************
+
+[General Info]
+
+	Data Type                               = unknown
+	No. of Taxa                             =        0
+	Data File                               = 
+	Settings File                           = 
+	Command Line                            = 
+
+[Analysis Statistics]
+
+	Start Time                              = 15-4-16 11:28:38
+	End Time                                = 15-4-16 11:28:39
+	Execution Time                          =    0.006 (seconds)
+	Peak Memory Used(Working Set)           = Not available
+
+
+; ****************************************************************************
+;                 Please note the following important messages:
+; ****************************************************************************
+;	Warning: Unable to read version of MEGA Analysis Options (.mao) file
+;	Error: Could not find the entry [ProcessTypes] in the MEGA Analysis Options (.mao) file provided
