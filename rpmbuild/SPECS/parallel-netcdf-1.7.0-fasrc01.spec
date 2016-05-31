@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static PnetCDF is a library providing high-performance parallel I/O while still maintaining file-format compatibility with  Unidata's NetCDF, specifically the formats of CDF-1 and CDF-2.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: http://cucis.ece.northwestern.edu/projects/PnetCDF/Release/parallel-netcdf-1.7.0.tar.bz2
+Source: %{name}-%{version}.tar.bz2
+
 #
 # there should be no need to change the following
 #
@@ -57,6 +56,15 @@ Prefix: %{_prefix}
 
 
 #
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Parallel netCDF (PnetCDF) is a parallel I/O library that supports data access to NetCDF files in CDF and CDF-2 formats.
+
+#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -70,32 +78,22 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
+
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,6 +138,196 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+cat <<EOF | patch rules.make
+128c128
+< 	\$(INSTALL) \$(srcdir)/\$(HEADER) \$@
+---
+> 	\$(INSTALL) \$(srcdir)/\$(HEADER) \$(DESTDIR)\$@
+130c130
+< 	\$(INSTALL) \$(srcdir)/\$(HEADER1) \$@
+---
+> 	\$(INSTALL) \$(srcdir)/\$(HEADER1) \$(DESTDIR)\$@
+132c132
+< 	\$(INSTALL) \$(srcdir)/\$(HEADER2) \$@
+---
+> 	\$(INSTALL) \$(srcdir)/\$(HEADER2) \$(DESTDIR)\$@
+134c134
+< 	\$(INSTALL) \$(srcdir)/\$(HEADER3) \$@
+---
+> 	\$(INSTALL) \$(srcdir)/\$(HEADER3) \$(DESTDIR)\$@
+137,138c137,138
+< 	\$(INSTALL) -d -m 755 \$(LIBDIR)
+< 	\$(INSTALL) -m 644  \$(LIBRARY) \$@
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(LIBDIR)
+> 	\$(INSTALL) -m 644  \$(LIBRARY) \$(DESTDIR)\$@
+141,142c141,142
+< 	\$(INSTALL) -d -m 755 \$(BINDIR)
+< 	\$(INSTALL) -m 755  \$(PROGRAM) \$@
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755  \$(PROGRAM) \$(DESTDIR)\$@
+EOF
+
+cat <<EOF | patch man/Makefile.in
+46c46
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man3
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man3
+51c51
+< 	    \$(INSTALL_DATA) \$\$file \$(MANDIR)/man3/\$\$fn \\
+---
+> 	    \$(INSTALL_DATA) \$\$file \$(DESTDIR)\$(MANDIR)/man3/\$\$fn \\
+EOF
+
+cat <<EOF | patch src/lib/Makefile.in
+96,101c96,101
+< 	\$(INSTALL) -d -m 755 \$(LIBDIR)
+< 	\$(INSTALL_DATA) \$(LIBRARY) \$(LIBDIR)/\$(LIBRARY)
+< 	\$(INSTALL) -d -m 755 \$(INCDIR)
+< 	\$(INSTALL_DATA) \$(HEADER) \$(INCDIR)/\$(HEADER)
+< 	\$(INSTALL) -d -m 755 \$(LIBDIR)/pkgconfig
+< 	\$(INSTALL_DATA) \$(PKGCONFIG) \$(LIBDIR)/pkgconfig/\$(PKGCONFIG)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(LIBDIR)
+> 	\$(INSTALL_DATA) \$(LIBRARY) \$(DESTDIR)\$(LIBDIR)/\$(LIBRARY)
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(INCDIR)
+> 	\$(INSTALL_DATA) \$(HEADER) \$(DESTDIR)\$(INCDIR)/\$(HEADER)
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(LIBDIR)/pkgconfig
+> 	\$(INSTALL_DATA) \$(PKGCONFIG) \$(DESTDIR)\$(LIBDIR)/pkgconfig/\$(PKGCONFIG)
+EOF
+
+cat <<EOF | patch src/libcxx/Makefile.in
+75,76c75,76
+< 	\$(INSTALL) -d -m 755 \$(INCDIR)
+< 	\$(INSTALL_DATA) \$(CXX_HEADER) \$(INCDIR)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(INCDIR)
+> 	\$(INSTALL_DATA) \$(CXX_HEADER) \$(DESTDIR)\$(INCDIR)
+EOF
+
+cat <<EOF | patch src/libf/Makefile.in
+397,398c397,398
+< 	\$(INSTALL) -d -m 755 \$(INCDIR)
+< 	\$(INSTALL_DATA) pnetcdf.inc \$(INCDIR)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(INCDIR)
+> 	\$(INSTALL_DATA) pnetcdf.inc \$(DESTDIR)\$(INCDIR)
+EOF
+
+cat <<EOF | patch src/libf90/Makefile.in
+77,78c77,78
+< 	\$(INSTALL) -d -m 755 \$(INCDIR)
+< 	\$(INSTALL_DATA) \$(PNETCDF_MOD) \$(INCDIR)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(INCDIR)
+> 	\$(INSTALL_DATA) \$(PNETCDF_MOD) \$(DESTDIR)\$(INCDIR)
+EOF
+
+cat <<EOF | patch src/utils/ncmpidiff/Makefile.in
+41,42c41,42
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+44,45c44,45
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+cat <<EOF | patch src/utils/ncmpidump/Makefile.in
+52,56c52,55
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+< 
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+> 	
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+cat <<EOF | patch src/utils/ncmpigen/Makefile.in
+54,55c54,55
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+57,58c57,58
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+cat <<EOF | patch src/utils/ncmpivalid/Makefile.in
+43,44c43,44
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+46,47c46,47
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+cat <<EOF | patch src/utils/ncoffsets/Makefile.in
+28,31c28,31
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+> 	\$(INSTALL) -d \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+cat <<EOF | patch src/utils/pnetcdf_version/Makefile.in
+44,47c44,47
+< 	\$(INSTALL) -d -m 755 \$(MANDIR)/man1
+< 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(MANDIR)/man1/\$(MANUAL)
+< 	\$(INSTALL) -d \$(BINDIR)
+< 	\$(INSTALL) -m 755 \$(PROGRAM) \$(BINDIR)/\$(PROGRAM)
+---
+> 	\$(INSTALL) -d -m 755 \$(DESTDIR)\$(MANDIR)/man1
+> 	\$(INSTALL_DATA) \$(srcdir)/\$(MANUAL) \$(DESTDIR)\$(MANDIR)/man1/\$(MANUAL)
+> 	\$(INSTALL) -d \$(DESTDIR)\$(BINDIR)
+> 	\$(INSTALL) -m 755 \$(PROGRAM) \$(DESTDIR)\$(BINDIR)/\$(PROGRAM)
+EOF
+
+./configure MPICC=mpicc MPICXX=mpicxx MPIF77=mpif77 MPIF90=mpif90 --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+
+make -j8
 
 
 
@@ -172,24 +360,38 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
 make install DESTDIR=%{buildroot}
 
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+## +++++ START ++++
+
+#
+# This app insists on writing directly to the prefix.  Acquiesce, and hack a 
+# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
+# to install in our build environment, and then remove the symlink.  Note that 
+# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE 
+# combination.
+#
+
+# Standard stuff.
+# umask 022
+# cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+# echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+# mkdir -p %{buildroot}/%{_prefix}
+
+# Make the symlink.
+# sudo mkdir -p "$(dirname %{_prefix})"
+# test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+# sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+# make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+# sudo rm "%{_prefix}"
+
+## +++++ END +++++
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -257,7 +459,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,28 +467,32 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
 ---- environment changes (uncomment what is relevant)
+setenv("PNETCDF_HOME",             "%{_prefix}")
+setenv("PNETCDF_LIB",              "%{_prefix}/lib")
+setenv("PNETCDF_INCLUDE",          "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -304,6 +509,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

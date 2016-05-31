@@ -170,11 +170,11 @@ for pkg in mkl mkl-service hdf5 h5py; do
 done
 
 # After mkl removal, need to replace numpy, scipy
-# %{_prefix}/x/bin/conda remove --yes numpy
-# %{_prefix}/x/bin/pip install numpy==1.10.4
+%{_prefix}/x/bin/conda remove --yes numpy
+%{_prefix}/x/bin/pip install numpy==1.10.4
 
-# %{_prefix}/x/bin/conda remove --yes scipy
-# %{_prefix}/x/bin/pip install scipy==0.17.0
+%{_prefix}/x/bin/conda remove --yes scipy
+%{_prefix}/x/bin/pip install scipy==0.17.0
 
 # Clean up that symlink.  The parent dir may be left over, oh well.
 sudo rm "%{_prefix}"
@@ -246,7 +246,6 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 -- environment changes (uncomment what is relevant)
-setenv("PYTHONHOME",                "%{_prefix}/x")
 setenv("PYTHON_HOME",               "%{_prefix}/x")
 setenv("PYTHON_INCLUDE",            "%{_prefix}/x/include")
 setenv("PYTHON_LIB",                "%{_prefix}/x/lib")
