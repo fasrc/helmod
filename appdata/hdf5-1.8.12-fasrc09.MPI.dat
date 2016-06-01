@@ -1,0 +1,18 @@
+appname             : hdf5
+appversion          : 1.8.12
+description         : hdf5
+tags                : 
+publication         : 
+modulename          : hdf5-1.8.12-fasrc09
+type                : MPI
+compiler            : intel/13.0.079-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : openmpi/1.8.1-fasrc05 mvapich2/2.0rc1-fasrc01
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jan 26 15:34:32 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : zlib/1.2.8-fasrc02
+rundependencies     : zlib/1.2.8-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

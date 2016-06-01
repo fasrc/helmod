@@ -1,0 +1,19 @@
+appname             : hdf5
+appversion          : 1.8.12
+description         : HDF5 is a data model, library, and file format for storing and managing data.
+module              : hdf5-1.8.12-fasrc10
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : hdf5-1.8.12-fasrc10
+type                : MPI
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Apr 14 12:20:00 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : zlib/1.2.8-fasrc03
+rundependencies     : zlib/1.2.8-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

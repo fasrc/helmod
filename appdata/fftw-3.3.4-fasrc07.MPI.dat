@@ -1,0 +1,20 @@
+---
+appname             : fftw
+appversion          : 3.3.4
+description         : Fastest Fourier Transform in the West
+module              : fftw-3.3.4-fasrc07
+tags                : aci-ref-app-category:Libraries;  aci-ref-app-tag:Math
+publication         : 
+modulename          : fftw-3.3.4-fasrc07
+type                : MPI
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Apr 14 11:49:34 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

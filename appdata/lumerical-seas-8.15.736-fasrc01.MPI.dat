@@ -1,0 +1,18 @@
+appname             : lumerical-seas
+appversion          : 8.15.736
+description         : Lumerical FDTD and Device sofware for SEAS
+tags                : 
+publication         : 
+modulename          : lumerical-seas-8.15.736-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01
+mpi                 : impi/5.1.2.150-fasrc01
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 12 13:44:05 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : JAGS
+appversion          : 3.0.0
+description         : JAGS is Just Another Gibbs Sampler. It is a program for the statistical analysis of Bayesian hierarchical models by Markov Chain Monte Carlo.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics
+publication         : 
+modulename          : JAGS-3.0.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Feb 11 14:41:42 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Kathryn McKeough <kathrynmckeough@g.harvard.edu>
+requestref          : RCRT:97361

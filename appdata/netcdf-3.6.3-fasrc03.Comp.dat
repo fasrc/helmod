@@ -1,0 +1,18 @@
+appname             : netcdf
+appversion          : 3.6.3
+description         : NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : netcdf-3.6.3-fasrc03
+type                : Comp
+compiler            : intel/15.0.0-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Dec 11 13:55:22 EST 2015
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

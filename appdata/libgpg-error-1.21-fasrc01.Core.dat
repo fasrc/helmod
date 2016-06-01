@@ -1,0 +1,18 @@
+appname             : libgpg-error
+appversion          : 1.21
+description         : Libgpg-error is a small library that defines common error values for all GnuPG components.
+tags                : 
+publication         : 
+modulename          : libgpg-error-1.21-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 10 15:44:23 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

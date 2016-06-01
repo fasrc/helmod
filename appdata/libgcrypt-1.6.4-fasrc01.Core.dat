@@ -1,0 +1,18 @@
+appname             : libgcrypt
+appversion          : 1.6.4
+description         : Libgcrypt is a general purpose cryptographic library based on the code from GnuPG.
+tags                : 
+publication         : 
+modulename          : libgcrypt-1.6.4-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Feb 10 15:52:22 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libgpg-error/1.21-fasrc01
+rundependencies     : libgpg-error/1.21-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

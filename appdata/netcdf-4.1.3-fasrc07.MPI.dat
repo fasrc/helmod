@@ -1,0 +1,18 @@
+appname             : netcdf
+appversion          : 4.1.3
+description         : NetCDF version 4.1.3
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+publication         : 
+modulename          : netcdf-4.1.3-fasrc07
+type                : MPI
+compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+mpi                 : mvapich2/2.2b-fasrc02
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Apr 14 12:59:53 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : hdf5/1.8.12-fasrc10
+rundependencies     : hdf5/1.8.12-fasrc10
+buildcomments       : 
+requestor           : 
+requestref          : 

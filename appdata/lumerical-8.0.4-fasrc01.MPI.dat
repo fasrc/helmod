@@ -1,0 +1,18 @@
+appname             : lumerical
+appversion          : 8.0.4
+description         : Lumerical FDTD sofware
+tags                : 
+publication         : 
+modulename          : lumerical-8.0.4-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01
+mpi                 : impi/5.1.2.150-fasrc01
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Feb 12 15:00:12 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

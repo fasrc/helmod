@@ -1,0 +1,18 @@
+appname             : matlab
+appversion          : R2015b
+description         : a high-level language and interactive environment for numerical computation, visualization, and programming
+tags                : 
+publication         : 
+modulename          : matlab-R2015b-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jan 28 17:02:46 EST 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 
