@@ -186,12 +186,12 @@ cat <<EOF | patch Makefile
 <             cpio -pd \$(pincludedir)
 < 	\$(INSTALL) -m 644 \$(incdir)/* \$(pincludedir)
 ---
-> 	cd \$(DESTDIR)\$(includedir0) && find * -name CVS -prune -o -print |\\
+> 	cd \$(includedir0) && find * -name CVS -prune -o -print |\\
 >             cpio -pd \$(DESTDIR)\$(pincludedir)
 > 	\$(INSTALL) -m 644 \$(incdir)/* \$(DESTDIR)\$(pincludedir)
 EOF
 
-make
+make -j 4
 
 
 
