@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SCOTCH version 6.0.4
+%define summary_static gnome-sharp version 2.24.1
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gforge.inria.fr/frs/download.php/file/34618/scotch_6.0.4.tar.gz
+URL: http://download.mono-project.com/sources/gnome-sharp2/gnome-sharp-2.24.1.tar.bz2
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies mono/4.4.0-fasrc01 gtk-sharp/2.12.26-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -86,6 +86,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -93,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Software package and libraries for sequential and parallel graph partitioning, static mapping and clustering, sequential mesh and 
-hypergraph partitioning, and sequential and parallel sparse matrix block ordering.
+gnome-sharp version 2.24.1
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -137,10 +137,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
-cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/Make.inc/Makefile.inc.x86-64_pc_linux2.shlib "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/Makefile.inc
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-#./configure --prefix=%{_prefix} \
+./configure --prefix=%{_prefix}
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -157,8 +156,9 @@ cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/Make.inc/Makefile.inc.x8
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
-make %{?_smp_mflags} ptscotch
+make
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -189,11 +189,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin %{buildroot}/%{_prefix}/
-rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib %{buildroot}/%{_prefix}/
-rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include %{buildroot}/%{_prefix}/
-rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/man %{buildroot}/%{_prefix}/
+make install DESTDIR=%{buildroot}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -282,13 +279,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("SCOTCH_HOME",              "%{_prefix}")
+setenv("GNOME_SHARP_HOME",         "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
