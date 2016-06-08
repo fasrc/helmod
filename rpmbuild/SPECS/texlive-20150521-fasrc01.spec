@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static TeX Live is an easy way to get up and running with the TeX document production system.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: http://mirror.jmu.edu/pub/CTAN/systems/texlive/Source/texlive-20150521-source.tar.xz
+Source: %{name}-%{version}-source.tar.xz
+
 #
 # there should be no need to change the following
 #
@@ -77,8 +76,8 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Gregory Green <ggreen@cfa.harvard.edu>
+%define requestref RCRT:99172
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -95,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+TeX Live is an easy way to get up and running with the TeX document production system. It provides a comprehensive TeX system with binaries for most flavors of Unix, including GNU/Linux, and also Windows. It includes all the major TeX-related programs, macro packages, and fonts that are free software, including support for many languages around the world.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +110,9 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}-source
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-source.tar.*
+cd %{name}-%{version}-source
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,8 +137,29 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-source
 
+mkdir build
+cd build
+
+../configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
 
 
 
@@ -169,27 +189,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-source/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
 make install DESTDIR=%{buildroot}
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -275,12 +281,19 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
+setenv("TEXLIVE_HOME",             "%{_prefix}")
+setenv("TEXLIVE_LIB",              "%{_prefix}/lib64")
+setenv("TEXLIVE_INCLUDE",          "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file

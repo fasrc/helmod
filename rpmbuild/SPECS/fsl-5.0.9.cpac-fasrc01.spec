@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static FSL is a comprehensive library of analysis tools for FMRI, MRI and DTI brain imaging data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: http://fsl.fmrib.ox.ac.uk/fsldownloads/
+Source: %{name}-5.0.9-centos6_64.tar.gz
+
 #
 # there should be no need to change the following
 #
@@ -77,8 +76,8 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Jared Nielson <jarednielsen@fas.harvard.edu>
+%define requestref RCRT:99139
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -95,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+FSL is a comprehensive library of analysis tools for FMRI, MRI and DTI brain imaging data.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +110,9 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-5.0.9-centos6_64.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -124,23 +123,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -169,27 +151,14 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+cp -r LICENCE README bin config data etc extras include lib refdoc tcl %{buildroot}/%{_prefix}
+/usr/sbin/prelink -u %{buildroot}/%{_prefix}/lib/libqt-mt.so
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -275,12 +244,21 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("FSL_HOME",                  "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+
+setenv("FSLDIR",                    "%{_prefix}")
+setenv("FSLOUTPUTTYPE",             "NIFTI_GZ")
+setenv("FSLMULTIFILEQUIT",          "TRUE")
+setenv("FSLMACHTYPE",               "linux_64-gcc4.1")
+setenv("FSLTCLSH",                  "%{_prefix}/bin/fsltclsh"))
+setenv("FSLCONFDIR",                "%{_prefix}/config"))
+setenv("FSLWISH",                   "%{_prefix}/bin/fslwish"))
+setenv("FSLMACHINELIST",            "")
+setenv("FSLREMOTECALL",             "")
+setenv("FSLLOCKDIR",                "")
 EOF
 
 #------------------- App data file

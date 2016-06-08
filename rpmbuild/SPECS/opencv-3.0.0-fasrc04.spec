@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -11,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
+# enter the release; start with fasrc01 (or some other convention for your
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
+# and MPI apps, it will include the name/version/release of the apps used to
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -26,21 +26,20 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
+# rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
+# enter the url from where you got the source; change the archive suffix if
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
+# Source: %{name}-%{version}.tar.gz
+
 #
 # there should be no need to change the following
 #
@@ -55,9 +54,8 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
 #
-# Macros for setting app data 
+# Macros for setting app data
 # The first set can probably be left as is
 # the nil construct should be used for empty values
 #
@@ -74,28 +72,26 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies cmake/2.8.12.2-fasrc01 ffmpeg/2.7.2-fasrc01 python/2.7.11-fasrc01
+%define rundependencies ffmpeg/2.7.2-fasrc01 python/2.7.11-fasrc01
+%define buildcomments Anaconda without mkl,etc. Newer ffmpeg
+%define requestor David Zwicker <dzwicker@seas.harvard.edu>
+%define requestref RCRT:97266
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags %{nil}
 %define apppublication %{nil}
 
 
-
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# enter a description, often a paragraph; unless you prefix lines with spaces,
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -105,17 +101,19 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 #
 # FIXME
 #
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# unpack the sources here.  The default below is for standard, GNU-toolchain
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
+rm -rf %{name}
+git clone https://github.com/Itseez/opencv.git
+cd %{name}
+git checkout b33853c5be47f81de01087d1e5d6a2cc38cc3f53
 chmod -Rf a+rX,u+w,g-w,o-w .
-
+mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
+wget http://downloads.sourceforge.net/project/opencvlibrary/3rdparty/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -125,23 +123,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE;$PYTHON_HOME/include" -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB;$PYTHON_HOME/lib" -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_1394=OFF ..
+export LD_LIBRARY_PATH=$PYTHON_HOME/lib:$LD_LIBRARY_PATH
+# add %%{?_smp_mflags} (with only one percent sign) to build in parallel
+make %{?_smp_mflags}
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -154,12 +143,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
+# make install here.  The default below is for standard GNU-toolchain style
 # things -- hopefully it'll just work as-is.
 #
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
+# Note that DESTDIR != %{prefix} -- this is not the final installation.
+# Rpmbuild does a temporary installation in the %{buildroot} and then
+# constructs an rpm out of those files.  See the following hack if your app
 # does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
@@ -169,27 +158,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
 make install DESTDIR=%{buildroot}
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -200,16 +175,16 @@ done
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-	
+
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo 
+	echo
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-	
+
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -225,25 +200,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-	
+
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-# 
+#
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
+# This is the part that builds the modulefile.  However, stop now and run
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
+# - do any other customizing of the module, e.g. load dependencies -- make sure
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything 
+# - in the help message, link to website docs rather than write anything
 #   lengthy here
 #
 # references on writing modules:
@@ -257,7 +232,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,7 +240,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
         if not isloaded(a) then
@@ -275,13 +249,21 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
+setenv("OPENCV_HOME",              "%{_prefix}")
+setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
+setenv("OPENCV_LIB",               "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -321,9 +303,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some 
-# components may need creating, but no single rpm should own them, since parts 
-# are shared; only do this if it looks like an app-specific prefix is indeed 
+# everything in fasrcsw is installed in an app hierarchy in which some
+# components may need creating, but no single rpm should own them, since parts
+# are shared; only do this if it looks like an app-specific prefix is indeed
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -331,9 +313,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to 
-# be relocatable, hence why this is not a proper %%file; as with the app itself, 
-# modulefiles are in an app hierarchy in which some components may need 
+# symlink to the modulefile installed along with the app; we want all rpms to
+# be relocatable, hence why this is not a proper %%file; as with the app itself,
+# modulefiles are in an app hierarchy in which some components may need
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -343,9 +325,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir 
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
-# orphans will be left over after the last package in the app family 
+# undo the module file symlink done in the %%post; do not rmdir
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
+# orphans will be left over after the last package in the app family
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -353,9 +335,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
-# left over after the last package in the app family is removed); also put a 
-# little protection so this does not cause problems if a non-default prefix 
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be
+# left over after the last package in the app family is removed); also put a
+# little protection so this does not cause problems if a non-default prefix
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -364,7 +346,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't 
+# wipe out the buildroot, but put some protection to make sure it isn't
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'

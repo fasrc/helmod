@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static RSEM version 1.2.29
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: https://github.com/deweylab/RSEM/archive/v1.2.29.tar.gz
+Source: %{name}-%{version}.tar.gz
+
 #
 # there should be no need to change the following
 #
@@ -54,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -74,11 +72,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies R/3.1.0-fasrc01 bowtie2/2.2.2-fasrc01 bowtie/1.1.1-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Christopher Tabone <ctabone@morgan.harvard.edu>
+%define requestref RCRT:99009
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -87,15 +85,14 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +108,9 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf RSEM-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd RSEM-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,9 +135,29 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
 
+# Here we skip this as it requires "make" only!
 
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
+(cd EBSeq && make rsem-for-ebseq-calculate-clustering-info)
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -169,27 +186,23 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+mkdir -p %{buildroot}/%{_prefix}/lib/R/library
 
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/blockmodeling_0.1.8.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gtools_3.5.0.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gdata_2.17.0.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/bitops_1.0-6.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/caTools_1.17.1.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/KernSmooth_2.23-15.tar.gz
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gplots_2.17.0.tar.gz
+export R_LIBS_USER=%{buildroot}/%{_prefix}/lib/R/library:$R_LIBS_USER
+R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/EBSeq_1.2.0.tar.gz
 
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
-
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -257,7 +270,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -275,12 +287,14 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("RSEM_HOME",                "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}")
+prepend_path("R_LIBS_USER",        "%{_prefix}/lib/R/library")
+prepend_path("CPATH",              "%{_prefix}/boost/fusion/include")
+prepend_path("FPATH",              "%{_prefix}/boost/fusion/include")
 EOF
 
 #------------------- App data file
@@ -306,6 +320,7 @@ requestref          : %{requestref}
 EOF
 
 
+
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -313,7 +328,6 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
-
 
 
 #------------------- scripts (there should be no need to change these) --------

@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static Bayesian Evolutionary Analysis by Sampling Trees 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: https://github.com/CompEvol/beast2/releases/download/v2.4.0/BEAST.v2.4.0.Linux.tgz
+Source: %{name}.v%{version}.Linux.tgz
+
 #
 # there should be no need to change the following
 #
@@ -74,16 +73,17 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define rundependencies jdk/1.8.0_45-fasrc01 beagle/2.1.trunk-fasrc03 
+%define buildcomments Added JAVA_OPTS support
+%define requestor David Combosch <combosch@g.harvard.edu>
+%define requestref 
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic Trees
 %define apppublication %{nil}
 
 
@@ -95,7 +95,10 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+BEAST 2 is a cross-platform program for Bayesian MCMC analysis of molecular sequences. It is entirely orientated towards rooted, time-measured phylogenies inferred using strict or relaxed molecular clock models. It can be used as a method of reconstructing phylogenies but is also a framework for testing evolutionary hypotheses without conditioning on a single tree topology. BEAST 2 uses MCMC to average over tree space, so that each tree is weighted proportional to its posterior probability. BEAST 2 includes a graphical user-interface for setting up standard analyses and a suit of programs for analysing the results.
+
+BE SURE TO EXPLICITLY USE THE "-THREADS (# CORES)" OPTION, AS THE DEFAULT WILL CAUSE YOUR JOB TO RUN MORE SLOWLY THAN EXPECTED.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +114,9 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf beast
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.v%{version}.Linux.tgz
+cd beast
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,10 +140,26 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+# fix source code to not use all threads by default
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/beast
+cat <<EOF | patch bin/beast
+26a27,31
+> opts="-Xms64m -Xmx4g"
+> if [ -n "\$JAVA_OPTS" ]; then
+>     opts="\$JAVA_OPTS"
+> fi
+> 
+46c51
+<   \$JAVA -Xms64m -Xmx4g -Djava.library.path=\$BEAST_EXTRA_LIBS -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+---
+>   \$JAVA \$opts -Djava.library.path=\$BEAST_EXTRA_LIBS -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+48c53
+<   \$JAVA -Xms64m -Xmx4g -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+---
+>   \$JAVA \$opts -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+EOF
 
-
+sed -i 's@LIB:/usr@LIB:$BEAGLE_PATH/lib:/usr@' bin/beast
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -169,27 +188,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/beast
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}%{_prefix}
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -275,12 +280,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
+setenv("BEAST_HOME",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
@@ -304,6 +307,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

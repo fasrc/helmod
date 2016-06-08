@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static Prokka is a software tool for the rapid annotation of prokaryotic genomes.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: http://www.vicbioinformatics.com/prokka-1.11.tar.gz
+Source: %{name}-%{version}.tar.gz
+
 #
 # there should be no need to change the following
 #
@@ -55,6 +54,13 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Prokka is a software tool for the rapid annotation of prokaryotic genomes. A typical 4 Mbp genome can be fully annotated in less than 10 minutes on a quad-core computer, and scales well to 32 core SMP systems. It produces GFF3, GBK and SQN files that are ready for editing in Sequin and ultimately submitted to Genbank/DDJB/ENA.
 
 #
 # Macros for setting app data 
@@ -74,28 +80,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+
+%define builddependencies perl-modules/5.10.1-fasrc04
+%define rundependencies perl-modules/5.10.1-fasrc04 tbl2asn/24.9-fasrc01
+%define buildcomments Updated expiring tbl2asn. Running setupdb before install.
+%define requestor Taj Azarian <tazarian@hsph.harvard.edu>
+%define requestref RCRT:94806
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence annotation
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -124,8 +121,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+rm -f binaries/linux/tbl2asn
+bin/prokka --setupdb
 #
 # FIXME
 #
@@ -136,9 +134,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 
@@ -172,24 +167,10 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}%{_prefix}
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -257,7 +238,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -276,11 +256,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/binaries/common")
+prepend_path("PATH",                "%{_prefix}/binaries/linux")
 EOF
 
 #------------------- App data file
@@ -288,6 +266,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -304,6 +283,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

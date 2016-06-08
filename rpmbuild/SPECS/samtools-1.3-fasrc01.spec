@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static Samtools is a suite of programs for interacting with high-throughput sequencing data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2
+Source: %{name}-%{version}.tar.bz2
+
 #
 # there should be no need to change the following
 #
@@ -74,16 +73,17 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Yiqun Wang <yiqunwang@g.harvard.edu>
+%define requestref RCRT:101198
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
 %define apppublication %{nil}
 
 
@@ -95,7 +95,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+SAM Tools provide various utilities for manipulating alignments in the SAM format, including sorting, merging, 
+indexing and generating alignments in a per-position format. This module has been built by Plamen G Krastev.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -141,6 +143,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
+make
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -149,7 +152,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
 
 #
 # FIXME
@@ -173,23 +175,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+rsync -av --progress * %{buildroot}/%{_prefix}/
 
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
@@ -276,11 +264,12 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("SAMTOOLS_LIB",              "%{_prefix}")
+setenv("SAMTOOLS_INCLUDE",          "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
+prepend_path("CPATH",               "%{_prefix}")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}")
+prepend_path("LIBRARY_PATH",        "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -304,6 +293,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

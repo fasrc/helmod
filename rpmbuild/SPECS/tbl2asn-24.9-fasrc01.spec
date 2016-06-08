@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,17 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
+%define summary_static tbl2asn is a program that automates the submission of sequence records to GenBank.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source0: %{name}-%{version}.tar.gz
-Source1: File-HomeDir-1.00.tar.gz
-Source2: File-Which-1.21.tar.gz
+URL: ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
+Source: linux64.%{name}-%{version}.gz
+
 #
 # there should be no need to change the following
 #
@@ -55,6 +54,15 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+tbl2asn is a program that automates the submission of sequence records to GenBank.  It uses many of the same functions as Sequin, but is driven entirely by data files, and records need no additional manual editing before submission.  Entire genomes, consisting of many chromosomes with feature annotation, can be processed in seconds using this method.
 
 #
 # Macros for setting app data 
@@ -74,28 +82,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Updated binary
+%define requestor Taj Azarian <tazarian@hsph.harvard.edu>
+%define requestref RCRT:94806
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries ;aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA databases in which the sequences are first clustered based on pairwise sequence similarity, and then assembled by individual clusters (optionally with quality values) to produce longer, more complete consensus sequences.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,10 +110,8 @@ TGICL is a pipeline for analysis of large Expressed Sequence Tags (EST) and mRNA
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+gzip -dc "$FASRCSW_DEV"/rpmbuild/SOURCES/linux64.%{name}-%{version}.gz > %{name}
+chmod a+rx %{name}
 
 
 
@@ -136,9 +133,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 
@@ -169,32 +163,17 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
-# Do the file-homedir thing
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-HomeDir-1.00.tar.*
-cd File-HomeDir-1.00
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
-
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/File-Which-1.21.tar.*
-cd File-Which-1.21
-perl Makefile.PL PREFIX=%{_prefix}
-make
-make install DESTDIR=%{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp %{name} %{buildroot}%{_prefix}/bin
 
 
-#lthis should not need to be changed)
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
+#for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+#	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+#done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -257,7 +236,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -275,12 +253,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PERL5LIB",           "%{_prefix}/lib")
-prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.10.1")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("TBL2ASN_HOME",                "%{_prefix}")
+prepend_path("PATH",                  "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -288,6 +264,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
