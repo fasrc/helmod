@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Extended Tcl (TclX
+%define summary_static Extended Tcl (TclX)
 Summary: %{summary_static}
 
 #
