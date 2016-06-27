@@ -175,7 +175,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}
 echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 cp -r * %{buildroot}/%{_prefix}
