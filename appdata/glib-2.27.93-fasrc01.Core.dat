@@ -1,0 +1,18 @@
+appname             : glib
+appversion          : 2.27.93
+description         : GLib is a general-purpose utility library, which provides many useful data types, macros, type conversions, string utilities, file utilities, a mainloop abstraction, and so on. It works on many UNIX-like platforms, as well as Windows and OS X. GLib is released under the GNU Library General Public License (GNU LGPL). (32-bit)
+tags                : 
+publication         : 
+modulename          : glib-2.27.93-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Jun 24 14:21:25 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : zlib/1.2.8-fasrc06 dbus/1.11.2-fasrc01
+rundependencies     : zlib/1.2.8-fasrc06 dbus/1.11.2-fasrc01
+buildcomments       : built for gstreamer
+requestor           : 
+requestref          : 

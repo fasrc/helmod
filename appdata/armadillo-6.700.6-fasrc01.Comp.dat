@@ -1,0 +1,18 @@
+appname             : armadillo
+appversion          : 6.700.6
+description         : Armadillo version 6.700.6
+tags                : 
+publication         : 
+modulename          : armadillo-6.700.6-fasrc01
+type                : Comp
+compiler            : %{compiler}
+mpi                 : %{mpi}
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue May  3 15:57:20 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01 OpenBLAS/0.2.18-fasrc01
+rundependencies     : cmake/2.8.12.2-fasrc01 OpenBLAS/0.2.18-fasrc01
+buildcomments       : Build includes atlas
+requestor           : 
+requestref          : 

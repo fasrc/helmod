@@ -1,0 +1,18 @@
+appname             : gmp
+appversion          : 6.1.1
+description         : GMP is a free library for arbitrary precision arithmetic, operating on signed integers, rational numbers, and floating-point numbers (32bit version)
+tags                : 
+publication         : 
+modulename          : gmp-6.1.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jun 29 20:01:20 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

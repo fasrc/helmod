@@ -1,0 +1,18 @@
+appname             : pb_mpi
+appversion          : 1.7a
+description         : A Bayesian software for phylogenetic reconstruction using mixture models
+tags                : 
+publication         : 
+modulename          : pb_mpi-1.7a-fasrc01
+type                : MPI
+compiler            : gcc/5.3.0-fasrc01 intel/15.0.0-fasrc01
+mpi                 : openmpi/1.10.2-fasrc01 mvapich2/2.2b-fasrc02
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri May 13 12:53:28 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Martin Schwentner <schwentner@g.harvard.edu>
+requestref          : RCRT:100826

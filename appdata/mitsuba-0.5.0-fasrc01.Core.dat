@@ -1,0 +1,18 @@
+appname             : mitsuba
+appversion          : 0.5.0
+description         : Mitsuba is a research-oriented rendering system in the style of PBRT
+tags                : 
+publication         : 
+modulename          : mitsuba-0.5.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May 19 16:47:21 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : fftw/3.3.4-fasrc08 scons/2.3.6-fasrc01 openexr/2.2.0-fasrc03 eigen/3.2.8-fasrc01 python/2.7.6-fasrc01 boost/1.50.0-fasrc01 xerces-c/3.1.3-fasrc01  glew/1.13.0-fasrc01
+rundependencies     : fftw/3.3.4-fasrc08 scons/2.3.6-fasrc01 openexr/2.2.0-fasrc03 eigen/3.2.8-fasrc01 python/2.7.6-fasrc01 boost/1.50.0-fasrc01 xerces-c/3.1.3-fasrc01  glew/1.13.0-fasrc01
+buildcomments       : 
+requestor           : Hui Zhao <alanzhaohui@seas.harvard.edu>
+requestref          : RCRT:98415

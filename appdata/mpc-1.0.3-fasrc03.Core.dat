@@ -1,0 +1,18 @@
+appname             : mpc
+appversion          : 1.0.3
+description         : Gnu Mpc is a C library for the arithmetic of complex numbers with arbitrarily high precision and correct rounding of the result (32bit version).
+tags                : 
+publication         : 
+modulename          : mpc-1.0.3-fasrc03
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 30 12:21:36 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : mpfr/3.1.4-fasrc01
+rundependencies     : mpfr/3.1.4-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

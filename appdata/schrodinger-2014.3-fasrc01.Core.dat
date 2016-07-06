@@ -1,14 +1,14 @@
-appname             : openmpi
-appversion          : 1.10.2
-description         : Full MPI-3.1 standards conformance
+appname             : schrodinger
+appversion          : 2014.3
+description         : Molecule modeling and simuation software suite
 tags                : 
 publication         : 
-modulename          : openmpi-1.10.2-fasrc01
-type                : Comp
-compiler            : gcc/5.3.0-fasrc01
+modulename          : schrodinger-2014.3-fasrc01
+type                : Core
+compiler            : system
 mpi                 : 
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Tue Apr 19 13:10:47 EDT 2016
+builddate           : Thu Apr 28 17:27:38 EDT 2016
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : 

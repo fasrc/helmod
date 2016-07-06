@@ -1,0 +1,18 @@
+appname             : gcc
+appversion          : 6.1.0
+description         : the GNU Compiler Collection version 6.1.0
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+publication         : 
+modulename          : gcc-6.1.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jul  6 16:26:44 EDT 2016
+buildhost           : amd-mod.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gmp/6.1.1-fasrc02 mpfr/3.1.4-fasrc02 mpc/1.0.3-fasrc04
+rundependencies     : gmp/6.1.1-fasrc02 mpfr/3.1.4-fasrc02 mpc/1.0.3-fasrc04
+buildcomments       : 
+requestor           : 
+requestref          : 

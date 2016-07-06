@@ -1,0 +1,18 @@
+appname             : gtk-sharp
+appversion          : 2.12.26
+description         : Graphical User Interface Toolkit for mono and .Net.
+tags                : 
+publication         : 
+modulename          : gtk-sharp-2.12.26-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun  2 14:42:01 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : mono/4.4.0-fasrc01
+rundependencies     : mono/4.4.0-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,19 @@
+appname             : caldb
+appversion          : 6.19
+description         : HEASOFT Calibration Database
+module              : caldb-6.19-fasrc01
+tags                : aci-ref-app-category: Databases; aci-ref-app-tag: Cosmological data
+publication         : 
+modulename          : caldb-6.19-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jun  8 16:38:30 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : This is part of the CIAO installation.  Additional tarballs are important to the installation.
+requestor           : Jaesub Hong <jhong@cfa.harvard.edu>
+requestref          : RCRT:101562

@@ -1,0 +1,18 @@
+appname             : mpfr
+appversion          : 3.1.4
+description         : The MPFR library is a C library for multiple-precision floating-point computations with correct rounding.
+tags                : 
+publication         : 
+modulename          : mpfr-3.1.4-fasrc02
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed Jul  6 16:02:31 EDT 2016
+buildhost           : amd-mod.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : gmp/6.1.1-fasrc02
+rundependencies     : gmp/6.1.1-fasrc02
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : guenomu
+appversion          : 201308
+description         : guenomu is a software written in C that estimates the species tree for a given set of gene families.
+tags                : 
+publication         : 
+modulename          : guenomu-201308-fasrc01
+type                : MPI
+compiler            : intel/15.0.0-fasrc01
+mpi                 : openmpi/1.10.2-fasrc01 mvapich2/2.2b-fasrc02
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Jun 10 15:46:36 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : argtable2/13-fasrc01
+rundependencies     : argtable2/13-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 
