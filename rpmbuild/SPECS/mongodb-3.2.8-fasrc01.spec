@@ -139,7 +139,17 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/mongo-r%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-scons all
+echo '#!/bin/bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/lib64:/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/lib:/n/sw/fasrcsw/apps/Core/mpc/1.0.1-fasrc01/lib64:/n/sw/fasrcsw/apps/Core/mpfr/3.1.2-fasrc02/lib64:/n/sw/fasrcsw/apps/Core/gmp/6.0.0-fasrc01/lib64
+/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/bin/g++ "$@"' > g++
+chmod a+x g++
+
+echo '#!/bin/bash
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/lib64:/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/lib:/n/sw/fasrcsw/apps/Core/mpc/1.0.1-fasrc01/lib64:/n/sw/fasrcsw/apps/Core/mpfr/3.1.2-fasrc02/lib64:/n/sw/fasrcsw/apps/Core/gmp/6.0.0-fasrc01/lib64
+/n/sw/fasrcsw/apps/Core/gcc/4.8.2-fasrc01/bin/gcc "$@"' > gcc
+chmod a+x gcc
+
+scons MONGO_VERSION=3.2.8 CC=./gcc CXX=./g++ all
 
 
 
@@ -172,7 +182,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/mongo-r%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-scons --prefix=%{buildroot}/%{_prefix} install
+scons MONGO_VERSION=3.2.8 CC=./gcc CXX=./g++ --prefix=%{buildroot}/%{_prefix} install
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
