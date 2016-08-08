@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static SoftSV is a tool for the detection of small and large deletions, inversions, tandem duplications and translocations from paired-end sequencing data. It uses aberrant paired-end mappings to determine approximative breakpoint regions and refines the breakpoints by analysing soft-clipped sequences for potential split-reads.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://downloads.sourceforge.net/project/softsv/SoftSV_1.4.2.zip
+Source: %{name}_%{version}.zip
 
 #
 # there should be no need to change the following
@@ -73,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies seqan/2.1.1-fasrc01 bamtools/2.3.0-fasrc01 boost/1.55.0-fasrc03
+%define rundependencies bamtools/2.3.0-fasrc01 boost/1.55.0-fasrc03 
 %define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define requestor Miguel Coelho <costacoelho@fas.harvard.edu>
+%define requestref RCRT:103078
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
+SoftSV is a tool for the detection of small and large deletions, inversions, tandem duplications and translocations from paired-end sequencing data. It uses aberrant paired-end mappings to determine approximative breakpoint regions and refines the breakpoints by analysing soft-clipped sequences for potential split-reads.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -111,9 +111,9 @@ GNU parallel is a shell tool for executing jobs in parallel using one or more co
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}_%{version}
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}.zip
+cd %{name}_%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,26 +138,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+sed -i -e "s?^BAMTOOLS.*?BAMTOOLS=$BAMTOOLS_HOME?" makefile
+sed -i -e "s?^SEQAN.*?SEQAN=$SEQAN_HOME?" makefile
+sed -i -e 's?-I\${BAMTOOLS}/include?-std=c++0x -Wno-unused-local-typedefs -I${BOOST_INCLUDE} -L${BOOST_LIB} -I${BAMTOOLS}/include/bamtools?' makefile
 make
 
 
@@ -188,10 +173,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp SoftSV %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -282,9 +267,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("SOFTSV_HOME",       "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file

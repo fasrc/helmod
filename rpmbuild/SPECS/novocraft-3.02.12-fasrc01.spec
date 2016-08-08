@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static A series of programs designed for accurate and high speed alignment of short reads to reference genomes. Novel features include the use of base qualities in the reads and ambiguous nucleotide codes in the reference sequences for alignment
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://www.novocraft.com/main/download.php?filename=V3.02.12/novocraftV3.02.12.Linux2.6.tar.gz
+Source: %{name}V%{version}.Linux2.6.tar.gz
 
 #
 # there should be no need to change the following
@@ -76,8 +76,10 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define requestor Nimrod Rubinstein <rubinstein@fas.harvard.edu>
+%define requestref RCRT:103339
+
+
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +96,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
+A series of programs designed for accurate and high speed alignment of short reads to reference 
+genomes. Novel features include the use of base qualities in the reads and ambiguous nucleotide 
+codes in the reference sequences for alignment
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -111,9 +115,9 @@ GNU parallel is a shell tool for executing jobs in parallel using one or more co
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}V%{version}.Linux2.6.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -121,44 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -188,10 +154,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp -r * %{buildroot}/%{_prefix}/bin 
 
 
 #(this should not need to be changed)
@@ -282,9 +248,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("NOVOCRAFT_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

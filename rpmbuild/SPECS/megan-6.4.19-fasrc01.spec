@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static MEGAN6 is a comprehensive toolbox for interactively analyzing microbiome data. All the interactive tools you need in one application.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://ab.inf.uni-tuebingen.de/data/software/megan6/download/MEGAN_Community_unix_6_4_19.sh
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,10 +74,10 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define rundependencies jdk/1.8.0_45-fasrc01
+%define buildcomments Install4J installer was run interactively.  The resulting files were then packaged into a tar.gz that can be unpacked.
+%define requestor Jessica Panzarino <jessicapanzarino@fas.harvard.edu>
+%define requestref RCRT:103207
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,8 +94,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
-
+MEGAN6 is a comprehensive toolbox for interactively analyzing microbiome data. All the interactive tools you need in one application.
+    Taxonomic analysis using the NCBI taxonomy or a customized taxonomy such as SILVA
+    Functional analysis using InterPro2GO, SEED, eggNOG or KEGG
+    Bar charts, word clouds, Voronoi tree maps and many other charts
+    PCoA, clustering and networks
+    Supports metadata
+    MEGAN parses many different types of input
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -125,40 +130,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -191,7 +162,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp -r . %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -282,9 +253,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("MEGAN_HOME",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -317,6 +287,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+%{_prefix}/.install4j/*
 
 
 

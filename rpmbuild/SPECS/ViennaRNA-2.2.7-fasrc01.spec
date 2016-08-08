@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static The ViennaRNA Package consists of a C code library and several stand-alone programs for the prediction and comparison of RNA secondary structures.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://www.tbi.univie.ac.at/RNA/download/sourcecode/2_2_x/ViennaRNA-2.2.7.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -76,8 +76,8 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define requestor Nimrod Rubinstein <rubinstein@fas.harvard.edu>
+%define requestref RCRT:103339
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
-
+RNA secondary structure prediction through energy minimization is the most used function in the package. We provide three kinds of dynamic programming algorithms for structure prediction: the minimum free energy algorithm of (Zuker & Stiegler 1981) which yields a single optimal structure, the partition function algorithm of (McCaskill 1990) which calculates base pair probabilities in the thermodynamic ensemble, and the suboptimal folding algorithm of (Wuchty et.al 1999) which generates all suboptimal structures within a given energy range of the optimal energy. For secondary structure comparison, the package contains several measures of distance (dissimilarities) using either string alignment or tree-editing (Shapiro & Zhang 1990). Finally, we provide an algorithm to design sequences with a predefined structure (inverse folding). 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -282,9 +281,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
+setenv("VIENNARNA_HOME",           "%{_prefix}")
+setenv("VIENNARNA_INCLUDE",        "%{_prefix}/include")
+setenv("VIENNARNA_LIB",            "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/share/ViennaRNA/bin")
+prepend_path("PATH",               "%{_prefix}/share/perl5")
+prepend_path("PATH",               "%{_prefix}/lib/python2.6/site-packages")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.6/site-packages")
+prepend_path("PERL5LIB",           "%{_prefix}/lib64/perl5")
 EOF
 
 #------------------- App data file

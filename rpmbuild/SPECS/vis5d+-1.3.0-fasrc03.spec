@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static Vis5d+ is intended as a central repository for enhanced versions and development work on Vis5d, a free OpenGL-based volumetric visualization program for scientific datasets in 3+ dimensions.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://downloads.sourceforge.net/project/vis5d/vis5d/vis5d%2B-1.3.0-beta/vis5d%2B-1.3.0-beta.tar.gz
+Source: %{name}-%{version}-beta.tar.gz
 
 #
 # there should be no need to change the following
@@ -69,20 +69,18 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies netcdf/3.6.3-fasrc02 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define buildcomments Built for NCL/NCAR, using netcdf 3 and no MPI.  The patches required are nicely described here: http://cypresslin.web.fc2.com/Memo/M-ENG-Vis5DInst.html
+%define requestor Packard Chan <packard.chan@gmail.com>
+%define requestref RCRT:102320
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Visualization
 %define apppublication %{nil}
 
 
@@ -94,7 +92,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
+Build notes: %{buildcomments}
+Some of the main enhancements in Vis5d+ include:
+autoconf/automake build process: building Vis5d+ can now be as easy as ./configure && make && make install, and it works on most Unix-like systems without modification.
+The Vis5D API is now installed as shared and static libraries and header files, and is properly separated from the GUI.
+Mesa is not included with Vis5d+; configure looks for a version installed on your system.
+The NetCDF library is now optional. When it is not found by configure, the associated features of Vis5d (irregular data support) are disabled.  configure should detect and use the Fortran compiler on more platforms than before, and the Fortran utilities now compile under GNU g77.
+When --enable-threads is passed to configure, threads are automatically detected and used on more systems than before, including POSIX threads (under Linux, etcetera). (POSIX threads support is broken in the mainline Vis5d.)
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -111,9 +115,9 @@ GNU parallel is a shell tool for executing jobs in parallel using one or more co
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}-beta
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-beta.tar.*
+cd %{name}-%{version}-beta
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -124,7 +128,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
 
 #
 # FIXME
@@ -138,23 +141,39 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-beta
 
+sed -i -e 's?extern float round( float x );?extern float _round( float x );?' src/misc.h
+sed -i -e 's?round?_round?g' src/misc.c
+sed -i -e 's? round? _round?' src/work.c
+
+cat <<EOF | patch util/igg3d.f
+75a76
+>       INTEGER(Kind=8) :: ENDMRK
+617a619
+>       INTEGER(KIND=8) :: NULL
+EOF
+
+cat <<EOF | patch util/igmk3d.f
+39a40
+>       INTEGER(kind=8) MISS
+EOF
+
+cat <<EOF | patch util/kludge.f
+56c56,61
+<       CALL IDATE(MON,IDAY,IYEAR)
+---
+>       INTEGER(Kind=4), dimension(3) :: DateArray
+>       INTEGER(Kind=4) :: MON,IDAY,IYEAR
+>       CALL IDate(DateArray)
+>       MON=DateArray(1)
+>       IDAY=DateArray(2)
+>       IYEAR=DateArray(3)
+EOF
 
 ./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+            --with-netcdf=$NETCDF_LIB/libnetcdf.a
+
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -188,7 +207,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-beta
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -262,7 +281,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -282,16 +300,24 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
+setenv("VIS5D_HOME",       "%{_prefix}")
+setenv("VIS5D_LIB",        "%{_prefix}/lib")
+setenv("VIS5D_INCLUDE",    "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

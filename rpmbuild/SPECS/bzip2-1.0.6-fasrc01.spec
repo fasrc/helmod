@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GNU parallel is a shell tool for executing jobs in parallel using one or more computers. 
+%define summary_static bzip2 is a freely available, patent free (see below), high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://gnu.askapache.com/parallel/parallel-20160322.tar.bz2 
-Source: %{name}-%{version}.tar.bz2
+URL: http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -76,8 +76,8 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor  Adam Freedman <adamfreedman@fas.harvard.edu> 
-%define requestref RCRT:98819 
+%define requestor  "Alexander Chernyakov" <alexander.chernyakov@gmail.com>
+%define requestref  RCRT:101245
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GNU parallel is a shell tool for executing jobs in parallel using one or more computers. A job can be a single command or a small script that has to be run for each of the lines in the input. The typical input is a list of files, a list of hosts, a list of users, a list of URLs, or a list of tables. A job can also be a command that reads from a pipe. GNU parallel can then split the input and pipe it into commands in parallel.
-
+bzip2 is a freely available, patent free (see below), high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,25 +139,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
 make
+rm *.o
+make -f Makefile-libbz2_so
 
 
 
@@ -191,7 +174,42 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+if ( test ! -d %{buildroot}/%{_prefix}/bin ) ; then mkdir -p %{buildroot}/%{_prefix}/bin ; fi
+if ( test ! -d %{buildroot}/%{_prefix}/lib ) ; then mkdir -p %{buildroot}/%{_prefix}/lib ; fi
+if ( test ! -d %{buildroot}/%{_prefix}/man ) ; then mkdir -p %{buildroot}/%{_prefix}/man ; fi
+if ( test ! -d %{buildroot}/%{_prefix}/man/man1 ) ; then mkdir -p %{buildroot}/%{_prefix}/man/man1 ; fi
+if ( test ! -d %{buildroot}/%{_prefix}/include ) ; then mkdir -p %{buildroot}/%{_prefix}/include ; fi
+cp -f bzip2 %{buildroot}/%{_prefix}/bin/bzip2
+cp -f bzip2 %{buildroot}/%{_prefix}/bin/bunzip2
+cp -f bzip2 %{buildroot}/%{_prefix}/bin/bzcat
+cp -f bzip2recover %{buildroot}/%{_prefix}/bin/bzip2recover
+chmod a+x %{buildroot}/%{_prefix}/bin/bzip2
+chmod a+x %{buildroot}/%{_prefix}/bin/bunzip2
+chmod a+x %{buildroot}/%{_prefix}/bin/bzcat
+chmod a+x %{buildroot}/%{_prefix}/bin/bzip2recover
+cp -f bzip2.1 %{buildroot}/%{_prefix}/man/man1
+chmod a+r %{buildroot}/%{_prefix}/man/man1/bzip2.1
+cp -f bzlib.h %{buildroot}/%{_prefix}/include
+chmod a+r %{buildroot}/%{_prefix}/include/bzlib.h
+cp -f libbz2.a %{buildroot}/%{_prefix}/lib
+chmod a+r %{buildroot}/%{_prefix}/lib/libbz2.a
+cp -f bzgrep %{buildroot}/%{_prefix}/bin/bzgrep
+chmod a+x %{buildroot}/%{_prefix}/bin/bzgrep
+cp -f bzmore %{buildroot}/%{_prefix}/bin/bzmore
+chmod a+x %{buildroot}/%{_prefix}/bin/bzmore
+cp -f bzdiff %{buildroot}/%{_prefix}/bin/bzdiff
+chmod a+x %{buildroot}/%{_prefix}/bin/bzdiff
+cp -f bzgrep.1 bzmore.1 bzdiff.1 %{buildroot}/%{_prefix}/man/man1
+chmod a+r %{buildroot}/%{_prefix}/man/man1/bzgrep.1
+chmod a+r %{buildroot}/%{_prefix}/man/man1/bzmore.1
+chmod a+r %{buildroot}/%{_prefix}/man/man1/bzdiff.1
+echo ".so man1/bzgrep.1" > %{buildroot}/%{_prefix}/man/man1/bzegrep.1
+echo ".so man1/bzgrep.1" > %{buildroot}/%{_prefix}/man/man1/bzfgrep.1
+echo ".so man1/bzmore.1" > %{buildroot}/%{_prefix}/man/man1/bzless.1
+echo ".so man1/bzdiff.1" > %{buildroot}/%{_prefix}/man/man1/bzcmp.1
+cp -f libbz2.so*  %{buildroot}/%{_prefix}/lib
+(cd %{buildroot}/%{_prefix}/bin && ln -s -f bzgrep bzegrep; ln -s -f bzgrep bzfgrep; ln -s -f bzmore bzless; ln -s -f bzdiff bzcmp)
+(cd %{buildroot}/%{_prefix}/lib && ln -s -f libbz2.so.1.0 libbz2.so)
 
 
 #(this should not need to be changed)
@@ -282,9 +300,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("PARALLEL_HOME",             "%{_prefix}")
+setenv("BZIP2_HOME",               "%{_prefix}")
+setenv("BZIP2_LIB",                "%{_prefix}/lib")
+setenv("BZIP2_INCLUDE",            "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/man")
 EOF
 
 #------------------- App data file
