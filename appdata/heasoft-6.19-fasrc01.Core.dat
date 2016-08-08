@@ -1,0 +1,18 @@
+appname             : heasoft
+appversion          : 6.19
+description         : HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS, XSPEC and XSTAR
+tags                : 
+publication         : 
+modulename          : heasoft-6.19-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May 26 14:59:50 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Jaesub Hong <jhong@cfa.harvard.edu>
+requestref          : RCRT:101057

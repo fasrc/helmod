@@ -1,0 +1,18 @@
+appname             : eigen
+appversion          : 3.2.8
+description         : Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
+tags                : 
+publication         : 
+modulename          : eigen-3.2.8-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May 18 12:11:36 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : cmake/2.8.12.2-fasrc01
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

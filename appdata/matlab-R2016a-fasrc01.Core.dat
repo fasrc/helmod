@@ -1,0 +1,18 @@
+appname             : matlab
+appversion          : R2016a
+description         : a high-level language and interactive environment for numerical computation, visualization, and programming
+tags                : 
+publication         : 
+modulename          : matlab-R2016a-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue Jul  5 12:45:17 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

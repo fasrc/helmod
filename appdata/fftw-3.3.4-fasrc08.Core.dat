@@ -1,0 +1,18 @@
+appname             : fftw
+appversion          : 3.3.4
+description         : ...FIXME...
+tags                : 
+publication         : 
+modulename          : fftw-3.3.4-fasrc08
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May 18 12:38:08 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

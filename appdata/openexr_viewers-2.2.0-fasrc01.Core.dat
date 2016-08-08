@@ -1,0 +1,18 @@
+appname             : openexr_viewers
+appversion          : 2.2.0
+description         : OpenEXR_Viewers for viewing OpenEXR image files
+tags                : 
+publication         : 
+modulename          : openexr_viewers-2.2.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May 18 13:32:48 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : openexr/2.2.0-fasrc03
+rundependencies     : openexr/2.2.0-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

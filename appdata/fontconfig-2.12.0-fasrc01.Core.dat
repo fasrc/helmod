@@ -1,0 +1,18 @@
+appname             : fontconfig
+appversion          : 2.12.0
+description         : Fontconfig is a library for configuring and customizing font access.
+tags                : 
+publication         : 
+modulename          : fontconfig-2.12.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 15:16:31 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : freetype/2.6.3-fasrc01 gperf/3.0.4-fasrc02 expat/2.1.0-fasrc03
+rundependencies     : freetype/2.6.3-fasrc01 gperf/3.0.4-fasrc02 expat/2.1.0-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

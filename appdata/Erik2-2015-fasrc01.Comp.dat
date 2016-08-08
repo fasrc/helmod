@@ -1,0 +1,18 @@
+appname             : Erik2
+appversion          : 2015
+description         : Erik2 is model-based as it assumes a general Markov model of evolution (and it could also be redesigned to incorporate either more restrictive Markov models or amino acid substitution models), but is nonparametric in the sense that it does not attempt to recover the parameters of the model
+tags                : 
+publication         : 
+modulename          : Erik2-2015-fasrc01
+type                : Comp
+compiler            : gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May  4 15:48:21 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : armadillo/5.100.2-fasrc01
+rundependencies     : armadillo/5.100.2-fasrc01
+buildcomments       : 
+requestor           : Zhenxiang Xi <zxi@fas.harvard.edu>
+requestref          : RCRT:100422

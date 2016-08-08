@@ -1,0 +1,18 @@
+appname             : cabextract
+appversion          : 1.6
+description         : cabextract is Free Software for extracting Microsoft cabinet files, also called .CAB files.
+tags                : 
+publication         : 
+modulename          : cabextract-1.6-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Jun 24 11:14:17 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

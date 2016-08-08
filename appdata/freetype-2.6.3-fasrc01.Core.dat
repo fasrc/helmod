@@ -1,0 +1,18 @@
+appname             : freetype
+appversion          : 2.6.3
+description         : FreeType is a freely available software library to render fonts
+tags                : 
+publication         : 
+modulename          : freetype-2.6.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 14:37:08 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

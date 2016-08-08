@@ -1,0 +1,19 @@
+appname             : ilmbase
+appversion          : 2.2.0
+description         : Base for ILM file format OpenEXR
+module              : ilmbase-2.2.0-fasrc03
+tags                : aci-ref-app-category:Libraries;  aci-ref-app-tag:I/O
+publication         : 
+modulename          : ilmbase-2.2.0-fasrc03
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May 18 13:07:31 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

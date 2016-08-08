@@ -5,10 +5,10 @@ tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 publication         : 
 modulename          : hdf5-1.8.16-fasrc02
 type                : MPI
-compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
-mpi                 : mvapich2/2.2b-fasrc02
+compiler            : gcc/5.3.0-fasrc01
+mpi                 : openmpi/1.10.2-fasrc01 mvapich2/2.2b-fasrc02
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Thu Apr 14 12:35:14 EDT 2016
+builddate           : Tue Apr 19 14:50:15 EDT 2016
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : zlib/1.2.8-fasrc05 szip/2.1-fasrc01

@@ -5,10 +5,10 @@ tags                :
 publication         : 
 modulename          : openmpi-1.10.2-fasrc01
 type                : Comp
-compiler            : intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01
+compiler            : gcc/5.3.0-fasrc01
 mpi                 : 
 specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
-builddate           : Fri Mar  4 12:25:53 EST 2016
+builddate           : Tue Apr 19 13:10:47 EDT 2016
 buildhost           : builds.rc.fas.harvard.edu
 buildhostversion    : 1
 builddependencies   : 

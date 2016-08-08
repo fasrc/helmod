@@ -1,0 +1,18 @@
+appname             : schrodinger
+appversion          : 2014.3
+description         : Molecule modeling and simuation software suite
+tags                : 
+publication         : 
+modulename          : schrodinger-2014.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Apr 28 17:27:38 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

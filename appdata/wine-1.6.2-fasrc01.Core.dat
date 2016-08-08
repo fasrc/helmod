@@ -1,0 +1,18 @@
+appname             : wine
+appversion          : 1.6.2
+description         : Wine is a compatibility layer capable of running Windows applications on several POSIX-compliant operating systems, such as Linux, Mac OSX, & BSD.
+tags                : 
+publication         : 
+modulename          : wine-1.6.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 16:43:30 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : flex/2.6.0-fasrc01 fontconfig/2.12.0-fasrc01 libpng/1.6.23-fasrc01
+rundependencies     : flex/2.6.0-fasrc01 fontconfig/2.12.0-fasrc01 libpng/1.6.23-fasrc01
+buildcomments       : 
+requestor           : 
+requestref          : 

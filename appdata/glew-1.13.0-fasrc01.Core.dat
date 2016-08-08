@@ -1,0 +1,18 @@
+appname             : glew
+appversion          : 1.13.0
+description         : The OpenGL Extension Wrangler Library
+tags                : 
+publication         : 
+modulename          : glew-1.13.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Wed May 18 16:12:50 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

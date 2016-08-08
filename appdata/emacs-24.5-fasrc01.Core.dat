@@ -1,0 +1,18 @@
+appname             : emacs
+appversion          : 24.5
+description         : Emacs is the extensible, customizable, self-documenting real-time display editor.
+tags                : 
+publication         : 
+modulename          : emacs-24.5-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu May 12 18:12:55 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : RCRT:100825
+requestref          : 

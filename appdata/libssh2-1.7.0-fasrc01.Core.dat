@@ -1,0 +1,18 @@
+appname             : libssh2
+appversion          : 1.7.0
+description         : libssh2 is a client-side C library implementing the SSH2 protocol
+tags                : 
+publication         : 
+modulename          : libssh2-1.7.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun  2 16:36:43 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

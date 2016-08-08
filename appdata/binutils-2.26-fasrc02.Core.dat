@@ -1,0 +1,18 @@
+appname             : binutils
+appversion          : 2.26
+description         : The GNU Binutils are a collection of binary tools (32bit version).
+tags                : aci-ref-app-category:Programming Tools; aci-ref-app-tag:Libraries
+publication         : 
+modulename          : binutils-2.26-fasrc02
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 30 16:18:14 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

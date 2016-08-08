@@ -1,0 +1,18 @@
+appname             : scotch
+appversion          : 6.0.4
+description         : SCOTCH version 6.0.4
+tags                : 
+publication         : 
+modulename          : scotch-6.0.4-fasrc01
+type                : MPI
+compiler            : gcc/5.3.0-fasrc01
+mpi                 : openmpi/1.10.2-fasrc01 mvapich2/2.2b-fasrc02
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue May 31 12:00:10 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

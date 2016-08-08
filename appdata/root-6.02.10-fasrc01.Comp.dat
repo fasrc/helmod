@@ -1,0 +1,18 @@
+appname             : root
+appversion          : 6.02.10
+description         : A modular scientific software framework. It provides all the functionalities needed to deal with big data processing, statistical analysis, visualisation and storage.
+tags                : aci-ref-app-category:Applications; aci-ref-app-tag:Data tools
+publication         : 
+modulename          : root-6.02.10-fasrc01
+type                : Comp
+compiler            : gcc/4.8.2-fasrc01
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue May 17 20:03:13 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : python/2.7.6-fasrc01
+rundependencies     : python/2.7.6-fasrc01
+buildcomments       : 
+requestor           : Benjamin Garber <bengarber@college.harvard.edu>
+requestref          : RCRT:96650

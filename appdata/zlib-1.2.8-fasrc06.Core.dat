@@ -1,0 +1,19 @@
+appname             : zlib
+appversion          : 1.2.8
+description         : zlib version 1.2.8 (32bit)
+module              : zlib-1.2.8-fasrc06
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Compression
+publication         : 
+modulename          : zlib-1.2.8-fasrc06
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 16:30:15 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 32bit version needed for Wine
+requestor           : 
+requestref          : 

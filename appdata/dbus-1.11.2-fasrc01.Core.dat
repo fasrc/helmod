@@ -1,0 +1,18 @@
+appname             : dbus
+appversion          : 1.11.2
+description         : D-Bus is a message bus system, a simple way for applications to talk to one another. (32bit version)
+tags                : 
+publication         : 
+modulename          : dbus-1.11.2-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Jun 24 14:09:32 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : expat/2.1.0-fasrc03
+rundependencies     : expat/2.1.0-fasrc03
+buildcomments       : 
+requestor           : 
+requestref          : 

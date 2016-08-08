@@ -1,0 +1,18 @@
+appname             : gperf
+appversion          : 3.0.4
+description         : GNU gperf is a perfect hash function generator.
+tags                : 
+publication         : 
+modulename          : gperf-3.0.4-fasrc02
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 13:22:25 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

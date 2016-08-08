@@ -1,0 +1,19 @@
+appname             : libpng
+appversion          : 1.6.23
+description         : Library for use in applications that read, create, and manipulate PNG (Portable Network Graphics) raster image files.
+module              : libpng-1.6.23-fasrc01
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
+publication         : 
+modulename          : libpng-1.6.23-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 16:41:25 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : zlib/1.2.8-fasrc06
+rundependencies     : zlib/1.2.8-fasrc06
+buildcomments       : 32bit version needed for Wine
+requestor           : 
+requestref          : 

@@ -190,7 +190,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
-rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin %{buildroot}/%{_prefix}/
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib %{buildroot}/%{_prefix}/
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include %{buildroot}/%{_prefix}/
+rsync -av "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/man %{buildroot}/%{_prefix}/
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like

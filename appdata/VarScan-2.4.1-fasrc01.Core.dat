@@ -1,0 +1,19 @@
+appname             : VarScan
+appversion          : 2.4.1
+description         : VarScan version 2.4.1, variant detection in massively parallel sequencing data
+module              : VarScan-2.4.1-fasrc01
+tags                : 
+publication         : 
+modulename          : VarScan-2.4.1-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri Apr 15 11:46:01 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : Sriram Srikant <sriramsrikant@fas.harvard.edu>
+requestref          : RCRT:99632

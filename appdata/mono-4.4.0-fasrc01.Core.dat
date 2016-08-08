@@ -1,0 +1,19 @@
+appname             : mono
+appversion          : 4.4.0
+description         : Mono is a software platform designed to allow developers to easily create cross platform applications part of the .NET Foundation.
+module              : mono-4.4.0-fasrc01
+tags                : 
+publication         : 
+modulename          : mono-4.4.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun  2 13:03:28 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : libgdiplus/3.12-fasrc02
+rundependencies     : libgdiplus/3.12-fasrc02
+buildcomments       : 
+requestor           : Jose Serra-Diaz <serradiaz@fas.harvard.edu>
+requestref          : RCRT:101396

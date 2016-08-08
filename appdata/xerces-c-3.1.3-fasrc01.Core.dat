@@ -1,0 +1,18 @@
+appname             : xerces-c
+appversion          : 3.1.3
+description         : A processor for parsing, validating, serializing and manipulating XML, written in C++
+tags                : 
+publication         : 
+modulename          : xerces-c-3.1.3-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Tue May 17 20:22:00 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

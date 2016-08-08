@@ -1,0 +1,19 @@
+appname             : expat
+appversion          : 2.1.0
+description         : This is James Clark's Expat XML parser library in C. It is a stream oriented parser that requires setting handlers to deal with the structure that the parser discovers in the document.
+module              : expat-2.1.0-fasrc03
+tags                : aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
+publication         : 
+modulename          : expat-2.1.0-fasrc03
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Thu Jun 23 14:53:50 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

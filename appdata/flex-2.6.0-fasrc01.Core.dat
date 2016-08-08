@@ -1,0 +1,18 @@
+appname             : flex
+appversion          : 2.6.0
+description         : flex is a tool for generating scanners - programs which recognize lexical patterns in text.
+tags                : 
+publication         : 
+modulename          : flex-2.6.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Fri May 27 13:05:11 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 

@@ -1,0 +1,18 @@
+appname             : scotch
+appversion          : 6.0.0
+description         : SCOTCH version 6.0.0
+tags                : 
+publication         : 
+modulename          : scotch-6.0.0-fasrc01
+type                : Core
+compiler            : system
+mpi                 : 
+specauthor          : Plamen Krastev, Harvard FAS Research Computing <rchelp@fas.harvard.edu>
+builddate           : Mon Apr 25 18:08:49 EDT 2016
+buildhost           : builds.rc.fas.harvard.edu
+buildhostversion    : 1
+builddependencies   : 
+rundependencies     : 
+buildcomments       : 
+requestor           : 
+requestref          : 
