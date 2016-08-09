@@ -20,6 +20,7 @@ test:
 install: 
 	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
 	sudo -E fasrcsw-update-lmod-spider-cache
+	sudo -E chmod 644 "$FASRCSW_PROD"/moduledata/cacheDir/*
 
 query:
 	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
