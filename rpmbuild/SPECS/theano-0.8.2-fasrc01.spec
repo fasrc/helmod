@@ -83,7 +83,7 @@ Optimizing compiler for evaluating mathematical expressions on CPUs and GPUs.
 %define buildhostversion 1
 
 
-%define builddependencies python/2.7.6-fasrc01 cuda/7.5-fasrc01
+%define builddependencies python/2.7.6-fasrc01
 %define rundependencies %{builddependencies} cuda/7.5-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
