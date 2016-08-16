@@ -10,8 +10,6 @@ Name: %{getenv:NAME}
 #
 Version: %{getenv:VERSION}
 
-%define vcs_commit e891fb3fed4c1522f23a201bda6cfee6cf115e8b
-
 #
 # enter the release; start with fasrc01 (or some other convention for your
 # organization) and increment in subsequent releases
@@ -32,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static Theano %{version} built from git commit %{vcs_commit}
+%define summary_static Theano %{version}
 Summary: %{summary_static}
 
 #
