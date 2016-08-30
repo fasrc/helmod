@@ -18,9 +18,9 @@ test:
 	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps --test $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
 
 install: 
-	sudo -E fasrcsw-rpm -ivh --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
+	sudo -E fasrcsw-rpm -ivh --nofiledigest --oldpackage --nodeps $$(fasrcsw-list-$$TYPE-rpms "$$NAME-$$VERSION-$$RELEASE")
 	sudo -E fasrcsw-update-lmod-spider-cache
-	sudo -E chmod 644 "$FASRCSW_PROD"/moduledata/cacheDir/*
+	sudo -E chmod 644 "$$FASRCSW_PROD"/moduledata/cacheDir/*
 
 query:
 	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
