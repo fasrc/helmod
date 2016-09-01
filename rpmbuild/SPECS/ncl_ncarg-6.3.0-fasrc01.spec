@@ -1,4 +1,8 @@
-%define _unpackaged_files_terminate_build 0
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+
 #------------------- package info ----------------------------------------------
 #
 #
@@ -31,14 +35,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+%define summary_static NCL, a product of the Computational & Information Systems Laboratory at the National Center for Atmospheric Research (NCAR) and sponsored by the National Science Foundation, is a free interpreted language designed specifically for scientific data processing and visualization. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
+URL: https://www.earthsystemgrid.org/download/fileDownload.html?logicalFileId=bec58cb3-cd9b-11e4-bb80-00c0f03d5b7c
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,17 +78,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/2.5.0-fasrc01 bowtie/1.1.1-fasrc01 samtools/1.2-fasrc01 gmap-gsnap/2015.07.23-fasrc01 abyss/1.5.2-fasrc01
+
+%define builddependencies proj/4.8.0-fasrc01 libpng/1.5.21-fasrc01 zlib/1.2.8-fasrc04 gdal/1.11.1-fasrc02 g2lib/1.4.0-fasrc01 g2clib/1.4.0-fasrc01 netcdf/4.3.3.1-fasrc02 vis5d+/1.3.0-fasrc04 udunits/2.2.18-fasrc01 cairo/1.12.18-fasrc01 jasper/1.900.1-fasrc01 szip/2.1-fasrc01 jpeg/6b-fasrc01 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Built for Packard Chan
+%define requestor Packard Chan <packard.chan@gmail.com>
+%define requestref RCRT:102320
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -94,7 +100,10 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+NCL has robust file input and output. It can read and write netCDF-3, netCDF-4 classic, netCDF-4, HDF4, binary, and ASCII data. It can read HDF-EOS2, HDF-EOS5, GRIB1, GRIB2, and OGR files (shapefiles, MapInfo, GMT, Tiger). It can be built as an OPeNDAP client.
+NCL visualizations are world class and highly customizable.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,25 +148,51 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+%define libsearch -L$ZLIB_LIB -L$LIBPNG_LIB -L$SZIP_LIB -L$VIS5D_LIB -L$GDAL_LIB -L$PROJ_LIB -L$UDUNITS_LIB -L$NETCDF_LIB -L$G2LIB_LIB -L$G2CLIB_LIB -L$CAIRO_LIB -L$JASPER_LIB -L$JPEG_LIB -L/usr/lib64 -L/usr/lib
+%define incsearch -I$ZLIB_INCLUDE -I$LIBPNG_INCLUDE -I$SZIP_INCLUDE -I$VIS5D_INCLUDE -I$GDAL_INCLUDE -I$PROJ_INCLUDE -I$UDUNITS_INCLUDE -I$NETCDF_INCLUDE -I$G2CLIB_INCLUDE -I$CAIRO_INCLUDE -I$JASPER_INCLUDE -I$JPEG_INCLUDE -I/usr/include/freetype2 -I/usr/include
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+cat <<EOF > config/Site.local
+#ifdef FirstSite
+
+#endif /* FirstSite */
+
+
+#ifdef SecondSite
+
+#define YmakeRoot %{_prefix}
+
+#define HDFlib -ldf -ljpeg -lz -lsz -lgrib2c -ljasper
+
+#define LibSearch %{libsearch}
+
+#define IncSearch %{incsearch}
+
+#define BuildGDAL 1
+#define BuildTRIANGLE 0
+#define BuildGRIB2 1
+#define GRIB2lib
+#define BuildV5D 1
+
+#define NoMakeDepend
+
+#endif /* SecondSite */
+
+EOF
+
+./Configure -v
+
+#sed -i -e 's?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS))?PartialLibraryTarget(libncarg_gks.a,$(OBJECTS) $(ROBJ_OBJ))?'  ncarg2d/src/libncarg_gks/awi/yMakefile
+
+#make Makefiles
+#sed -i -e 's?^../libncarg_gks.a:: $(OBJECTS)?../libncarg_gks.a:: $(OBJECTS) $(ROBJ_OBJ)?' \
+#       -e 's?$(AR_REG) ../libncarg_gks.a $(OBJECTS)?$(AR_REG) ../libncarg_gks.a $(OBJECTS) $(ROBJ_OBJ)?' ncarg2d/src/libncarg_gks/awi/Makefile
+   
+
+make Build
+rm ncarg2d/src/libncarg_gks/awi/ggkwdr_stub.o
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
 
 
 
@@ -190,9 +225,15 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
 
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+make Everything
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -280,17 +321,18 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("TRANSABYSS_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/sw/blat/bin")
-prepend_path("PATH",               "%{_prefix}/sw/python-igraph-0.7.1/bin")
+setenv("NCL_NCARG_HOME",           "%{_prefix}")
+setenv("NCL_NCARG_LIB",            "%{_prefix}/lib")
+setenv("NCL_NCARG_INCLUDE",        "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/lib/ncarg/data/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("FPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/sw/python-igraph-0.7.1/lib/python2.7/site-packages")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/man")
 EOF
 
 #------------------- App data file

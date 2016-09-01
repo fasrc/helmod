@@ -1,4 +1,3 @@
-%define _unpackaged_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -31,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+%define summary_static The SRA Toolkit, and the source-code SRA System Development Kit (SDK), will allow you to programmatically access data housed within SRA and convert it from the SRA format.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/2.7.0/sratoolkit.2.7.0-centos_linux64.tar.gz
+Source: %{name}.%{version}-centos_linux64.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/2.5.0-fasrc01 bowtie/1.1.1-fasrc01 samtools/1.2-fasrc01 gmap-gsnap/2015.07.23-fasrc01 abyss/1.5.2-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Taj Azarian <tazarian@hsph.harvard.edu> 
+%define requestref RCRT:103389
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -94,7 +94,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+The SRA Toolkit, and the source-code SRA System Development Kit (SDK), will allow you to programmatically access data housed within SRA and convert it from the SRA format to the following formats: ABI SOLiD native (colorspace fasta / qual), fasta, fastq, sff, sam (human-readable bam, aligned or unaligned), Illumina native
+
+You can also use the toolkit to convert from the formats listed below into the SRA format (not required for submission, but will allow you to use the SRA Toolkit to archive or analyze your data): fastq or fasta/qual pairs, AB SOLiD-SRF, AB SOLiD-native, Illumina SRF, Illumina native, sff, Aligned bam
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +112,9 @@ Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}.%{version}-centos_linux64
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.%{version}-centos_linux64.tar.gz
+cd %{name}.%{version}-centos_linux64
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -124,40 +126,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
 
 
 
@@ -187,12 +155,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}.%{version}-centos_linux64
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -280,17 +246,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("TRANSABYSS_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/sw/blat/bin")
-prepend_path("PATH",               "%{_prefix}/sw/python-igraph-0.7.1/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("FPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/sw/python-igraph-0.7.1/lib/python2.7/site-packages")
+setenv("SRATOOLKIT_HOME",           "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

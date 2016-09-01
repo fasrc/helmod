@@ -1,4 +1,3 @@
-%define _unpackaged_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -31,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+%define Motif-based sequence analysis tools 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://meme-suite.org/meme-software/4.11.2/meme_4.11.2.tar.gz
+Source: %{name}_%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/2.5.0-fasrc01 bowtie/1.1.1-fasrc01 samtools/1.2-fasrc01 gmap-gsnap/2015.07.23-fasrc01 abyss/1.5.2-fasrc01
-%define rundependencies %{builddependencies}
+%define builddependencies libtool/2.4.6-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 perl-modules/5.10.1-fasrc11 python/2.7.6-fasrc01
+%define rundependencies perl-modules/5.10.1-fasrc11 python/2.7.6-fasrc01
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Marta Mele <marta_mele@harvard.edu>
+%define requestref RCRT:101772
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence annotation
 %define apppublication %{nil}
+
 
 
 #
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+The MEME Suite supports motif-based analysis of DNA, RNA and protein sequences. It provides motif discovery algorithms using both probabilistic (MEME) and discrete models (MEME), which have complementary strengths. It also allows discovery of motifs with arbitrary insertions and deletions (GLAM2). In addition to motif discovery, the MEME Suite provides tools for scanning sequences for matches to motifs (FIMO, MAST and GLAM2Scan), scanning for clusters of motifs (MCAST), comparing motifs to known motifs (Tomtom), finding preferred spacings between motifs (SpaMo), predicting the biological roles of motifs (GOMo), measuring the positional enrichment of sequences for known motifs (CentriMo), and analyzing ChIP-seq and other large datasets (MEME-ChIP).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}.tar.*
+cd %{name}_%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,27 +137,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 
+sed -i -e 's?mkdir -p $(MEME_LOGS)?mkdir -p $(DESTDIR)$(MEME_LOGS)?' \
+       -e 's?chmod a+w $(MEME_LOGS)?chmod a+w $(DESTDIR)$(MEME_LOGS)?' \
+       -e 's?mkdir -p $(MEME_DB)?mkdir -p $(DESTDIR)$(MEME_DB)?' Makefile.am
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+autoreconf -i
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
 
 
@@ -187,11 +192,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -280,17 +284,12 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("TRANSABYSS_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/sw/blat/bin")
-prepend_path("PATH",               "%{_prefix}/sw/python-igraph-0.7.1/bin")
+setenv("MEME_HOME",       "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("FPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/sw/python-igraph-0.7.1/lib/python2.7/site-packages")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 EOF
 
 #------------------- App data file

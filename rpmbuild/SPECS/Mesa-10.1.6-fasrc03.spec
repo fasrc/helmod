@@ -1,4 +1,3 @@
-%define _unpackaged_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -31,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
+Source: %{name}Lib-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/2.5.0-fasrc01 bowtie/1.1.1-fasrc01 samtools/1.2-fasrc01 gmap-gsnap/2015.07.23-fasrc01 abyss/1.5.2-fasrc01
+%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01 python/2.7.6-fasrc01 libxml2/2.7.8-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Hacky inclusion of LLVM so that it can be built under Intel
+%define requestor Packard Chan <packard.chan@gmail.com>
+%define requestref RCRT:102320
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
 %define apppublication %{nil}
+
 
 
 #
@@ -94,7 +94,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,7 +113,7 @@ Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -139,25 +141,19 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# Had to do this so that I could build with Intel
+export LD_LIBRARY_PATH=/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/llvm/3.4.2-fasrc01/lib:$LD_LIBRARY_PATH
+export PATH=/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/llvm/3.4.2-fasrc01/bin:$PATH
+export CC="$CC -I/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/llvm/3.4.2-fasrc01/include"
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
+
+NOCONFIGURE=1 ./autogen.sh
+./configure --prefix=%{_prefix} --enable-xlib-glx --disable-dri
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-#make
+make
 
 
 
@@ -190,8 +186,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+make install DESTDIR=%{buildroot}
+cp src/mesa/drivers/x11/{xmesa.h,xmesa_x.h} %{buildroot}/%{_prefix}/include/GL
 
 
 #(this should not need to be changed)
@@ -280,17 +276,17 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("TRANSABYSS_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/sw/blat/bin")
-prepend_path("PATH",               "%{_prefix}/sw/python-igraph-0.7.1/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("FPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/sw/python-igraph-0.7.1/lib/python2.7/site-packages")
+setenv("MESA_HOME",                "%{_prefix}")
+setenv("MESA_INCLUDE",             "%{_prefix}/include")
+setenv("MESA_LIB",                 "%{_prefix}/lib")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "/n/sw/fasrcsw/apps/Comp/gcc/4.8.2-fasrc01/llvm/3.4.2-fasrc01/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -298,6 +294,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

@@ -1,4 +1,3 @@
-%define _unpackaged_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -31,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+%define summary_static mirPRo is a tool for miRNA-seq analysis. It can quantify known and novel miRNAs in single-end RNA-seq data and provide useful functions such as IsomiR detection and arm switching identification, miRNA family quantification, and read cataloging in terms of genome annotation
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.sourceforge.net/project/mirpro/mirPRo.1.1.2.tgz
+Source: %{name}.%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -74,17 +73,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies Anaconda/2.5.0-fasrc01 bowtie/1.1.1-fasrc01 samtools/1.2-fasrc01 gmap-gsnap/2015.07.23-fasrc01 abyss/1.5.2-fasrc01
+%define builddependencies ViennaRNA/2.2.7-fasrc01 novocraft/3.02.12-fasrc01 randfold/2.0.1-fasrc01 fastx_toolkit/0.0.14-fasrc01 HTSeq/0.6.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Nimrod Rubinstein <rubinstein@fas.harvard.edu>
+%define requestref RCRT:103339
+
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -94,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
+mirPRo is a tool for miRNA-seq analysis. It can quantify known and novel miRNAs in single-end RNA-seq data and provide useful functions such as IsomiR detection and arm switching identification, miRNA family quantification, and read cataloging in terms of genome annotation. mirPRo only works for species that has reference genome.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +111,9 @@ Trans-ABySS: de novo assembly of RNA-Seq data using ABySS.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}.%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.%{version}.tgz
+cd %{name}.%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,28 +138,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}.%{version}
+
+rm bin/*
+
+cd src
+
+sed -i -e 's?gcc -o mirpro_gff_summary?g++ -o mirpro_gff_summary?'  mirpro_gff_summary/nbproject/Makefile-Debug.mk
 
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+for prog in `ls`; do
+    (cd $prog && make)
+done
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
-
+find . -name "*" -executable -type f | xargs -i% cp % "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}.%{version}/bin
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -187,12 +180,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}.%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-rsync -av --progress "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
-
+cp -r bin %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -280,17 +271,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("TRANSABYSS_HOME",          "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/sw/blat/bin")
-prepend_path("PATH",               "%{_prefix}/sw/python-igraph-0.7.1/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("FPATH",              "%{_prefix}/sw/python-igraph-0.7.1/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/sw/python-igraph-0.7.1/lib")
-prepend_path("PYTHONPATH",         "%{_prefix}/sw/python-igraph-0.7.1/lib/python2.7/site-packages")
+setenv("MIRPRO_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
