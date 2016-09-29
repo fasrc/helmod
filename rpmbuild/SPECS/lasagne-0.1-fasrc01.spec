@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static TensorFlow version 0.8
+%define summary_static lasagne version 0.1
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if
 # applicable
 #
-#URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/Lasagne/Lasagne/archive/v0.1.tar.gz
+Source: Lasagne-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,18 +54,17 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces,
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-TensorFlow is an open source software library for numerical computation using
-data flow graphs. Nodes in the graph represent mathematical operations, while
-the graph edges represent the multidimensional data arrays (tensors)
-communicated between them. The flexible architecture allows you to deploy
-computation to one or more CPUs or GPUs in a desktop, server, or mobile device
-with a single API. TensorFlow was originally developed by researchers and
-engineers working on the Google Brain Team within Google's Machine Intelligence
-research organization for the purposes of conducting machine learning and deep
-neural networks research, but the system is general enough to be applicable in
-a wide variety of other domains as well.
-Built from git on 04-26-2016 using commit: cf0af64
+Lasagne is a lightweight library to build and train neural networks in Theano.
+NOTE: This module will only work on compute nodes with NVIDIA GPUs.
+
 
 #
 # Macros for setting app data
@@ -83,8 +82,8 @@ Built from git on 04-26-2016 using commit: cf0af64
 %define buildhostversion 1
 
 
-%define builddependencies bazel/20160330-fasrc01 %{rundependencies}
-%define rundependencies gcc/4.8.2-fasrc01 Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
+%define builddependencies Anaconda/1.9.2-fasrc01
+%define rundependencies cuda/7.5-fasrc01 cudnn/7.0-fasrc01 theano/0.8.2-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -96,6 +95,8 @@ Built from git on 04-26-2016 using commit: cf0af64
 %define apppublication %{nil}
 
 
+#------------------- %%prep (~ tar xvf) ---------------------------------------
+
 %prep
 
 %include fasrcsw_module_loads.rpmmacros
@@ -103,115 +104,91 @@ Built from git on 04-26-2016 using commit: cf0af64
 %define python_version $(python -c 'import sys; print "python%s.%s" % sys.version_info[0:2]')
 %define site_packages %{buildroot}/%{_prefix}/lib/%{python_version}/site-packages
 
+#
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain
+# style things -- hopefully it'll just work as-is.
+#
+
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Lasagne-%{version}.tar.*
+mv Lasagne-%{version} %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
+
+#------------------- %%build (~ configure && make) ----------------------------
+
 %build
 
+#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+#
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here,
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# configure CROSSTOOL
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one
+#percent sign) to build in parallel
+#make
+python setup.py build
 
-GCC_PATH=$(which gcc)
-CPP_PATH=$(which cpp)
-GCC_MODULE_ROOT=$(readlink -f "$(dirname $(which gcc))/..")
 
-cat <<EOF | patch -p1
-diff --git a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-index 04ab50c..e815d0c 100755
---- a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-+++ b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-@@ -45,12 +45,12 @@ import pipes
- 
- # "configure" uses the specific format to substitute the following string.
- # If you change it, make sure you modify "configure" as well.
--CPU_COMPILER = ('/usr/bin/gcc')
--GCC_HOST_COMPILER_PATH = ('/usr/bin/gcc')
-+CPU_COMPILER = ('$GCC_PATH')
-+GCC_HOST_COMPILER_PATH = ('$GCC_PATH')
- 
- CURRENT_DIR = os.path.dirname(sys.argv[0])
- NVCC_PATH = CURRENT_DIR + '/../../../cuda/bin/nvcc'
--LLVM_HOST_COMPILER_PATH = ('/usr/bin/gcc')
-+LLVM_HOST_COMPILER_PATH = ('$GCC_PATH')
- PREFIX_DIR = os.path.dirname(GCC_HOST_COMPILER_PATH)
- 
- def Log(s):
-@@ -281,9 +281,6 @@ def InvokeNvcc(argv, log=False):
-          ' -I .' +
-          ' -x cu ' + opt + includes + ' -c ' + srcs + out)
- 
--  # TODO(zhengxq): for some reason, 'gcc' needs this help to find 'as'.
--  # Need to investigate and fix.
--  cmd = 'PATH=' + PREFIX_DIR + ' ' + cmd
-   if log: Log(cmd)
-   return os.system(cmd)
- 
-EOF
 
-cat <<EOF | patch -p1
-diff --git a/third_party/gpus/crosstool/CROSSTOOL b/third_party/gpus/crosstool/CROSSTOOL
-index dfde7cd..d3dfed7 100644
---- a/third_party/gpus/crosstool/CROSSTOOL
-+++ b/third_party/gpus/crosstool/CROSSTOOL
-@@ -36,23 +36,26 @@ toolchain {
-
-   tool_path { name: "ar" path: "/usr/bin/ar" }
-   tool_path { name: "compat-ld" path: "/usr/bin/ld" }
--  tool_path { name: "cpp" path: "/usr/bin/cpp" }
-+  tool_path { name: "cpp" path: "${CPP_PATH}" }
-   tool_path { name: "dwp" path: "/usr/bin/dwp" }
-   # As part of the TensorFlow release, we place some cuda-related compilation
-   # files in third_party/gpus/crosstool/clang/bin, and this relative
-   # path, combined with the rest of our Bazel configuration causes our
-   # compilation to use those files.
-   tool_path { name: "gcc" path: "clang/bin/crosstool_wrapper_driver_is_not_gcc" }
-   # Use "-std=c++11" for nvcc. For consistency, force both the host compiler
-   # and the device compiler to use "-std=c++11".
-   cxx_flag: "-std=c++11"
-   linker_flag: "-lstdc++"
--  linker_flag: "-B/usr/bin/"
-+  linker_flag: "-B${GCC_MODULE_ROOT}/bin/"
-
-   # TODO(bazel-team): In theory, the path here ought to exactly match the path
-   # used by gcc. That works because bazel currently doesn't track files at
-   # absolute locations and has no remote execution, yet. However, this will need
-   # to be fixed, maybe with auto-detection?
--  cxx_builtin_include_directory: "/usr/lib/gcc/"
-+  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/lib64/gcc"
-+  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/include"
-+  cxx_builtin_include_directory: "${CUDA_HOME}/include"
-+  cxx_builtin_include_directory: "${CUDNN_HOME}/include"
-   cxx_builtin_include_directory: "/usr/local/include"
-   cxx_builtin_include_directory: "/usr/include"
-   tool_path { name: "gcov" path: "/usr/bin/gcov" }
-EOF
-
-cat <<EOF | ./configure
-$PYTHONHOME/bin/python
-y
-$GCC_PATH
-
-$CUDA_HOME
-
-$CUDNN_HOME
-
-EOF
-bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs 4
-bazel-bin/tensorflow/tools/pip_package/build_pip_package $PWD/wheels
-
+#------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
+#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.
+# Rpmbuild does a temporary installation in the %{buildroot} and then
+# constructs an rpm out of those files.  See the following hack if your app
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
@@ -219,14 +196,18 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 mkdir -p %{site_packages}
 export PYTHONPATH=%{site_packages}:$PYTHONPATH
-pip install --target=%{site_packages} ./wheels/%{name}-0.7.1-py2-none-any.whl
-# not sure why this is missing but just touch for now
-touch %{site_packages}/google/__init__.py
+python setup.py install --prefix=%{buildroot}/%{_prefix}
 
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
+#this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
 
@@ -261,6 +242,25 @@ done
 	set -x
 %endif
 
+#
+# FIXME (but the above is enough for a "trial" build)
+#
+# This is the part that builds the modulefile.  However, stop now and run
+# `make trial'.  The output from that will suggest what to add below.
+#
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure
+#   any dependency loading is in sync with the %%build section above!
+#
+# - in the help message, link to website docs rather than write anything
+#   lengthy here
+#
+# references on writing modules:
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/advanced-user-guide/writing-module-files
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
+#   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
+#
 
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
@@ -286,8 +286,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",            "%{_prefix}/bin")
-prepend_path("PYTHONPATH",      "%{_prefix}/lib/%{python_version}/site-packages")
+--setenv("TEMPLATE_HOME",       "%{_prefix}")
+
+prepend_path("PYTHONPATH",          "%{_prefix}/lib/%{python_version}/site-packages")
 EOF
 
 #------------------- App data file

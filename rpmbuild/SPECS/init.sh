@@ -1,4 +1,4 @@
-export NAME=IDL
-export VERSION=8.5.1
+export NAME=gaussian
+export VERSION=09
 export TYPE=Core
 export RELEASE=fasrc01

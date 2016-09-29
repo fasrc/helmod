@@ -9,7 +9,7 @@ export FASRCSW_PROD=/n/sw/fasrcsw
 #export FASRCSW_COMPS="intel/15.0.0-fasrc01 gcc/4.8.2-fasrc01"
 export FASRCSW_COMPS="gcc/4.8.2-fasrc01"
 #export FASRCSW_MPIS="openmpi/1.8.3-fasrc02 mvapich2/2.0-fasrc03"
-export FASRCSW_MPIS="openmpi/1.10.2-fasrc01"
+export FASRCSW_MPIS="openmpi/1.10.3-fasrc01 mvapich2/2.2rc1-fasrc01"
 
 #the build host
 export FASRCSW_BUILD_HOST=builds
