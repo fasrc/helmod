@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static TensorFlow version 0.8
+%define summary_static TensorFlow version 0.10.0-RC0
 Summary: %{summary_static}
 
 #
@@ -65,7 +65,7 @@ engineers working on the Google Brain Team within Google's Machine Intelligence
 research organization for the purposes of conducting machine learning and deep
 neural networks research, but the system is general enough to be applicable in
 a wide variety of other domains as well.
-Built from git on 04-26-2016 using commit: cf0af64
+Built from git on 09-02-2016 using commit: 3cb3995
 
 #
 # Macros for setting app data
@@ -196,7 +196,8 @@ index dfde7cd..d3dfed7 100644
 EOF
 
 cat <<EOF | ./configure
-$PYTHONHOME/bin/python
+$PYTHON_HOME/bin/python
+n
 y
 $GCC_PATH
 
@@ -219,7 +220,7 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 mkdir -p %{site_packages}
 export PYTHONPATH=%{site_packages}:$PYTHONPATH
-pip install --target=%{site_packages} ./wheels/%{name}-0.7.1-py2-none-any.whl
+pip install --target=%{site_packages} ./wheels/%{name}-%{version}-py2-none-any.whl
 # not sure why this is missing but just touch for now
 touch %{site_packages}/google/__init__.py
 
