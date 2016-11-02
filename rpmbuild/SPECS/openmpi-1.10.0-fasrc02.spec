@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static hdf5
+%define summary_static An open source MPI-2 implementation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+URL: http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.2.8-fasrc02
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -85,21 +86,21 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-hdf5
-
+The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
 
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -123,17 +124,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
+test "%{comp_name}" == 'pgi' && CC="$CC -lpciaccess"
+
+./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -147,8 +151,13 @@ export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" \
-	--enable-fortran --enable-parallel --enable-shared --enable-static
+	--enable-mpi-thread-multiple \
+    --enable-static \
+    --enable-mpi-fortran=all \
+    --enable-mpi-java \
+	--with-slurm \
+    --with-pmi
+    
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -164,8 +173,6 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -256,6 +263,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -275,16 +283,24 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+setenv("MPI_HOME",                 "%{_prefix}")
+setenv("MPI_INCLUDE",              "%{_prefix}/include")
+setenv("MPI_LIB",                  "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 #------------------- App data file
@@ -308,7 +324,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static hdf5
+%define summary_static The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse and compare K-mer spectra.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+URL:https://github.com/TGAC/KAT/releases/download/Release-2.1.1/kat-2.1.1.tar.gz 
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,6 +53,21 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+KAT is a suite of tools that analyse jellyfish kmer hashes. The following tools are currently available in KAT:
+sect: SEquence Coverage estimator Tool. Estimates the coverage of each sequence in a fasta file using K-mers from a jellyfish hash.
+comp: K-mer comparison tool. Creates a matrix of shared K-mers between two jellyfish hashes.
+gcp: K-mer GC Processor. Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
+hist: Create an histogram of k-mer occurrences from a jellyfish hash. Adds metadata in output for easy plotting.
+
 
 #
 # Macros for setting app data 
@@ -72,25 +87,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.2.8-fasrc02
+
+%define builddependencies python/3.4.1-fasrc01 boost/1.59.0-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Seqan and Jellyfish included in package
+%define requestor Anthony Geneva <geneva@fas.harvard.edu>
+%define requestref RCRT:106639
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis 
 %define apppublication %{nil}
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-hdf5
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -129,11 +137,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
+
+./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -147,12 +159,11 @@ export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" \
-	--enable-fortran --enable-parallel --enable-shared --enable-static
+    --with-boost=$BOOST_HOME
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -275,16 +286,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+setenv("KAT_HOME",                 "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",    "${PYTHON_HOME}/lib")
 EOF
 
 #------------------- App data file
@@ -292,6 +296,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -308,7 +313,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

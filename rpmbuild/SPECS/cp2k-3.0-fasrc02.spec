@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static hdf5
+%define summary_static CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.sourceforge.net/project/cp2k/cp2k-3.0.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.2.8-fasrc02
+%define builddependencies pexsi/0.9.0-fasrc01 elpa/2016.05.003-fasrc01 fftw/3.3.4-fasrc09 libint/1.1.4-fasrc01 libxc/3.0.0-fasrc01 scalapack/2.0.2-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Built with debug info
+%define requestor Amit Levi <alevi@cfa.harvard.edu
+%define requestref RCRT:104944
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -85,13 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-hdf5
-
+CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems. CP2K provides a general framework for different modeling methods such as DFT using the mixed Gaussian and plane waves approaches GPW and GAPW. Supported theory levels include DFTB, LDA, GGA, MP2, RPA, semi-empirical methods (AM1, PM3, PM6, RM1, MNDO, …), and classical force fields (AMBER, CHARMM, …). CP2K can do simulations of molecular dynamics, metadynamics, Monte Carlo, Ehrenfest dynamics, vibrational analysis, core level spectroscopy, energy minimization, and transition state optimization using NEB or dimer method.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -129,30 +132,72 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" \
-	--enable-fortran --enable-parallel --enable-shared --enable-static
+if [[ "%{comp_name}" == "gcc" ]]; then
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+module load acml/5.3.1-fasrc01
+
+cat <<EOF > arch/odyssey.psmp
+CC         = gcc -g -O0
+CPP        =
+FC         = mpif90 -g
+LD         = mpif90
+AR         = ar -r
+DFLAGS     = -D__FFTW3 -D__LIBINT -D__LIBXC2 -D__LIBINT_MAX_AM=7 -D__LIBDERIV_MAX_AM1=6 -D__MAX_CONTR=4  -D__parallel -D__SCALAPACK
+CPPFLAGS   =
+FCFLAGS    = \$(DFLAGS) -O0 -ffast-math -ffree-form -ffree-line-length-none -fopenmp -ftree-vectorize  -mtune=native -I${ACML_INCLUDE} -I${FFTW_INCLUDE} -I${LIBINT_INCLUDE} -I${LIBXC_INCLUDE}
+LDFLAGS    = \$(FCFLAGS) -static-libgfortran
+LIBS       = ${SCALAPACK_HOME}/lib/libscalapack.a ${ACML_LIB}/libacml.a  ${FFTW_LIB}/libfftw3.a ${FFTW_LIB}/libfftw3_threads.a  ${LIBXC_LIB}/libxcf90.a ${LIBXC_LIB}/libxc.a  ${LIBINT_LIB}/libderiv.a  ${LIBINT_LIB}/libint.a
+EOF
+
+fi
+
+if [[ "%{comp_name}" == "intel" ]]; then
+
+cat <<EOF > arch/odyssey.psmp
+CC       = icc -g -O0
+CPP      = /lib/cpp
+FC       = mpif90 -FR -g -O0
+FC_fixed = mpif90 -FI -g -O0
+LD       = mpif90
+AR       = /usr/bin/ar -r
+#Better with mkl (intel lapack/blas) only
+#DFLAGS   = -D__INTEL -D__FFTSG -D__parallel
+#If you want to use BLACS and SCALAPACK use the flags below
+DFLAGS   = -D__INTEL -D__FFTSG -D__parallel -D__BLACS -D__SCALAPACK
+CPPFLAGS = -C \$(DFLAGS) -P -traditional
+FCFLAGS  = -O0 -pc64 -openmp -heap-arrays 64
+#verify if the path to the mkl libraries is already defined and/or differs from this
+LDFLAGS  = \$(FCFLAGS) -L${MKL_HOME}/lib/intel64
+#If you want to use BLACS and SCALAPACK use the libraries below
+LIBS     = -mkl=parallel -lmkl_scalapack_lp64 -lmkl_blacs_openmpi_lp64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lm -lpthread -liomp5 -openmp
+EOF
+
+fi
+
+# Patch for bug (https://groups.google.com/forum/#!msg/cp2k/elKLhTu-KL4/MGx37ZO2CQAJ)
+cat <<EOF | patch src/xc/xc_libxc_wrap.F
+59c59,60
+<                                              XC_HYB_MGGA_X_M11,&
+---
+>                                              !XC_HYB_MGGA_X_M11,&
+>                                              XC_MGGA_X_M11,&
+66c67,68
+<                                              XC_MGGA_X_MS2H,&
+---
+>                                              !XC_MGGA_X_MS2H,&
+>                                              XC_HYB_MGGA_X_MS2H,&
+EOF
+
+
+
+(cd makefiles && make ARCH=odyssey VERSION=psmp)
 
 
 
@@ -184,8 +229,10 @@ make %{?_smp_mflags}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/{lib,bin}
+cp -r exe/odyssey/*  %{buildroot}/%{_prefix}/bin
+cp -r lib/odyssey/psmp/*  %{buildroot}/%{_prefix}/lib
+
 
 
 #(this should not need to be changed)
@@ -256,6 +303,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -275,16 +323,11 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib64")
+setenv("CP2K_HOME",                "%{_prefix}")
+setenv("CP2K_LIB",                 "%{_prefix}/lib")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
@@ -308,7 +351,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
