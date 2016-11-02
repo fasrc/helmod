@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS, XSPEC and XSTAR
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.0.tar.gz
+URL: http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/release/heasoft-6.19src.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies hdf5/1.8.17-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. 
+HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS, XSPEC and XSTAR.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -137,28 +138,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
 
-./configure CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
-    --with-temp-large=/scratch
+
+./configure --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -187,12 +174,27 @@ make %{?_smp_mflags}
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+
+# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
 
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -280,18 +282,94 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("HEASOFT_HOME",             "%{_prefix}")
+setenv("XANBIN",                   "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12")
+setenv("LHEAPERL",                 "/usr/bin/perl")
+setenv("TCLRL_LIBDIR",             "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib")
+setenv("POW_LIBRARY",              "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/pow")
+setenv("PGPLOT_DIR",               "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib")
+setenv("PGPLOT_RGB",               "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/rgb.txt")
+setenv("PGPLOT_FONT",              "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/grfont.dat")
+setenv("FTOOLS",                   "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12")
+setenv("HEADAS",                   "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12")
+setenv("PFILES",                   "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/syspfiles")
+setenv("LHEASOFT",                 "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12")
+setenv("LHEA_HELP",                "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/help")
+setenv("LHEA_DATA",                "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/refdata")
+setenv("XRDEFAULTS",               "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/xrdefaults")
+setenv("XANADU",                   "%{_prefix}")
+prepend_path("PERL5LIB",           "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/perl")
+prepend_path("PERLLIB",            "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/perl")
+prepend_path("PATH",               "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/suzaku/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/integral/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/Xspec/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/attitude/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/heasim/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/heagen/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/ftools/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/heatools/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/demo/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/hitomi/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/nustar/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("PATH",               "%{_prefix}/swift/x86_64-unknown-linux-gnu-libc2.12/bin")
+prepend_path("CPATH",              "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/suzaku/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/integral/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/Xspec/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/attitude/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/heagen/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/ftools/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/hitomi/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/nustar/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("CPATH",              "%{_prefix}/swift/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/suzaku/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/integral/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/Xspec/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/attitude/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/heagen/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/ftools/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/hitomi/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/nustar/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("FPATH",              "%{_prefix}/swift/x86_64-unknown-linux-gnu-libc2.12/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/suzaku/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/Xspec/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/attitude/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/heagen/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/ftools/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/demo/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/hitomi/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/nustar/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/swift/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/suzaku/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/Xspec/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/attitude/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/heagen/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/ftools/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/demo/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/hitomi/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/nustar/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/swift/x86_64-unknown-linux-gnu-libc2.12/lib")
+prepend_path("MANPATH",            "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/share/man")
+prepend_path("MANPATH",            "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/man")
+prepend_path("MANPATH",            "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/share/man")
+prepend_path("MANPATH",            "%{_prefix}/tcltk/x86_64-unknown-linux-gnu-libc2.12/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/heacore/x86_64-unknown-linux-gnu-libc2.12/lib/pkgconfig")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/x86_64-unknown-linux-gnu-libc2.12/lib/pkgconfig")
 EOF
 
 #------------------- App data file
