@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems.
+%define summary_static AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/cp2k/cp2k-4.1.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://developer.amd.com/tools-and-sdks/cpu-development/amd-core-math-library-acml/acml-downloads-resources/ 
+Source: %{name}-%{version}-gfortran64.tgz
 
 #
 # there should be no need to change the following
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies pexsi/0.9.0-fasrc01 elpa/2016.05.003-fasrc01 fftw/3.3.5-fasrc01 libint/2.1.0-fasrc01 libxc/3.0.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments LD_LIBRARY_PATH and CPATH are updated with the basic libraries.  For fma4 or mp versions, you'll want to manually add those directories using ACML_FMA4_LIB / ACML_FMA4_INCLUDE, ACML_MP_LIB / ACML_MP_INCLUDE, or ACML_FMA4_MP_LIB /ACML_FMA4_MP_INCLUDE
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems. CP2K provides a general framework for different modeling methods such as DFT using the mixed Gaussian and plane waves approaches GPW and GAPW. Supported theory levels include DFTB, LDA, GGA, MP2, RPA, semi-empirical methods (AM1, PM3, PM6, RM1, MNDO, …), and classical force fields (AMBER, CHARMM, …). CP2K can do simulations of molecular dynamics, metadynamics, Monte Carlo, Ehrenfest dynamics, vibrational analysis, core level spectroscopy, energy minimization, and transition state optimization using NEB or dimer method.
+Build comments: %(buildcomments}
+AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications. ACML is ideal for weather modeling, computational fluid dynamics, financial analysis, oil and gas applications and more. ACML consists of the following main components:
+1) A full implementation of Level 1, 2 and 3 Basic Linear Algebra Subroutines (BLAS), with key routines optimized for high performance on AMD Opteron™ processors.  The BLAS level 3 routines will take advantage of heterogeneous computing through OpenCL if detected.
+2) A full suite of Linear Algebra (LAPACK) routines. As well as taking advantage of the highly-tuned BLAS kernels, a key set of LAPACK routines has been further optimized to achieve considerably higher performance than standard LAPACK implementations.
+3) Beginning version 6 of ACML, a subset of FFTW interfaces are supported for Fourier transform functionality. Heterogeneous compute with GPU/APU and OpenCL is supported through the FFTW interfaces. A comprehensive set of FFTs through ACML specific API (found in version 5 and older) continues to be available in version 6.
+4) Random Number Generators in both single- and double-precision.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +117,7 @@ CP2K is a quantum chemistry and solid state physics software package that can pe
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+mkdir %{name}-%{version}
 
 
 
@@ -140,28 +144,13 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-if [[ "%{comp_name}" == "gcc" ]]; then
-
-module load acml/6.1.0.31-fasrc01
-
-cat <<EOF > arch/odyssey.psmp
-CC         = gcc
-CPP        =
-FC         = mpif90
-LD         = mpif90
-AR         = ar -r
-DFLAGS     = -D__FFTW3 -D__LIBINT -D__LIBXC2 -D__LIBINT_MAX_AM=7 -D__LIBDERIV_MAX_AM1=6 -D__MAX_CONTR=4  -D__parallel -D__SCALAPACK
-CPPFLAGS   =
-FCFLAGS    = \$(DFLAGS) -O2 -ffast-math -ffree-form -ffree-line-length-none -fopenmp -ftree-vectorize -funroll-loops  -mtune=native -I${ACML_INCLUDE} -I${FFTW_INCLUDE} -I${LIBINT_INCLUDE} -I${LIBXC_INCLUDE}
-LDFLAGS    = \$(FCFLAGS) -static-libgfortran
-LIBS       = ${SCALAPACK_HOME}/lib/libscalapack.a ${ACML_LIB}/libacml.a  ${FFTW_LIB}/libfftw3.a ${FFTW_LIB}/libfftw3_threads.a  ${LIBXC_LIB}/libxcf90.a ${LIBXC_LIB}/libxc.a  ${LIBINT_LIB}/libderiv.a  ${LIBINT_LIB}/libint.a
-EOF
-
-fi
+# Move tarball extraction to build phase so that $FC can be used 
+export TARNAME=%{name}-%{version}-${FC}64.tgz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${TARNAME}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-(cd makefiles && make ARCH=odyssey VERSION=psmp)
 
 
 
@@ -193,10 +182,9 @@ fi
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/{lib,bin}
-cp -r exe/odyssey/*  %{buildroot}/%{_prefix}/bin
-cp -r lib/odyssey/psmp/*  %{buildroot}/%{_prefix}/lib
-
+mkdir -p %{buildroot}/%{_prefix}
+cp -r ${FC}64/* %{buildroot}/%{_prefix}
+cp -r ${FC}64_mp %{buildroot}/%{_prefix}/mp
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -286,9 +274,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CP2K_HOME",                "%{_prefix}")
-setenv("CP2K_LIB",                 "%{_prefix}/lib")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("ACML_HOME",                 "%{_prefix}")
+setenv("ACML_LIB",                  "%{_prefix}/lib")
+setenv("ACML_INCLUDE",              "%{_prefix}/include")
+setenv("ACML_MP_HOME",              "%{_prefix}/mp")
+setenv("ACML_MP_LIB",               "%{_prefix}/mp/lib")
+setenv("ACML_MP_INCLUDE",           "%{_prefix}/mp/include")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
