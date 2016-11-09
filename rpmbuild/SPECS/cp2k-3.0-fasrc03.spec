@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://downloads.sourceforge.net/project/cp2k/cp2k-4.1.tar.bz2
+URL: http://downloads.sourceforge.net/project/cp2k/cp2k-3.0.tar.bz2
 Source: %{name}-%{version}.tar.bz2
 
 #
@@ -76,8 +76,8 @@ Prefix: %{_prefix}
 %define builddependencies pexsi/0.9.0-fasrc01 elpa/2016.05.003-fasrc01 fftw/3.3.5-fasrc01 libint/1.1.5-fasrc01 libxc/3.0.0-fasrc01 scalapack/2.0.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Amit Levi <alevi@cfa.harvard.edu
+%define requestref RCRT:104944
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -139,7 +139,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
 if [[ "%{comp_name}" == "gcc" ]]; then
 
 module load acml/5.3.1-fasrc01
@@ -159,8 +158,45 @@ EOF
 
 fi
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+if [[ "%{comp_name}" == "intel" ]]; then
+
+cat <<EOF > arch/odyssey.psmp
+CC       = icc
+CPP      = /lib/cpp
+FC       = mpif90 -FR
+FC_fixed = mpif90 -FI
+LD       = mpif90
+AR       = /usr/bin/ar -r
+#Better with mkl (intel lapack/blas) only
+#DFLAGS   = -D__INTEL -D__FFTSG -D__parallel
+#If you want to use BLACS and SCALAPACK use the flags below
+DFLAGS   = -D__INTEL -D__FFTSG -D__parallel -D__BLACS -D__SCALAPACK
+CPPFLAGS = -C \$(DFLAGS) -P -traditional
+FCFLAGS  = -O2 -pc64 -unroll -openmp -heap-arrays 64
+#verify if the path to the mkl libraries is already defined and/or differs from this
+LDFLAGS  = \$(FCFLAGS) -L${MKL_HOME}/lib/intel64
+#If you want to use BLACS and SCALAPACK use the libraries below
+LIBS     = -mkl=parallel -lmkl_scalapack_lp64 -lmkl_blacs_openmpi_lp64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lm -lpthread -liomp5 -openmp
+EOF
+
+fi
+
+# Patch for bug (https://groups.google.com/forum/#!msg/cp2k/elKLhTu-KL4/MGx37ZO2CQAJ)
+cat <<EOF | patch src/xc/xc_libxc_wrap.F
+59c59,60
+<                                              XC_HYB_MGGA_X_M11,&
+---
+>                                              !XC_HYB_MGGA_X_M11,&
+>                                              XC_MGGA_X_M11,&
+66c67,68
+<                                              XC_MGGA_X_MS2H,&
+---
+>                                              !XC_MGGA_X_MS2H,&
+>                                              XC_HYB_MGGA_X_MS2H,&
+EOF
+
+
+
 (cd makefiles && make ARCH=odyssey VERSION=psmp)
 
 
@@ -196,6 +232,7 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}/{lib,bin}
 cp -r exe/odyssey/*  %{buildroot}/%{_prefix}/bin
 cp -r lib/odyssey/psmp/*  %{buildroot}/%{_prefix}/lib
+
 
 
 #(this should not need to be changed)
