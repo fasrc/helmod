@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static Fastest Fourier Transform in the West
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.gz
+URL: http://www.fftw.org/fftw-3.3.5.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,9 +139,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -157,16 +154,16 @@ sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opc
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--enable-mpi-thread-multiple \
-    --enable-static \
-    --enable-mpi-fortran=all \
-    --enable-mpi-java \
-	--with-slurm \
-    --with-pmi
+	--enable-openmp \
+	--enable-mpi \
+    --enable-shared \
+    --enable-threads
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+export CFLAGS="-fPIC"
+export LDFLAGS="-fPIC"
+make -j8
 
 
 
@@ -290,24 +287,17 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+setenv("FFTW_HOME",                 "%{_prefix}")
+setenv("FFTW_INCLUDE",              "%{_prefix}/include")
+setenv("FFTW_LIB",                  "%{_prefix}/lib64")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file

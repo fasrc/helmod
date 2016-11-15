@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static An open source MPI-2 implementation.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.gz
+URL: http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -94,15 +94,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+The Open MPI Project is an open source MPI-2 implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
 
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -126,8 +124,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
@@ -139,9 +135,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
+test "%{comp_name}" == 'pgi' && CC="$CC -lpciaccess"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -163,6 +157,7 @@ sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opc
     --enable-mpi-java \
 	--with-slurm \
     --with-pmi
+    
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -178,8 +173,6 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.

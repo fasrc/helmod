@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static PEAR assembles Illumina paired-end reads if the DNA fragment sizes are smaller than  twice  the length of reads.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.gz
+URL: http://...FIXME...
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -75,9 +75,9 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments Built from commit 2c309dc7120f2ad117395f056ccde2cc23f36848 
+%define requestor David Combosch <combosch@g.harvard.edu>
+%define requestref RCRT:107137
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +94,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+PEAR  assembles  Illumina paired-end reads if the DNA fragment sizes are smaller
+than  twice  the length of reads. PEAR can assemble 95% of reads with 35-bp mean
+overlap  with  a  false-positive rate of 0.004. PEAR also works with multiplexed
+data  sets  where  the  true  underlying  DNA  fragment size varies. PEAR has an
+extremely low false-positive rate of 0.0003 on data sets where no overlap exists
+between  the  two  reads (i.e. when DNA fragment sizes are larger than twice the
+read length).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,34 +145,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-mpi-thread-multiple \
-    --enable-static \
-    --enable-mpi-fortran=all \
-    --enable-mpi-java \
-	--with-slurm \
-    --with-pmi
+./configure --prefix=%{_prefix} --disable-zlib
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -290,24 +274,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+setenv("PEAR_HOME",                 "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
 EOF
 
 #------------------- App data file

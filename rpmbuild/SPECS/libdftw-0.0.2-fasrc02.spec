@@ -141,6 +141,7 @@ do
 done
 
 ./autogen.sh
+export CC=mpicc
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \

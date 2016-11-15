@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static FreeFem++ is a partial differential equation solver.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.freefem.org/ff++/ftp/freefem++-3.31-2.tar.gz
+Source: %{name}-3.31-2.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,9 +72,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies SuiteSparse/3.7.1-fasrc01 gsl/1.16-fasrc02 fftw/3.3.4-fasrc04 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Disabled mshmet,freeyams because the download is no longer available
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -91,10 +90,9 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+FreeFem++ is a partial differential equation solver. It has its own language. freefem scripts can solve multiphysics non linear systems in 2D and 3D.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +108,9 @@ The Open MPI Project is an open source Message Passing Interface implementation 
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-3.31-2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-3.31-2.tar.*
+cd %{name}-3.31-2
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,39 +132,22 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.31-2
 
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
+test -z $CC && export CC=gcc
+test -z $CXX && export CXX=g++
+
+CC="$CC -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE"
+CXX="$CXX -I$SUITESPARSE_HOME/include -I$FFTW_INCLUDE -L$SUITESPARSE_HOME/lib"
+export LDFLAGS="-L$SUITESPARSE_HOME/lib -L$FFTW_LIB"
 
 ./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-mpi-thread-multiple \
-    --enable-static \
-    --enable-mpi-fortran=all \
-    --enable-mpi-java \
-	--with-slurm \
-    --with-pmi
+    --enable-download \
+    --disable-parms --disable-mshmet --disable-yams
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -196,8 +177,8 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-3.31-2
+echo %{buildroot} | grep -q %{name}-3.31-2 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
@@ -270,7 +251,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -290,25 +270,18 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
+setenv("FREEFEM_HOME",             "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/lib/ff++/3.31-2/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+prepend_path("CPATH",              "%{_prefix}/lib/ff++/3.31-2/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ff++/3.31-2/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/ff++/3.31-2/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/ff++/3.31-2/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/ff++/3.31-2/lib/pkgconfig")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

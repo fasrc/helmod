@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://developer.amd.com/tools-and-sdks/cpu-development/amd-core-math-library-acml/acml-downloads-resources/ 
+Source: %{name}-%{version}-gfortran64.tgz
 
 #
 # there should be no need to change the following
@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments LD_LIBRARY_PATH and CPATH are updated with the basic libraries.  For fma4 or mp versions, you'll want to manually add those directories using ACML_FMA4_LIB / ACML_FMA4_INCLUDE, ACML_MP_LIB / ACML_MP_INCLUDE, or ACML_FMA4_MP_LIB /ACML_FMA4_MP_INCLUDE
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,13 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+Build comments: %(buildcomments}
+AMD Core Math Library, or ACML, provides a free set of thoroughly optimized and threaded math routines for HPC, scientific, engineering and related compute-intensive applications. ACML is ideal for weather modeling, computational fluid dynamics, financial analysis, oil and gas applications and more. ACML consists of the following main components:
+1) A full implementation of Level 1, 2 and 3 Basic Linear Algebra Subroutines (BLAS), with key routines optimized for high performance on AMD Opteron™ processors.  The BLAS level 3 routines will take advantage of heterogeneous computing through OpenCL if detected.
+2) A full suite of Linear Algebra (LAPACK) routines. As well as taking advantage of the highly-tuned BLAS kernels, a key set of LAPACK routines has been further optimized to achieve considerably higher performance than standard LAPACK implementations.
+3) Beginning version 6 of ACML, a subset of FFTW interfaces are supported for Fourier transform functionality. Heterogeneous compute with GPU/APU and OpenCL is supported through the FFTW interfaces. A comprehensive set of FFTs through ACML specific API (found in version 5 and older) continues to be available in version 6.
+4) Random Number Generators in both single- and double-precision.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +117,7 @@ The Open MPI Project is an open source Message Passing Interface implementation 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+mkdir %{name}-%{version}
 
 
 
@@ -139,34 +143,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-	--enable-mpi-thread-multiple \
-    --enable-static \
-    --enable-mpi-fortran=all \
-    --enable-mpi-java \
-	--with-slurm \
-    --with-pmi
+# Move tarball extraction to build phase so that $FC can be used 
+export TARNAME=%{name}-%{version}-${FC}64.tgz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/${TARNAME}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 
@@ -199,8 +183,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r ${FC}64/* %{buildroot}/%{_prefix}
+cp -r ${FC}64_mp %{buildroot}/%{_prefix}/mp
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -290,24 +274,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+setenv("ACML_HOME",                 "%{_prefix}")
+setenv("ACML_LIB",                  "%{_prefix}/lib")
+setenv("ACML_INCLUDE",              "%{_prefix}/include")
+setenv("ACML_MP_HOME",              "%{_prefix}/mp")
+setenv("ACML_MP_LIB",               "%{_prefix}/mp/lib")
+setenv("ACML_MP_INCLUDE",           "%{_prefix}/mp/include")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file

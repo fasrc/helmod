@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 URL: https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -133,7 +133,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpif90 && ./configure --prefix=%{_prefix} \
+export FC=mpif90 F95=mpif90 && ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
