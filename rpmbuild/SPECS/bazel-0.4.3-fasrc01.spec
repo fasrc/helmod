@@ -112,41 +112,36 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 # configure CROSSTOOL
-GCC_PATH=$(which gcc)
-CPP_PATH=$(which cpp)
-LD_PATH=$(which ld)
-AR_PATH=$(which ar)
-AS_PATH=$(which as)
 GCC_MODULE_ROOT=$(readlink -f "$(dirname $GCC_PATH)/..")
 
 cat <<EOF | patch -p1
 diff --git a/tools/cpp/CROSSTOOL b/tools/cpp/CROSSTOOL
-index dd63b3e..7d80307 100755
+index dd63b3e..bc55f03 100755
 --- a/tools/cpp/CROSSTOOL
 +++ b/tools/cpp/CROSSTOOL
-@@ -90,20 +90,27 @@ toolchain {
+@@ -90,34 +90,41 @@ toolchain {
    target_system_name: "local"
    toolchain_identifier: "local_linux"
-
+ 
 -  tool_path { name: "ar" path: "/usr/bin/ar" }
 -  tool_path { name: "compat-ld" path: "/usr/bin/ld" }
 -  tool_path { name: "cpp" path: "/usr/bin/cpp" }
-+  tool_path { name: "ar" path: "${AR_PATH}" }
-+  tool_path { name: "as" path: "${AS_PATH}" }
-+  tool_path { name: "compat-ld" path: "${LD_PATH}" }
-+  tool_path { name: "cpp" path: "${CPP_PATH}" }
++  tool_path { name: "ar" path: "${BINUTILS_HOME}/bin/ar" }
++  tool_path { name: "as" path: "${BINUTILS_HOME}/bin/as" }
++  tool_path { name: "compat-ld" path: "${BINUTILS_HOME}/bin/ld" }
++  tool_path { name: "cpp" path: "${GCC_MODULE_ROOT}/bin/cpp" }
    tool_path { name: "dwp" path: "/usr/bin/dwp" }
 -  tool_path { name: "gcc" path: "/usr/bin/gcc" }
-+  tool_path { name: "gcc" path: "${GCC_PATH}" }
++  tool_path { name: "gcc" path: "${GCC_MODULE_ROOT}/bin/gcc" }
    cxx_flag: "-std=c++0x"
    linker_flag: "-lstdc++"
 -  linker_flag: "-B/usr/bin/"
 +  linker_flag: "-B${GCC_MODULE_ROOT}/bin/"
 +  linker_flag: "-Wl,-rpath,${GCC_MODULE_ROOT}/lib64"
-+  linker_flag: "-Wl,-rpath,${MPC_HOME/lib64}"
-+  linker_flag: "-Wl,-rpath,${MPFR_HOME/lib64}"
-+  linker_flag: "-Wl,-rpath,${GMP_HOME/lib64}"
-
++  linker_flag: "-Wl,-rpath,${MPC_HOME}/lib"
++  linker_flag: "-Wl,-rpath,${MPFR_HOME}/lib64"
++  linker_flag: "-Wl,-rpath,${GMP_HOME}/lib64"
+ 
    # TODO(bazel-team): In theory, the path here ought to exactly match the path
    # used by gcc. That works because bazel currently doesn't track files at
    # absolute locations and has no remote execution, yet. However, this will need
@@ -157,7 +152,27 @@ index dd63b3e..7d80307 100755
 +  cxx_builtin_include_directory: "${JAVA_HOME}/include"
    cxx_builtin_include_directory: "/usr/local/include"
    cxx_builtin_include_directory: "/usr/include"
-   tool_path { name: "gcov" path: "/usr/bin/gcov" }
+-  tool_path { name: "gcov" path: "/usr/bin/gcov" }
++  tool_path { name: "gcov" path: "${BINUTILS_HOME}/bin/gcov" }
+ 
+   # C(++) compiles invoke the compiler (as that is the one knowing where
+   # to find libraries), but we provide LD so other rules can invoke the linker.
+-  tool_path { name: "ld" path: "/usr/bin/ld" }
++  tool_path { name: "ld" path: "${BINUTILS_HOME/bin/ld" }
+ 
+-  tool_path { name: "nm" path: "/usr/bin/nm" }
+-  tool_path { name: "objcopy" path: "/usr/bin/objcopy" }
++  tool_path { name: "nm" path: "${BINUTILS_HOME}/bin/nm" }
++  tool_path { name: "objcopy" path: "${BINUTILS_HOME}/bin/objcopy" }
+   objcopy_embed_flag: "-I"
+   objcopy_embed_flag: "binary"
+-  tool_path { name: "objdump" path: "/usr/bin/objdump" }
+-  tool_path { name: "strip" path: "/usr/bin/strip" }
++  tool_path { name: "objdump" path: "${BINUTILS_HOME}/bin/objdump" }
++  tool_path { name: "strip" path: "${BINUTILS_HOME}/bin/strip" }
+ 
+   # Anticipated future default.
+   unfiltered_cxx_flag: "-no-canonical-prefixes"
 EOF
 
 cat <<EOF | patch -p1
@@ -166,7 +181,7 @@ index 330a068..67cda8e 100755
 --- a/tools/cpp/cc_configure.bzl
 +++ b/tools/cpp/cc_configure.bzl
 @@ -100,7 +100,7 @@ def _execute(repository_ctx, command, environment = None):
-
+ 
  def _get_tool_paths(repository_ctx, darwin, cc):
    """Compute the path to the various tools."""
 -  return {k: _which(repository_ctx, k, "/usr/bin/" + k)
@@ -183,8 +198,8 @@ index 330a068..67cda8e 100755
 +              "ar": "${BINUTILS_HOME}/libtool"
 +                    if darwin else _which(repository_ctx, "ar", "${BINUTILS_HOME}/ar")
            }
-
-
+ 
+ 
 @@ -221,8 +221,8 @@ def _crosstool_content(repository_ctx, cc, cpu_value, darwin):
                "-headerpad_max_install_names",
            ] if darwin else [
