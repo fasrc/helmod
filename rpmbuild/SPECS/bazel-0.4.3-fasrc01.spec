@@ -209,6 +209,21 @@ index 330a068..67cda8e 100755
            # has false positives
 EOF
 
+cat <<EOF | patch -p1
+diff --git a/third_party/protobuf/3.0.0/protobuf.bzl b/third_party/protobuf/3.0.0/protobuf.bzl
+index 0e8c2e2..0d8a835 100755
+--- a/third_party/protobuf/3.0.0/protobuf.bzl
++++ b/third_party/protobuf/3.0.0/protobuf.bzl
+@@ -72,6 +72,7 @@ def _proto_gen_impl(ctx):
+         outputs=ctx.outputs.outs,
+         arguments=args + import_flags + [s.path for s in srcs],
+         executable=ctx.executable.protoc,
++        use_default_shell_env=True,
+     )
+
+   return struct(
+EOF
+
 # have to bump user process limit otherwise you run into this:
 # https://github.com/bazelbuild/bazel/issues/2177
 ulimit -u 100000
