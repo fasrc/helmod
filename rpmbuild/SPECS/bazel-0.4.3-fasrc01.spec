@@ -156,6 +156,8 @@ EOF
 # https://github.com/bazelbuild/bazel/issues/2177
 ulimit -u 100000
 
+export EXTRA_BAZEL_ARGS="-s --verbose_failures --ignore_unsupported_sandboxing --genrule_strategy=standalone --spawn_strategy=standalone --jobs $(egrep -c 'processor\s+:' /proc/cpuinfo)"
+
 ./compile.sh
 
 %install
