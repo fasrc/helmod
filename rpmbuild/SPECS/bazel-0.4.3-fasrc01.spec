@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 URL: http://bazel.io
-Source: %{name}-%{version}.tar.gz
+Source: %{name}-%{version}-dist.zip
 
 #
 # there should be no need to change the following
