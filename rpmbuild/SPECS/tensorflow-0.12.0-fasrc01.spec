@@ -82,8 +82,8 @@ a wide variety of other domains as well.
 %define buildhostversion 1
 
 
-%define builddependencies bazel/20160330-fasrc01 %{rundependencies}
-%define rundependencies gcc/4.8.2-fasrc01 Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
+%define builddependencies bazel/0.4.3-fasrc01 %{rundependencies}
+%define rundependencies gcc/4.9.3-fasrc01 Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -119,83 +119,138 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 # configure CROSSTOOL
 
-GCC_PATH=$(which gcc)
-CPP_PATH=$(which cpp)
 GCC_MODULE_ROOT=$(readlink -f "$(dirname $(which gcc))/..")
+NVCC_PATH=$(which nvcc)
 
 cat <<EOF | patch -p1
-diff --git a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-index 04ab50c..e815d0c 100755
---- a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-+++ b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc
-@@ -45,12 +45,12 @@ import pipes
+diff --git a/third_party/gpus/crosstool/CROSSTOOL.tpl b/third_party/gpus/crosstool/CROSSTOOL.tpl
+index 3ce6b74..eae713a 100644
+--- a/third_party/gpus/crosstool/CROSSTOOL.tpl
++++ b/third_party/gpus/crosstool/CROSSTOOL.tpl
+@@ -42,9 +42,9 @@ toolchain {
+   target_system_name: "local"
+   toolchain_identifier: "local_linux"
  
- # "configure" uses the specific format to substitute the following string.
- # If you change it, make sure you modify "configure" as well.
--CPU_COMPILER = ('/usr/bin/gcc')
--GCC_HOST_COMPILER_PATH = ('/usr/bin/gcc')
-+CPU_COMPILER = ('$GCC_PATH')
-+GCC_HOST_COMPILER_PATH = ('$GCC_PATH')
+-  tool_path { name: "ar" path: "/usr/bin/ar" }
+-  tool_path { name: "compat-ld" path: "/usr/bin/ld" }
+-  tool_path { name: "cpp" path: "/usr/bin/cpp" }
++  tool_path { name: "ar" path: "${BINUTILS_HOME}/bin/ar" }
++  tool_path { name: "compat-ld" path: "${BINUTILS_HOME}/bin/ld" }
++  tool_path { name: "cpp" path: "${GCC_MODULE_ROOT}/bin/cpp" }
+   tool_path { name: "dwp" path: "/usr/bin/dwp" }
+   # As part of the TensorFlow release, we place some cuda-related compilation
+   # files in @local_config_cuda//crosstool/clang/bin, and this relative
+@@ -54,22 +54,25 @@ toolchain {
+   # Use "-std=c++11" for nvcc. For consistency, force both the host compiler
+   # and the device compiler to use "-std=c++11".
+   cxx_flag: "-std=c++11"
++  linker_flag: "-L${GCC_MODULE_ROOT}/lib64"
++  linker_flag: "-Wl,-no-as-needed"
+   linker_flag: "-lstdc++"
+-  linker_flag: "-B/usr/bin/"
++  linker_flag: "-Wl,-rpath,${GCC_MODULE_ROOT}/lib64"
++  #linker_flag: "-B${GCC_MODULE_ROOT}/bin/"
+ 
+ %{gcc_host_compiler_includes}
+-  tool_path { name: "gcov" path: "/usr/bin/gcov" }
++  tool_path { name: "gcov" path: "${GCC_MODULE_ROOT}/bin/gcov" }
+ 
+   # C(++) compiles invoke the compiler (as that is the one knowing where
+   # to find libraries), but we provide LD so other rules can invoke the linker.
+-  tool_path { name: "ld" path: "/usr/bin/ld" }
++  tool_path { name: "ld" path: "${BINUTILS_HOME}/bin/ld" }
+ 
+-  tool_path { name: "nm" path: "/usr/bin/nm" }
+-  tool_path { name: "objcopy" path: "/usr/bin/objcopy" }
++  tool_path { name: "nm" path: "${BINUTILS_HOME}/bin/nm" }
++  tool_path { name: "objcopy" path: "${BINUTILS_HOME}/bin/objcopy" }
+   objcopy_embed_flag: "-I"
+   objcopy_embed_flag: "binary"
+-  tool_path { name: "objdump" path: "/usr/bin/objdump" }
+-  tool_path { name: "strip" path: "/usr/bin/strip" }
++  tool_path { name: "objdump" path: "${BINUTILS_HOME}/bin/objdump" }
++  tool_path { name: "strip" path: "${BINUTILS_HOME}/bin/strip" }
+ 
+   # Anticipated future default.
+   unfiltered_cxx_flag: "-no-canonical-prefixes"
+@@ -121,6 +124,11 @@ toolchain {
+ 
+   # Include directory for cuda headers.
+   cxx_builtin_include_directory: "%{cuda_include_path}"
++  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/lib64/gcc"
++  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/include"
++  cxx_builtin_include_directory: "${CUDA_HOME}/include"
++  cxx_builtin_include_directory: "${CUDA_HOME}/targets/x86_64-linux/include"
++  cxx_builtin_include_directory: "${CUDNN_HOME}/include"
+ 
+   compilation_mode_flags {
+     mode: DBG
+EOF
+
+cat <<EOF | patch -p1
+diff --git a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc.tpl b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc.tpl
+index d3bb93c..237fe83 100755
+--- a/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc.tpl
++++ b/third_party/gpus/crosstool/clang/bin/crosstool_wrapper_driver_is_not_gcc.tpl
+@@ -46,12 +46,12 @@ import sys
+ import pipes
+ 
+ # Template values set by cuda_autoconf.
+-CPU_COMPILER = ('%{cpu_compiler}')
+-GCC_HOST_COMPILER_PATH = ('%{gcc_host_compiler_path}')
++CPU_COMPILER = ('${GCC_MODULE_ROOT}/bin/gcc')
++GCC_HOST_COMPILER_PATH = ('${GCC_MODULE_ROOT}/bin/gcc')
  
  CURRENT_DIR = os.path.dirname(sys.argv[0])
- NVCC_PATH = CURRENT_DIR + '/../../../cuda/bin/nvcc'
+-NVCC_PATH = CURRENT_DIR + '/../../../cuda/bin/nvcc'
 -LLVM_HOST_COMPILER_PATH = ('/usr/bin/gcc')
-+LLVM_HOST_COMPILER_PATH = ('$GCC_PATH')
++NVCC_PATH = '${NVCC_PATH}'
++LLVM_HOST_COMPILER_PATH = ('${GCC_MODULE_ROOT}/bin/gcc')
  PREFIX_DIR = os.path.dirname(GCC_HOST_COMPILER_PATH)
  
  def Log(s):
-@@ -281,9 +281,6 @@ def InvokeNvcc(argv, log=False):
-          ' -I .' +
-          ' -x cu ' + opt + includes + ' -c ' + srcs + out)
+@@ -219,7 +219,7 @@ def InvokeNvcc(argv, log=False):
  
--  # TODO(zhengxq): for some reason, 'gcc' needs this help to find 'as'.
--  # Need to investigate and fix.
+   # TODO(zhengxq): for some reason, 'gcc' needs this help to find 'as'.
+   # Need to investigate and fix.
 -  cmd = 'PATH=' + PREFIX_DIR + ' ' + cmd
++  # cmd = 'PATH=' + PREFIX_DIR + ' ' + cmd
    if log: Log(cmd)
    return os.system(cmd)
  
 EOF
 
 cat <<EOF | patch -p1
-diff --git a/third_party/gpus/crosstool/CROSSTOOL b/third_party/gpus/crosstool/CROSSTOOL
-index dfde7cd..d3dfed7 100644
---- a/third_party/gpus/crosstool/CROSSTOOL
-+++ b/third_party/gpus/crosstool/CROSSTOOL
-@@ -36,23 +36,26 @@ toolchain {
-
-   tool_path { name: "ar" path: "/usr/bin/ar" }
-   tool_path { name: "compat-ld" path: "/usr/bin/ld" }
--  tool_path { name: "cpp" path: "/usr/bin/cpp" }
-+  tool_path { name: "cpp" path: "${CPP_PATH}" }
-   tool_path { name: "dwp" path: "/usr/bin/dwp" }
-   # As part of the TensorFlow release, we place some cuda-related compilation
-   # files in third_party/gpus/crosstool/clang/bin, and this relative
-   # path, combined with the rest of our Bazel configuration causes our
-   # compilation to use those files.
-   tool_path { name: "gcc" path: "clang/bin/crosstool_wrapper_driver_is_not_gcc" }
-   # Use "-std=c++11" for nvcc. For consistency, force both the host compiler
-   # and the device compiler to use "-std=c++11".
-   cxx_flag: "-std=c++11"
-   linker_flag: "-lstdc++"
--  linker_flag: "-B/usr/bin/"
-+  linker_flag: "-B${GCC_MODULE_ROOT}/bin/"
-
-   # TODO(bazel-team): In theory, the path here ought to exactly match the path
-   # used by gcc. That works because bazel currently doesn't track files at
-   # absolute locations and has no remote execution, yet. However, this will need
-   # to be fixed, maybe with auto-detection?
--  cxx_builtin_include_directory: "/usr/lib/gcc/"
-+  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/lib64/gcc"
-+  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/include"
-+  cxx_builtin_include_directory: "${CUDA_HOME}/include"
-+  cxx_builtin_include_directory: "${CUDNN_HOME}/include"
-   cxx_builtin_include_directory: "/usr/local/include"
-   cxx_builtin_include_directory: "/usr/include"
-   tool_path { name: "gcov" path: "/usr/bin/gcov" }
+diff --git a/tensorflow/workspace.bzl b/tensorflow/workspace.bzl
+index 06e16cd..f783d26 100644
+--- a/tensorflow/workspace.bzl
++++ b/tensorflow/workspace.bzl
+@@ -228,9 +228,9 @@ def tf_workspace(path_prefix = "", tf_repo_name = ""):
+ 
+   native.new_http_archive(
+     name = "zlib_archive",
+-    url = "http://zlib.net/zlib-1.2.8.tar.gz",
+-    sha256 = "36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d",
+-    strip_prefix = "zlib-1.2.8",
++    url = "http://zlib.net/zlib-1.2.10.tar.gz",
++    sha256 = "8d7e9f698ce48787b6e1c67e6bff79e487303e66077e25cb9784ac8835978017",
++    strip_prefix = "zlib-1.2.10",
+     build_file = str(Label("//:zlib.BUILD")),
+   )
+ 
 EOF
+
+# NOTE: 6.x only supported in cuda 8+ and tensorflow only supports 3+
+NVIDIA_COMPUTE_CAPABILITIES="5.2,3.7,3.5"
+
+# move ~/.cache/bazel - unfortunately they only have this for 'testing'
+export TEST_TMPDIR="${FASRCSW_DEV}"/rpmbuild/BUILD/bazel-cache
 
 cat <<EOF | ./configure
 $PYTHON_HOME/bin/python
+n
+y
+$PYTHON_HOME/lib/python2.7/site-packages
 n
 y
 $GCC_PATH
@@ -203,9 +258,11 @@ $GCC_PATH
 $CUDA_HOME
 
 $CUDNN_HOME
+$NVIDIA_COMPUTE_CAPABILITIES
 
 EOF
-bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs 4
+
+bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs $(egrep -c 'processor\s+:' /proc/cpuinfo)
 bazel-bin/tensorflow/tools/pip_package/build_pip_package $PWD/wheels
 
 
@@ -219,7 +276,7 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 mkdir -p %{site_packages}
 export PYTHONPATH=%{site_packages}:$PYTHONPATH
-pip install --target=%{site_packages} ./wheels/%{name}-%{version}-py2-none-any.whl
+pip install --target=%{site_packages} ./wheels/%{name}-%{version}-*.whl
 # not sure why this is missing but just touch for now
 touch %{site_packages}/google/__init__.py
 
