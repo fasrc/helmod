@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+fasrcsw-env-check
+
+for p in "$@"; do
+	for comp in $FASRCSW_COMPS; do
+		IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
+		IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
+
+		for cuda in $FASRCSW_CUDAS; do
+			IFS=/ read -r cuda_name cuda_versionrelease <<< "$cuda"
+			IFS=- read -r cuda_version cuda_release     <<< "$cuda_versionrelease"
+			
+			echo "$FASRCSW_DEV/rpmbuild/RPMS/x86_64/${p}_${comp_name}_${comp_version}_${comp_release}_${cuda_name}_${cuda_version}_${cuda_release}.x86_64.rpm"
+		done
+	done
+done

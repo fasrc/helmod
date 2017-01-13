@@ -2,4 +2,4 @@ rpmbuild/BUILD_old
 rpmbuild/oldbuild
 gooddata
 rpmbuild/BUILD
-appdata/*
+appdata*

@@ -6,7 +6,8 @@ do
     export TYPE=Core
     make uninstall
     export TYPE=MPI
+    make uninstall
     make
-    make install
-    echo "All done."
+    make install 
+    make publish
 done

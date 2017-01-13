@@ -191,6 +191,14 @@ prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda-7.5/lib")
 prepend_path("LIBRARY_PATH",        "/usr/local/cuda-7.5/lib")
 prepend_path("LD_LIBRARY_PATH",     "/usr/local/cuda-7.5/lib64")
 prepend_path("LIBRARY_PATH",        "/usr/local/cuda-7.5/lib64")
+
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_CUDA_NAME"   , "%{name}")
+setenv("FASRCSW_CUDA_VERSION", "%{version}")
+setenv("FASRCSW_CUDA_RELEASE", "%{release_short}")
+family("CUDA")
 EOF
 
 #------------------- App data file
