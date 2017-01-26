@@ -84,7 +84,7 @@ a wide variety of other domains as well.
 
 %define builddependencies bazel/0.4.3-fasrc01 %{rundependencies}
 %define rundependencies gcc/4.9.3-fasrc01 Anaconda/2.5.0-fasrc01 cuda/7.5-fasrc01 cudnn/7.0-fasrc01
-%define buildcomments %{nil}
+%define buildcomments This build is CPU-only - use the module-query command to find a GPU-enabled version
 %define requestor %{nil}
 %define requestref %{nil}
 
