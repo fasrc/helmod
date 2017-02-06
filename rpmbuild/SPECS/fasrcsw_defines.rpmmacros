@@ -39,6 +39,10 @@
 		%define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}
 		%define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
 	%endif
+    %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
+        %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+        %define  hierarchy         CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{cuda_name}/%{cuda_version}-%{cuda_release}
+    %endif
 %else
 	
 		%define  release_full      %{release_short}

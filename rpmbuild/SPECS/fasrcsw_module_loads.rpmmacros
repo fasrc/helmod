@@ -7,6 +7,9 @@ source /usr/local/bin/lmod.sh
 	%if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
 		module load %{mpi_name}/%{mpi_version}-%{mpi_release}
 	%endif
+    %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
+        module load %{cuda_name}/%{cuda_version}-%{cuda_release}
+    %endif
 %endif
 
 %if %{defined builddependencies}
