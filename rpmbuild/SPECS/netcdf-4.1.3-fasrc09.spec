@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies hdf5/1.8.12-fasrc12
+%define builddependencies hdf5/1.8.12-fasrc12 zlib/1.2.8-fasrc07
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -138,8 +138,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+test "%{type}" == "MPI" && export FC=mpif90 F90=mpif90 CC=mpicc
+test "%{comp_name}" == "pgi" && export FC=pgf90 F90=pgf90 CC=pgcc CPPFLAGS="-DNDEBUG -DpgiFortran" FCFLAGS="-fPIC" F90FLAGS="-fPIC"
+
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+%define ccdef "mpicc -I$HDF5_INCLUDE -L$HDF5_LIB"
+export CFLAGS=-fPIC
+export CXXFLAGS=-fPIC
 
 autoreconf
 ./configure --prefix=%{_prefix} \
@@ -148,7 +155,7 @@ autoreconf
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------

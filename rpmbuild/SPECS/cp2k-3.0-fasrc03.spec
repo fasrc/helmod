@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP.
+%define summary_static CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.2.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://downloads.sourceforge.net/project/cp2k/cp2k-3.0.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -73,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies pexsi/0.9.0-fasrc01 elpa/2016.05.003-fasrc01 fftw/3.3.5-fasrc01 libint/1.1.5-fasrc01 libxc/3.0.0-fasrc01 scalapack/2.0.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Amit Levi <alevi@cfa.harvard.edu
+%define requestref RCRT:104944
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,12 +94,15 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
+CP2K is a quantum chemistry and solid state physics software package that can perform atomistic simulations of solid state, liquid, molecular, periodic, material, crystal, and biological systems. CP2K provides a general framework for different modeling methods such as DFT using the mixed Gaussian and plane waves approaches GPW and GAPW. Supported theory levels include DFTB, LDA, GGA, MP2, RPA, semi-empirical methods (AM1, PM3, PM6, RM1, MNDO, …), and classical force fields (AMBER, CHARMM, …). CP2K can do simulations of molecular dynamics, metadynamics, Monte Carlo, Ehrenfest dynamics, vibrational analysis, core level spectroscopy, energy minimization, and transition state optimization using NEB or dimer method.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
+#
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -121,6 +124,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+#
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -133,36 +139,65 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# configure complains about F90
+if [[ "%{comp_name}" == "gcc" ]]; then
 
-unset F90
+module load acml/5.3.1-fasrc01
 
-./configure LDFLAGS="-L/usr/lib64 -lpciaccess" --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --enable-fc \
-    --enable-f77 \
-    --with-device=ch3:nemesis:ib \
-    --enable-threads=multiple \
-    --enable-cxx \
-    --with-pmi \
-    --with-slurm
+cat <<EOF > arch/odyssey.psmp
+CC         = gcc
+CPP        =
+FC         = mpif90
+LD         = mpif90
+AR         = ar -r
+DFLAGS     = -D__FFTW3 -D__LIBINT -D__LIBXC2 -D__LIBINT_MAX_AM=7 -D__LIBDERIV_MAX_AM1=6 -D__MAX_CONTR=4  -D__parallel -D__SCALAPACK
+CPPFLAGS   =
+FCFLAGS    = \$(DFLAGS) -O2 -ffast-math -ffree-form -ffree-line-length-none -fopenmp -ftree-vectorize -funroll-loops  -mtune=native -I${ACML_INCLUDE} -I${FFTW_INCLUDE} -I${LIBINT_INCLUDE} -I${LIBXC_INCLUDE}
+LDFLAGS    = \$(FCFLAGS) -static-libgfortran
+LIBS       = ${SCALAPACK_HOME}/lib/libscalapack.a ${ACML_LIB}/libacml.a  ${FFTW_LIB}/libfftw3.a ${FFTW_LIB}/libfftw3_threads.a  ${LIBXC_LIB}/libxcf90.a ${LIBXC_LIB}/libxc.a  ${LIBINT_LIB}/libderiv.a  ${LIBINT_LIB}/libint.a
+EOF
+
+fi
+
+if [[ "%{comp_name}" == "intel" ]]; then
+
+cat <<EOF > arch/odyssey.psmp
+CC       = icc
+CPP      = /lib/cpp
+FC       = mpif90 -FR
+FC_fixed = mpif90 -FI
+LD       = mpif90
+AR       = /usr/bin/ar -r
+#Better with mkl (intel lapack/blas) only
+#DFLAGS   = -D__INTEL -D__FFTSG -D__parallel
+#If you want to use BLACS and SCALAPACK use the flags below
+DFLAGS   = -D__INTEL -D__FFTSG -D__parallel -D__BLACS -D__SCALAPACK
+CPPFLAGS = -C \$(DFLAGS) -P -traditional
+FCFLAGS  = -O2 -pc64 -unroll -openmp -heap-arrays 64
+#verify if the path to the mkl libraries is already defined and/or differs from this
+LDFLAGS  = \$(FCFLAGS) -L${MKL_HOME}/lib/intel64
+#If you want to use BLACS and SCALAPACK use the libraries below
+LIBS     = -mkl=parallel -lmkl_scalapack_lp64 -lmkl_blacs_openmpi_lp64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lm -lpthread -liomp5 -openmp
+EOF
+
+fi
+
+# Patch for bug (https://groups.google.com/forum/#!msg/cp2k/elKLhTu-KL4/MGx37ZO2CQAJ)
+cat <<EOF | patch src/xc/xc_libxc_wrap.F
+59c59,60
+<                                              XC_HYB_MGGA_X_M11,&
+---
+>                                              !XC_HYB_MGGA_X_M11,&
+>                                              XC_MGGA_X_M11,&
+66c67,68
+<                                              XC_MGGA_X_MS2H,&
+---
+>                                              !XC_MGGA_X_MS2H,&
+>                                              XC_HYB_MGGA_X_MS2H,&
+EOF
 
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+
+(cd makefiles && make ARCH=odyssey VERSION=psmp)
 
 
 
@@ -174,6 +209,8 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -192,8 +229,10 @@ make %{?_smp_mflags}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/{lib,bin}
+cp -r exe/odyssey/*  %{buildroot}/%{_prefix}/bin
+cp -r lib/odyssey/psmp/*  %{buildroot}/%{_prefix}/lib
+
 
 
 #(this should not need to be changed)
@@ -284,24 +323,11 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+setenv("CP2K_HOME",                "%{_prefix}")
+setenv("CP2K_LIB",                 "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file

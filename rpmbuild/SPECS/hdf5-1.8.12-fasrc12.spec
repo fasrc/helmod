@@ -78,7 +78,7 @@ HDF5 is a data model, library, and file format for storing and managing data. It
 %define buildhostversion 1
 
 
-%define builddependencies zlib/1.2.8-fasrc07
+%define builddependencies zlib/1.2.8-fasrc07 szip/2.1-fasrc02
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -151,7 +151,8 @@ test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
+     --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
+     --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
 	
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel

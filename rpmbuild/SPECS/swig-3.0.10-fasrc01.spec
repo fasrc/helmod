@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://sourceforge.net/projects/swig/files/swig/swig-3.0.3/swig-3.0.3.tar.gz
+URL: https://sourceforge.net/projects/swig/files/swig/swig-3.0.10/swig-3.0.10.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SWIG is a software development tool that connects programs written in C and C++ with a variety of high-level programming languages. This module has been installed by Plamen G. Krastev.
+SWIG is a software development tool that connects programs written in C and C++ with a variety of high-level programming languages. This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,20 +140,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -281,8 +268,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("SWIG_HOME",                "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
