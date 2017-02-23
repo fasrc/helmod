@@ -2,49 +2,78 @@
 set -e
 
 fasrcsw-env-check
+
+inspect=false
+nocudaargs=true
+for arg in "$@"; do
+    if [ "$arg" = 'inspect yes' ]; then
+        inspect=true
+        break
+    fi
+    if [ "$arg" = 'cuda_name' ]; then
+        nocudaargs=false
+        break
+    fi
+done
+
+handle_error (){
+    echo -n "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed" >&2
+    if [ $inspect ]; then
+        echo -n " (but 'inspect' was used, so this might be expected)" >&2
+    fi
+    echo ":" >&2
+    echo -n "    fasrcsw-rpmbuild-Core" >&2
+
+    echo -n " '--define' 'comp_name $comp_name'" >&2
+    echo -n " '--define' 'comp_version $comp_version'" >&2
+    echo -n " '--define' 'comp_release $comp_release'" >&2
+    for arg in "$@"; do
+        echo -n " '$arg'" >&2
+    done
+    echo >&2
+}
+
 for comp in $FASRCSW_COMPS; do
-	IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
-	IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
-	echo
-	echo
-	echo "fasrcsw: building an rpm"
-	echo
+    IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
+    IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
+    echo
+    echo
+    echo "fasrcsw: building an rpm"
+    echo
 
-	set +e
-	set -x
-	fasrcsw-rpmbuild-Core \
-		--define "comp_name $comp_name" --define "comp_version $comp_version" --define "comp_release $comp_release" \
-		"$@"
-	status=$?
-	set +x
-	if [ $status -ne 0 ]; then
-		inspect=false
-		
-		for arg in "$@"; do
-			if [ "$arg" = 'inspect yes' ]; then
-				inspect=true
-				break
-			fi
-		done
-
-		echo -n "*** ERROR *** the following fasrcsw-rpmbuild-Core command failed" >&2
-		if $inspect; then
-			echo -n " (but 'inspect' was used, so this might be expected)" >&2
-		fi
-		echo ":" >&2
-		echo -n "    fasrcsw-rpmbuild-Core" >&2
-
-		echo -n " '--define' 'comp_name $comp_name'" >&2
-		echo -n " '--define' 'comp_version $comp_version'" >&2
-		echo -n " '--define' 'comp_release $comp_release'" >&2
-		for arg in "$@"; do
-			echo -n " '$arg'" >&2
-		done
-		echo >&2
-		
-		exit $status
-	fi
-	set -e
+    if [[ -n $FASRCSW_CUDAS && nocudaargs ]]; then
+        for cuda in $FASRCSW_CUDAS; do
+            IFS=/ read -r cuda_name cuda_versionrelease <<< "$cuda"
+            IFS=- read -r cuda_version cuda_release     <<< "$cuda_versionrelease"
+            set +e
+            set -x
+            fasrcsw-rpmbuild-Core \
+                --define "comp_name $comp_name" --define "comp_version $comp_version" --define "comp_release $comp_release" \
+                --define "cuda_name $cuda_name" --define "cuda_version $cuda_version" --define "cuda_release $cuda_release" \
+                "$@"
+            status=$?
+            set +x
+            if [ $status -ne 0 ]; then
+                handle_error
+                exit $status
+            fi
+            set -e
+        done
+    else
+        set +e
+        set -x
+        fasrcsw-rpmbuild-Core \
+            --define "comp_name $comp_name" --define "comp_version $comp_version" --define "comp_release $comp_release" \
+            "$@"
+        status=$?
+        set +x
+        if [ $status -ne 0 ]; then
+            handle_error
+            exit $status
+        fi
+        set -e
+    fi
 done
 
 echo fasrcsw-rpmbuild-Comp SUCCESS
+

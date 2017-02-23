@@ -2,6 +2,30 @@
 set -e
 
 fasrcsw-env-check
-rpmbuild $RPMBUILD_OPTS --dbpath "$FASRCSW_PROD"/rpmdb "$@"
+nocudaargs=true
+for arg in "$@"; do
+    if [ "$arg" = 'cuda_name' ]; then
+        nocudaargs=false
+        break
+    fi
+done
+
+if [ -n $FASRCSW_VERBOSE ]; then
+    echo "rpmbuild $RPMBUILD_OPTS --dbpath $FASRCSW_PROD/rpmdb $@"
+fi
+
+if [[ -n $FASRCSW_CUDAS && nocudaargs ]]; then
+    for cuda in $FASRCSW_CUDAS; do
+        IFS=/ read -r cuda_name cuda_versionrelease <<< "$cuda"
+        IFS=- read -r cuda_version cuda_release     <<< "$cuda_versionrelease"
+
+        rpmbuild $RPMBUILD_OPTS --dbpath "$FASRCSW_PROD"/rpmdb \
+        --define "cuda_name $cuda_name" --define "cuda_version $cuda_version" --define "cuda_release $cuda_release" \
+        "$@"
+    done
+else
+    rpmbuild $RPMBUILD_OPTS --dbpath "$FASRCSW_PROD"/rpmdb "$@"
+fi
 
 echo fasrcsw-rpmbuild-Core SUCCESS
+
