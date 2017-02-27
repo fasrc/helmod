@@ -249,8 +249,6 @@ $NVIDIA_COMPUTE_CAPABILITIES
 
 EOF
 
-exit 1
-
 bazel build -c opt //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs $(egrep -c 'processor\s+:' /proc/cpuinfo)
 bazel-bin/tensorflow/tools/pip_package/build_pip_package $PWD/wheels
 
