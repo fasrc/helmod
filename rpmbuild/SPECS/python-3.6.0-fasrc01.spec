@@ -1,8 +1,5 @@
 #------------------- package info ----------------------------------------------
 
-# binary package
-%define __prelink_undo_cmd %{nil}
-
 #
 # enter the simple app name, e.g. myapp
 #
@@ -33,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a Python distribution for large-scale data processing, predictive analytics, and scientific computing
+%define summary_static the Anaconda distribution of the Python programming language
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://repo.continuum.io/archive/Anaconda2-4.3.0-Linux-x86_64.sh
+#URL: n/a since this is just a wrapper modules
 #Source: %{name}-%{version}.tar.gz
 
 #
@@ -76,17 +73,16 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Remove hdf5 h5py mpich2 mpi4py
+%define rundependencies Anaconda3/4.3.0-fasrc01
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
 %define apppublication %{nil}
-
 
 
 #
@@ -94,7 +90,12 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-A completely free enterprise-ready Python distribution for large-scale data processing, predictive analytics, and scientific computing, from Continuum Analytics.
+Python is an interpreted, interactive, object-oriented programming
+language often compared to Tcl, Perl, Scheme or Java. Python includes
+modules, classes, exceptions, very high level dynamic data types and
+dynamic typing. Python supports interfaces to many system calls and
+libraries, as well as to various windowing systems (X11, Motif, Tk,
+Mac and MFC).
 
 
 
@@ -142,46 +143,13 @@ A completely free enterprise-ready Python distribution for large-scale data proc
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#--- This app insists on writing directly to the prefix.  Complicating, things, 
-#    it also insists that the prefix not exist, so even the symlink hack needs 
-#    to be further hacked (introduce an additional sub-directory).
-
-# Standard stuff.
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
-# Symlink the final prefix (which the build insists on using), to the 
-# buildroot (the temporary place where we want to install it now).  
-# Note that this will fail if this is not the first build of this 
-# NAME/VERSION/RELEASE/TYPE.
-sudo mkdir -p "$(dirname %{_prefix})"
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-#base sharball execution
-#-b ~ batch, -p ~ prefix
-unset PYTHONPATH
-bash %{_topdir}/SOURCES/%{name}2-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
-touch %{_prefix}/x/lib/python2.7/site-packages/easy-install.pth
-chmod a+r %{_prefix}/x
-
-# Remove hdf5 so that a local version can be created when needed.
-# %{_prefix}/x/bin/conda install nomkl numpy scipy scikit-learn numexpr --yes
-for pkg in hdf5; do
-    %{_prefix}/x/bin/conda remove --yes $pkg
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
-
-# After mkl removal, need to replace numpy, scipy
-# %{_prefix}/x/bin/conda remove --yes numpy
-# %{_prefix}/x/bin/pip install numpy==1.10.4
-
-# %{_prefix}/x/bin/conda remove --yes scipy
-# %{_prefix}/x/bin/pip install scipy==0.17.0
-
-# Clean up that symlink.  The parent dir may be left over, oh well.
-sudo rm "%{_prefix}"
-
-#---
-
 
 #this is the part that allows for inspecting the build output without fully creating the rpm
 #there should be no need to change this
@@ -246,12 +214,14 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
--- environment changes (uncomment what is relevant)
-setenv("PYTHON_HOME",               "%{_prefix}/x")
-setenv("PYTHON_INCLUDE",            "%{_prefix}/x/include")
-setenv("PYTHON_LIB",                "%{_prefix}/x/lib")
-prepend_path("PATH",                "%{_prefix}/x/bin")
+
+---- prerequisite apps (uncomment and tweak if necessary)
+for i in string.gmatch("%{rundependencies}","%%S+") do 
+    load(i)
+end
+
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -276,7 +246,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -295,7 +264,7 @@ EOF
 # everything in fasrcsw is installed in an app hierarchy in which some 
 # components may need creating, but no single rpm should own them, since parts 
 # are shared; only do this if it looks like an app-specific prefix is indeed 
-# being used (that is the fasrcsw default)
+# being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 #

@@ -40,7 +40,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://repo.continuum.io/archive/Anaconda2-4.3.0-Linux-x86_64.sh
+URL: https://repo.continuum.io/archive/Anaconda3-4.3.0-Linux-x86_64.sh
 #Source: %{name}-%{version}.tar.gz
 
 #
@@ -77,7 +77,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Remove hdf5 h5py mpich2 mpi4py
+%define buildcomments Remove hdf5 h5py
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -160,9 +160,7 @@ sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 #base sharball execution
 #-b ~ batch, -p ~ prefix
 unset PYTHONPATH
-bash %{_topdir}/SOURCES/%{name}2-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
-touch %{_prefix}/x/lib/python2.7/site-packages/easy-install.pth
-chmod a+r %{_prefix}/x
+bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
 
 # Remove hdf5 so that a local version can be created when needed.
 # %{_prefix}/x/bin/conda install nomkl numpy scipy scikit-learn numexpr --yes
@@ -170,12 +168,6 @@ for pkg in hdf5; do
     %{_prefix}/x/bin/conda remove --yes $pkg
 done
 
-# After mkl removal, need to replace numpy, scipy
-# %{_prefix}/x/bin/conda remove --yes numpy
-# %{_prefix}/x/bin/pip install numpy==1.10.4
-
-# %{_prefix}/x/bin/conda remove --yes scipy
-# %{_prefix}/x/bin/pip install scipy==0.17.0
 
 # Clean up that symlink.  The parent dir may be left over, oh well.
 sudo rm "%{_prefix}"
