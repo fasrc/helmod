@@ -111,7 +111,7 @@ The NVIDIA CUDA Deep Neural Network library (cuDNN) is a GPU-accelerated library
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD
 rm -rf cuda
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-8.0-linux-x64-v5.1-prod.tgz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-8.0-linux-x64-v5.1.tgz
 cd cuda
 chmod -Rf a+rX,u+w,g-w,o-w .
 
