@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{nil}
-%define buildcomments x86-64 binary; Built as Helmod CUDA module
+%define buildcomments x86-64 binary built against cuda 8.0; Built as Helmod CUDA module
 %define requestor %{nil}
 %define requestref %{nil}
 
