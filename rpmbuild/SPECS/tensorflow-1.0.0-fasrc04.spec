@@ -83,10 +83,10 @@ a wide variety of other domains as well.
 %define buildhostversion 1
 
 %define builddependencies bazel/0.4.3-fasrc01 %{rundependencies}
-%define rundependencies Anaconda/2.5.0-fasrc01 cudnn/7.0-fasrc02
-%define buildcomments This build is GPU
-%define requestor %{nil}
-%define requestref %{nil}
+%define rundependencies Anaconda3/4.3.0-fasrc01 cudnn/7.0-fasrc02
+%define buildcomments This build is GPU and python 3
+%define requestor Jessica Forde <jzf2101@gmail.com>
+%define requestref RCRT:110620
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -99,7 +99,7 @@ a wide variety of other domains as well.
 
 %include fasrcsw_module_loads.rpmmacros
 
-%define python_version $(python -c 'import sys; print "python%s.%s" % sys.version_info[0:2]')
+%define python_version $(python -c 'import sys; print("python%s.%s" % sys.version_info[0:2])')
 %define site_packages %{buildroot}/%{_prefix}/lib/%{python_version}/site-packages
 
 umask 022
@@ -245,6 +245,7 @@ cat <<EOF | patch configure
 > XOF
 EOF
 
+
 cat <<EOF | ./configure
 $PYTHON_HOME/bin/python
 
@@ -252,7 +253,7 @@ N
 N
 N
 N
-$PYTHON_HOME/lib/python2.7/site-packages
+$PYTHON_HOME/lib/python3.6/site-packages
 n
 y
 $GCC_PATH

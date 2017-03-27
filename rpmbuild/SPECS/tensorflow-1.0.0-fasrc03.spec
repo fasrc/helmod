@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static TensorFlow version 1.0 (GPU)
+%define summary_static TensorFlow version 1.0 (CPU-only)
 Summary: %{summary_static}
 
 #
@@ -55,7 +55,7 @@ Release: %{release_full}
 Prefix: %{_prefix}
 
 %description
-NOTE: This is the GPU version - use tensorflow/1.0.0-fasrc01 for CPU-only
+NOTE: This is the CPU-only version - use tensorflow/0.12.0-fasrc01 for GPU
 TensorFlow is an open source software library for numerical computation using
 data flow graphs. Nodes in the graph represent mathematical operations, while
 the graph edges represent the multidimensional data arrays (tensors)
@@ -83,8 +83,8 @@ a wide variety of other domains as well.
 %define buildhostversion 1
 
 %define builddependencies bazel/0.4.3-fasrc01 %{rundependencies}
-%define rundependencies Anaconda/2.5.0-fasrc01 cudnn/7.0-fasrc02
-%define buildcomments This build is GPU
+%define rundependencies Anaconda3/4.3.0-fasrc01
+%define buildcomments This build is CPU-only, using Anaconda3 4.3.0 (python 3.6.0) 
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -99,7 +99,7 @@ a wide variety of other domains as well.
 
 %include fasrcsw_module_loads.rpmmacros
 
-%define python_version $(python -c 'import sys; print "python%s.%s" % sys.version_info[0:2]')
+%define python_version $(python -c 'import sys; print("python%s.%s" % sys.version_info[0:2])')
 %define site_packages %{buildroot}/%{_prefix}/lib/%{python_version}/site-packages
 
 umask 022
@@ -120,24 +120,21 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 # configure CROSSTOOL
 
 GCC_MODULE_ROOT=$(readlink -f "$(dirname $(which gcc))/..")
-NVCC_PATH=$(which nvcc)
+NVCC_PATH=/dont/use/gpu
 
-sed -i -e "s?tool_path { name: \"ar\".*?tool_path { name: \"ar\" path: \"${BINUTILS_HOME}/bin/ar\" }?" \
-       -e "s?tool_path { name: \"compat-ld\".*?tool_path { name: \"compat-ld\" path: \"${BINUTILS_HOME}/bin/ld\" }?" \
-       -e "s?tool_path { name: \"cpp\".*?tool_path { name: \"cpp\" path: \"${GCC_MODULE_ROOT}/bin/cpp\" }?" \
-       -e "/cxx_flag: \"-std=c++11\"/a linker_flag: \"-Wl,-no-as-needed\"" \
-       -e "/cxx_flag: \"-std=c++11\"/a linker_flag: \"-L${GCC_MODULE_ROOT}/lib64\"" \
-       -e "s?linker_flag: \"-B/usr/bin/\"?linker_flag: \"-Wl,-rpath,${GCC_MODULE_ROOT}/lib64\"?" \
-       -e "s?tool_path { name: \"ld\".*?tool_path { name: \"ld\" path: \"${BINUTILS_HOME}/bin/ld\" }?" \
-       -e "s?tool_path { name: \"nm\" path.*?tool_path { name: \"nm\" path: \"${BINUTILS_HOME}/bin/nm\" }?" \
-       -e "s?tool_path { name: \"objcopy\".*?tool_path { name: \"objcopy\" path: \"${BINUTILS_HOME}/bin/objcopy\" }?" \
-       -e "s?tool_path { name: \"objdump\".*?tool_path { name: \"objdump\" path: \"${BINUTILS_HOME}/bin/objdump\" }?" \
-       -e "s?tool_path { name: \"strip\".*?tool_path { name: \"strip\" path: \"${BINUTILS_HOME}/bin/strip\" }?" \
-       -e "/cxx_builtin_include_directory: \"%{cuda_include_path}\"/a  cxx_builtin_include_directory: \"${GCC_MODULE_ROOT}/include\"" \
-       -e "/cxx_builtin_include_directory: \"%{cuda_include_path}\"/a  cxx_builtin_include_directory: \"${CUDA_HOME}/include\"" \
-       -e "/cxx_builtin_include_directory: \"%{cuda_include_path}\"/a  cxx_builtin_include_directory: \"${CUDA_HOME}/targets/x86_64-linux/include\"" \
-       -e "/cxx_builtin_include_directory: \"%{cuda_include_path}\"/a  cxx_builtin_include_directory: \"${CUDNN_HOME}/include\"" \
-       -e "/cxx_builtin_include_directory: \"%{cuda_include_path}\"/a  cxx_builtin_include_directory: \"${GCC_MODULE_ROOT}/lib64/gcc\""  third_party/gpus/crosstool/CROSSTOOL.tpl
+sed -i -e 's?tool_path { name: "ar".*?tool_path { name: "ar" path: "${BINUTILS_HOME}/bin/ar" }?' \
+       -e 's?tool_path { name: "compat-ld".*?tool_path { name: "compat-ld" path: "${BINUTILS_HOME}/bin/ld" }?' \
+       -e 's?tool_path { name: "cpp".*?tool_path { name: "cpp" path: "${GCC_MODULE_ROOT}/bin/cpp" }?' \
+       -e '/cxx_flag: "-std=c++11"/a linker_flag: "-Wl,-no-as-needed"' \
+       -e '/cxx_flag: "-std=c++11"/a linker_flag: "-L${GCC_MODULE_ROOT}/lib64"' \
+       -e 's?linker_flag: "-B/usr/bin/"?linker_flag: "-Wl,-rpath,${GCC_MODULE_ROOT}/lib64"?' \
+       -e 's?tool_path { name: "ld".*?tool_path { name: "ld" path: "${BINUTILS_HOME}/bin/ld" }?' \
+       -e 's?tool_path { name: "nm" path.*?tool_path { name: "nm" path: "${BINUTILS_HOME}/bin/nm" }?' \
+       -e 's?tool_path { name: "objcopy".*?tool_path { name: "objcopy" path: "${BINUTILS_HOME}/bin/objcopy" }?' \
+       -e 's?tool_path { name: "objdump".*?tool_path { name: "objdump" path: "${BINUTILS_HOME}/bin/objdump" }?' \
+       -e 's?tool_path { name: "strip".*?tool_path { name: "strip" path: "${BINUTILS_HOME}/bin/strip" }?' \
+       -e '/cxx_builtin_include_directory: "%{cuda_include_path}"/a  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/include"' \
+       -e '/cxx_builtin_include_directory: "%{cuda_include_path}"/a  cxx_builtin_include_directory: "${GCC_MODULE_ROOT}/lib64/gcc"'  third_party/gpus/crosstool/CROSSTOOL.tpl
 
 
 cat <<EOF | patch -p1
@@ -230,21 +227,6 @@ NVIDIA_COMPUTE_CAPABILITIES="5.2,3.7,3.5"
 # move ~/.cache/bazel - unfortunately they only have this for 'testing'
 export TEST_TMPDIR="${FASRCSW_DEV}"/rpmbuild/BUILD/bazel-cache
 
-cat <<EOF | patch configure
-524a525,535
-> cat <<XOF
-> Python bin \$PYTHON_BIN_PATH
-> Host C compiler \$GCC_HOST_COMPILER_PATH
-> Host CXX compiler \$HOST_CXX_COMPILER
-> os name \$OS_NAME
-> Cuda capabilities \$TF_CUDA_COMPUTE_CAPABILITIES
-> cudnn install path \$CUDNN_INSTALL_PATH
-> cudnn lib path \$CUDA_DNN_LIB_PATH
-> cuda toolkit \$CUDA_TOOLKIT_PATH
-> need cuda \$TF_NEED_CUDA
-> XOF
-EOF
-
 cat <<EOF | ./configure
 $PYTHON_HOME/bin/python
 
@@ -252,19 +234,13 @@ N
 N
 N
 N
-$PYTHON_HOME/lib/python2.7/site-packages
+$PYTHON_HOME/lib/python3.6/site-packages
 n
-y
-$GCC_PATH
-
-$CUDA_HOME
-
-$CUDNN_HOME
-$NVIDIA_COMPUTE_CAPABILITIES
+n
 
 EOF
 
-bazel build -s -c opt --config=cuda  //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs $(egrep -c 'processor\s+:' /proc/cpuinfo)
+bazel build -c opt //tensorflow/tools/pip_package:build_pip_package --verbose_failures --spawn_strategy=standalone --genrule_strategy=standalone --jobs $(egrep -c 'processor\s+:' /proc/cpuinfo)
 bazel-bin/tensorflow/tools/pip_package/build_pip_package $PWD/wheels
 
 
