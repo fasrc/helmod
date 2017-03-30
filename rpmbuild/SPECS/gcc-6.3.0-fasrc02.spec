@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static nvptx-tools: a collection of tools for use with nvptx-none GCC toolchains.
+%define summary_static the GNU Compiler Collection version 6.3.0
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/MentorEmbedded/nvptx-tools.git
-#Source: %{name}-%{version}.tar.gz
+URL: http://mirrors.concertpass.com/gcc/releases/gcc-6.3.0/gcc-6.3.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies gmp/6.1.2-fasrc01 mpfr/3.1.5-fasrc01 mpc/1.0.3-fasrc06 nvptx-tools/20170330-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,11 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-nvptx-tools: a collection of tools for use with nvptx-none GCC toolchains.
+The GNU Compiler Collection includes front ends for C, C++, Objective-C, Fortran, Java, Ada, and Go, as well as libraries for these 
+languages (libstdc++, libgcj, etc). GCC was originally written as the compiler for the GNU operating system. The GNU system was 
+developed to be 100% free software, free in the sense that it respects the user's freedom.
+
+Built for OpenACC offloading using nvptx-tools.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,11 +114,11 @@ nvptx-tools: a collection of tools for use with nvptx-none GCC toolchains.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}
-git clone https://github.com/MentorEmbedded/nvptx-tools.git 
-cd %{name}
-git checkout c28050f60193b3b95a18866a96f03334e874e78f
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -137,7 +141,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
 ./configure --prefix=%{_prefix} \
@@ -153,11 +157,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+	--infodir=%{_prefix}/share/info \
+	--target=nvptx-none \
+
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -187,7 +193,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -281,11 +287,37 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NVPTX_TOOLS_HOME",         "%{_prefix}")
+setenv("CC" , "gcc")
+setenv("CXX", "g++")
+setenv("FC" , "gfortran")
+setenv("F77", "gfortran")
+setenv("GCC_HOME",       "%{_prefix}")
 
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/nvptx-none/bin")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/install-tools/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/plugin/include")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/install-tools/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/gcc/x86_64-pc-linux-gnu/6.3.0/plugin/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_COMP_NAME"   , "%{name}")
+setenv("FASRCSW_COMP_VERSION", "%{version}")
+setenv("FASRCSW_COMP_RELEASE", "%{release_short}")
+family("Comp")
 EOF
 
 #------------------- App data file
