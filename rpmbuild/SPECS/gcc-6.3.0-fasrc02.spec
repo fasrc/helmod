@@ -98,7 +98,7 @@ The GNU Compiler Collection includes front ends for C, C++, Objective-C, Fortran
 languages (libstdc++, libgcj, etc). GCC was originally written as the compiler for the GNU operating system. The GNU system was 
 developed to be 100% free software, free in the sense that it respects the user's freedom.
 
-Built for OpenACC offloading using nvptx-tools.
+Built for OpenACC offloading using nvptx-tools.  Also includes nvptx-newlib in build.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,9 +140,21 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+umask 022
+
+# We need to unpack nvptx-newlib first as we will use that for our build.
+# We also need to link it into our gcc source.
+# See: https://gcc.gnu.org/wiki/Offloading#How_to_try_offloading_enabled_GCC
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf nvptx-newlib
+git clone https://github.com/MentorEmbedded/nvptx-newlib.git 
+cd nvptx-newlib
+git checkout aadc8eb0ec43b7cd0dd2dfb484bae63c8b05ef24
+chmod -Rf a+rX,u+w,g-w,o-w .
+ln -s "$FASRCSW_DEV"/rpmbuild/BUILD/nvptx-newlib/newlib "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/newlib
+
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -159,6 +171,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
 	--target=nvptx-none \
+	--enable-as-accelerator-for=x86_64_pc-linux-gnu \
+	--with-build-time-tools="$NVPTX_TOOLS_HOME"/nvptx-none/bin \
+	--disable-sjlj-exceptions \
+	--enable-newlib-io-long-long
 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
@@ -197,7 +213,32 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+make clean
 
+unlink newlib
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+	--build=x86_64-pc-linux-gnu \
+	--host=x86_64-pc-linux-gnu \
+	--target=x86_64-pc-linux-gnu \
+	--enable-offload-targets=nvptx-none=%{_prefix}/usr/local/nvptx-none \
+	--with-cuda-driver="$CUDA_HOME"
+
+make %{?_smp_mflags}
+make install DESTDIR=%{buildroot}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
