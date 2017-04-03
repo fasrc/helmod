@@ -2,16 +2,16 @@
 
 %define fasrcsw_root %{getenv:FASRCSW_PROD}
 %if "%{fasrcsw_root}" == ""
-	%{error:FASRCSW_PROD environment variable is not set; source setup.sh}
-	#this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
-	FASRCSW_PROD
+    %{error:FASRCSW_PROD environment variable is not set; source setup.sh}
+    #this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
+    FASRCSW_PROD
 %endif
 
 %define _topdir %{getenv:FASRCSW_DEV}/rpmbuild
 %if "%{_topdir}" == ""
-	%{error:FASRCSW_DEV environment variable is not set; source setup.sh}
-	#this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
-	FASRCSW_DEV
+    %{error:FASRCSW_DEV environment variable is not set; source setup.sh}
+    #this used to quit the build, since it'll result in an "Unkown tag" error (I know of no other way to exit NOW).
+    FASRCSW_DEV
 %endif
 
 #(needed for module function to work)
@@ -29,20 +29,34 @@
 %define defined() %{expand:%%{?%{1}:1}%%{!?%{1}:0}}
 
 
-#--- compiler/mpi stacks
+#--- compiler/mpi/cuda stacks
 
 %if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
-	%if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
-		%define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
-		%define  hierarchy         MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}
-	%else
-		%define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}
-		%define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
-	%endif
+    %if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
+        %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+            %define  hierarchy         CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}/%{cuda_name}/%{cuda_version}-%{cuda_release}
+        %else
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
+            %define  hierarchy         MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}
+        %endif
+    %else
+        %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+            %define  hierarchy         CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{cuda_name}/%{cuda_version}-%{cuda_release}
+        %else 
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}
+            %define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
+        %endif 
+    %endif
 %else
-	
-		%define  release_full      %{release_short}
-		%define  hierarchy         Core
+    %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
+        %define  release_full      %{release_short}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+        %define  hierarchy         CUDA/%{cuda_name}/%{cuda_version}-%{cuda_release}
+    %else 
+        %define  release_full      %{release_short}
+        %define  hierarchy         Core
+    %endif
 %endif
 
 
@@ -61,3 +75,4 @@
 %define _sysconfdir     %{_prefix}/etc
 %define _localstatedir  %{_prefix}/var
 %define _sharedstatedir %{_prefix}/var/lib
+

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GapCloser version 1.12
+%define summary_static GapCloser
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
+URL: http://downloads.sourceforge.net/project/soapdenovo2/GapCloser/bin/r6/GapCloser-bin-v1.12-r6.tgz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,12 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Anthony Geneva <geneva@fas.harvard.edu
+%define requestref RCRT:108894
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -95,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GapCloser for SOAPdenovo. This module has been built by Plamen G. Krastev.
-
+GapCloser
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -127,42 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-
-
-
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
@@ -191,10 +153,8 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/Release
-#make install DESTDIR=%{buildroot}
-cp -r bin/ "%{buildroot}/%{_prefix}"
-cp -r Release/GapCloser "%{buildroot}/%{_prefix}/Release"
+mkdir -p %{buildroot}/%{_prefix}
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -284,7 +244,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("GAPCLOSER_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -292,7 +253,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
