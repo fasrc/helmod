@@ -156,6 +156,8 @@ ln -s "$FASRCSW_DEV"/rpmbuild/BUILD/nvptx-newlib/newlib "$FASRCSW_DEV"/rpmbuild/
 
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+target=$(./config.guess)
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -171,8 +173,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
 	--target=nvptx-none \
-	--enable-as-accelerator-for=x86_64_pc-linux-gnu \
-	--with-build-time-tools="$NVPTX_TOOLS_HOME"/nvptx-none/bin \
+	--enable-as-accelerator-for="$target" \
+	--enable-languages=c,c++,fortran,lto \
+    --enable-checking=yes,df,fold,rtl \
+    --disable-multilib \
+	--with-build-sysroot="$NVPTX_TOOLS_HOME" \
+	--with-build-time-tools="$NVPTX_TOOLS_HOME"/bin \
 	--disable-sjlj-exceptions \
 	--enable-newlib-io-long-long
 
@@ -231,11 +237,11 @@ unlink newlib
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--build=x86_64-pc-linux-gnu \
-	--host=x86_64-pc-linux-gnu \
-	--target=x86_64-pc-linux-gnu \
+	--enable-languages=c,c++,fortran,lto \
+	--disable-multilib \
+	--disable-bootstrap \
 	--enable-offload-targets=nvptx-none=%{_prefix}/usr/local/nvptx-none \
-	--with-cuda-driver="$CUDA_HOME"
+	--with-cuda-driver-include="$CUDA_INCLUDE"
 
 make %{?_smp_mflags}
 make install DESTDIR=%{buildroot}

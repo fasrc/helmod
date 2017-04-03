@@ -154,7 +154,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-	--with-cuda-driver="$CUDA_HOME"
+	--with-cuda-driver-lib="$CUDA_LIB" \
+	--with-cuda-drive-include="$CUDA_INCLUDE" \
+	--with-cuda-runtime-include="$CUDA_LIB" \
+	--with-cuda-runtime-lib="$CUDA_INCLUDE" \
+	--target=nvptx-none
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
