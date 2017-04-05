@@ -37,8 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-
-URL: https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.2.tar.gz
+URL: https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -140,9 +139,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-#sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s1/pmix_s1.c
-#sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/s2/pmix_s2.c
-#sed -i -e 's/OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/static OBJ_CLASS_INSTANCE(pmi_opcaddy_t,/' opal/mca/pmix/cray/pmix_cray.c
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -161,13 +157,15 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--enable-mpi-thread-multiple \
     --enable-static \
     --enable-mpi-fortran=all \
+	--enable-mpi-cxx \
+	--with-hwloc \
     --enable-mpi-java \
 	--with-slurm \
     --with-pmi
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
