@@ -110,7 +110,7 @@ MAPGD is a series of related programs that estimate allele frequency, heterozygo
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf %{name}-94b99319a2d71b224467c652771e278d0d51da4b
 unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/94b99319a2d71b224467c652771e278d0d51da4b.zip
 cd %{name}-94b99319a2d71b224467c652771e278d0d51da4b
 chmod -Rf a+rX,u+w,g-w,o-w .
