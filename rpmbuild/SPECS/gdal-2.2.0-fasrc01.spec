@@ -285,7 +285,7 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("GDAL_HOME",                "%{_prefix}")
 setenv("GDAL_INCLUDE",             "%{_prefix}/include")
-setenv("GDAL_LIB",                 "%{_prefix}/lib64"))
+setenv("GDAL_LIB",                 "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
