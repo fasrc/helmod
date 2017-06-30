@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,17 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GAEMR v1.0.1
+%define summary_static Pipeline for the inference of orthologs among complete genomes
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.broadinstitute.org/software/gaemr/wp-content/uploads/2012/12/GAEMR-1.0.1.tar.gz
-Source0: %{name}-%{version}.tar.gz
-Source1: biopython-1.68.tar.gz
-Source2: pysam-0.8.1.tar.gz
+URL: http://omabrowser.org/standalone/OMA.2.1.1.tgz
+Source: %{name}.%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -55,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -74,17 +73,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{rundependencies}
-%define rundependencies rdp_classifier/2.10.1-fasrc01 rnammer/1.2-fasrc01 python/2.7.6-fasrc01 bwa/0.7.9a-fasrc03 bowtie2/2.3.1-fasrc01 ncbi-blast/2.2.31+-fasrc01  MUMmer/3.23-fasrc04 samtools/1.1-fasrc05 picard/2.9.0-fasrc01
-%define buildcomments Updated python, picard, and bowtie.  Replaced bib tools.
-%define requestor %{nil}
-%define requestref %{nil}
+
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
+%define buildcomments %{nil}
+%define requestor Prashant P. Sharma <psharma37@wisc.edu>
+%define requestref RCRT:112788
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic Analysis
+%define apppublication Inferring hierarchical orthologous groups from orthologous gene pairs. Altenhoff AM, Gil M, Gonnet GH, Dessimoz C. PLoS One. 2013;8(1):e53786. doi: 10.1371/journal.pone.0053786. Epub 2013 Jan 14.
+
 
 
 #
@@ -94,15 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Genome Assembly Evaluation Metrics and Reporting (GAEMR) package is an assembly analysis framework composed a number of integrated modules. These modules can be executed as a single program to generate a complete analysis report, or executed individually to generate specific charts and tables. GAEMR standardizes input by converting a variety of read types to Binary Alignment Map (BAM) format, allowing a single input format to be entered into GAEMR’s analysis pipeline, hence enabling the generation of standard reports.
-
-GAEMR’s analysis philosophy is centered on contiguity, correctness, and completeness -- how many pieces in an assembly composed of, how well those pieces accurately represent the genome sequenced, and how much of that genome is represented by those pieces. By performing over twenty different analyses based on these principles, GAEMR gives a clear picture of the condition of a genome assembly. For a broadly-defined list of these analyses, see the Features section in the documentation.
-
-More information at http://www.broadinstitute.org/software/gaemr/
-
-This installation has been configured to include paths for the required 3rd-party programs.
-
-(Built and installed by Bob Freeman, PhD)
+The OMA (“Orthologous MAtrix”) is a pipeline for the inference of orthologs among complete genomes. The distinctive features of OMA are its broad scope and size, high quality of inferences, feature-rich web interface, availability of data in a wide range of formats and interfaces, and frequent update schedule of two releases per year. OMA’s inference algorithm consists of three main phases. First, to infer homologous sequences (sequences of common ancestry), all-against-all Smith-Waterman alignments are computed and significant matches are retained. Second, to infer orthologous pairs (the subset of homologs related by speciation events), mutually closest homologs are identified based on evolutionary distances, taking into account distance inference uncertainty and the possibility for differential gene losses (for more details, see Roth et al 2008). Third, these orthologs are clustered in two different ways, which are useful for different purposes: (a) we identify cliques of orthologous pairs (“OMA groups”), which are useful as marker genes for phylogenetic reconstruction and tend to be very specific; (b) we identify hierarchical orthologous groups (“HOGs”), groups of genes defined for particular taxonomic ranges and identify all genes that have descended from a common ancestral gene in that taxonomic range. Fore more details on the algorithm to infer HOGs from orthologous pairs, see Altenhoff et al. 2013. The OMA pipeline can also run on custom genomic/transcriptomic data using the OMA stand-alone software, and it is even possible to combine precomputed data with custom data by exporting parts of the OMA database.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -120,21 +113,11 @@ This installation has been configured to include paths for the required 3rd-part
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.%{version}.tgz
+mv %{name}.%{version} %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
-rm -rf biopython-1.68
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/biopython-1.68.tar.gz
-cd biopython-1.68
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
-rm -rf pysam-0.8.1
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/pysam-0.8.1.tar.gz
-cd pysam-0.8.1
-chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -145,49 +128,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-umask 022
 
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# unfortunately, have to fix a config file to embed paths to tools needed for GAEMR. Ugh!
-# MUMMER_PATH
-sed -i 's@"/broad/software/groups/gtba/software/mummer_3.23-64bit.*/@os.environ["MUMMER_HOME"]@' gaemr/PlatformConstant.py
-# BLAST_DIR
-sed -i 's@"/broad/software/groups/gtba/software/ncbi-blast-2.2.25+/bin/"@os.environ["BLAST_HOME"] + "/bin/"@' gaemr/PlatformConstant.py
-# SAMTOOLS
-sed -i 's@"/broad/software/groups/gtba/software/samtools_0.1.18/bin/samtools"@os.environ["SAMTOOLS_HOME"] + "/bin"@' gaemr/PlatformConstant.py
-# PICARD
-sed -i 's@"/seq/software/picard/current/bin/"@os.environ["PICARD_TOOLS_HOME"]@' gaemr/PlatformConstant.py
-# BLAST_NT
-sed -i 's@"/broad/data/blastdb/nt/nt"@os.environ["HUIFX_DB_CUSTOM"] + "/blastdb/nt"@' gaemr/PlatformConstant.py
-# BLAST_UNIVEC
-sed -i 's@"/gsap/assembly_analysis/databases/UniVec/UniVec"@os.environ["HUIFX_DB_CUSTOM"] + "/blastdb/UniVec"@' gaemr/PlatformConstant.py
-# BLAST_rRNA
-sed -i 's@"/gsap/assembly_analysis/databases/NCBI_rRNA/ncbi_rRNA"@os.environ["HUIFX_DB_CUSTOM"] + "/blastdb/ncbi_rRNA"@' gaemr/PlatformConstant.py
-# BLAST_MITOGCONTAM
-sed -i 's@"/gsap/assembly_analysis/databases/mitogcontam/mitogcontam"@os.environ["HUIFX_DB_CUSTOM"] + "/other/mitogcontam"@' gaemr/PlatformConstant.py
-# TAX NODES/names
-sed -i 's@"/broad/data/taxonomy/taxdump/nodes.dmp"@os.environ["HUIFX_DB_CUSTOM"] + "/taxonomy/nodes.dmp"@' gaemr/PlatformConstant.py
-sed -i 's@"/broad/data/taxonomy/taxdump/names.dmp"@os.environ["HUIFX_DB_CUSTOM"] + "/taxonomy/names.dmp"@' gaemr/PlatformConstant.py
-# RNAMMER
-sed -i 's@"/seq/annotation/bio_tools/rnammer/current/rnammer"@os.environ["RNAMMER_HOME"]@' gaemr/PlatformConstant.py
-# RDP_CLASSIFIER
-sed -i 's@"/broad/software/groups/gtba/software/rdp_classifier_2.4/rdp_classifier-2.4.jar"@os.environ["RDP_CLASSIFIER_HOME"] + "/classifier.jar"@' gaemr/PlatformConstant.py
-# BWA
-sed -i 's@"/seq/software/picard/current/3rd_party/bwa"@os.environ["BWA_HOME"] + "/bin/"@' gaemr/PlatformConstant.py
-# GAEMR
-sed -i 's@"/gsap/assembly_analysis/GAEMR/bin/"@os.environ["GAEMR_HOME"] + "/bin/"@' gaemr/PlatformConstant.py
-# BOWTIE
-sed -i 's@"/broad/software/free/Linux/redhat_5_x86_64/pkgs/bowtie2_2.0.0-beta5/"@os.environ["BOWTIE2_HOME"] + "/bin/"@' gaemr/PlatformConstant.py
-
-sed -i -e 's@from matplotlib import pyplot, mpl, gridspec@from matplotlib import pyplot, gridspec@' bin/blast_map.py
-sed -i -e 's@from matplotlib import pyplot, mpl@from matplotlib import pyplot@' bin/blast_bubbles.py
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/biopython-1.68
-python setup.py build
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/pysam-0.8.1
-python setup.py build
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -197,20 +139,36 @@ python setup.py build
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd bin
+ln -s oma OMA
+cd ..
+
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# make install DESTDIR=%{buildroot}
-cp -R * %{buildroot}/%{_prefix}
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/biopython-1.68
-python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/pysam-0.8.1
-python setup.py install --prefix=%{_prefix} --root=%{buildroot}
+#make install DESTDIR=%{buildroot}
+#./install.sh %{buildroot}/%{_prefix}
+for f in bin darwinlib DB install.sh lib LICENSE Manual OMA.drw README.oma ToyExample; do
+	cp -aR "$f" '%{buildroot}/%{_prefix}/'
+done
 
 
 #(this should not need to be changed)
@@ -281,13 +239,13 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
-
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
@@ -300,13 +258,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
-
--- environment changes (uncomment what is relevant)
-setenv("GAEMR_HOME",                "%{_prefix}")
-setenv("HUIFX_DB_CUSTOM",           "/n/regal/informatics_public/custom")
+---- environment changes (uncomment what is relevant)
+setenv("OMA_HOME",                  "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("PYTHONPATH",          "%{_prefix}")
-prepend_path("PYTHONPATH",          "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 
@@ -331,8 +287,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
-
 
 #------------------- %%files (there should be no need to change this ) --------
 

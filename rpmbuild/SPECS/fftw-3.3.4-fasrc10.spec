@@ -80,10 +80,9 @@ FFTW is a C subroutine library for computing the discrete Fourier transform (DFT
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Amit Levi <alevi@cfa.harvard.edu
-%define requestref RCRT:104944
-
+%define buildcomments Add long-double to the mix
+%define requestor Jakub Scholtz <jakubscholtz@gmail.com>
+%define requestref RCRT:111956
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -153,8 +152,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--enable-openmp \
 	--enable-mpi \
     --enable-shared \
-    --enable-float \
-    --enable-type-prefix \
     --enable-threads 
 
 export CFLAGS="-fPIC"
@@ -193,7 +190,59 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+make clean
 
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+	--enable-openmp \
+	--enable-mpi \
+    --enable-shared \
+    --enable-float \
+    --enable-threads 
+
+export CFLAGS="-fPIC"
+export LDFLAGS="-fPIC"
+make -j8
+make install DESTDIR=%{buildroot}
+
+make clean
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+	--enable-openmp \
+	--enable-mpi \
+    --enable-shared \
+    --enable-long-double \
+    --enable-threads 
+
+export CFLAGS="-fPIC"
+export LDFLAGS="-fPIC"
+make -j8
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)

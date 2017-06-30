@@ -1,5 +1,9 @@
 #------------------- package info ----------------------------------------------
+<<<<<<< HEAD
 
+=======
+#
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #
 # enter the simple app name, e.g. myapp
 #
@@ -54,6 +58,10 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -72,8 +80,12 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+<<<<<<< HEAD
 
 %define builddependencies zlib/1.2.8-fasrc07 szip/2.1-fasrc02
+=======
+%define builddependencies zlib/1.2.8-fasrc09 szip/2.1-fasrc01
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -82,18 +94,34 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+<<<<<<< HEAD
 %define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
 
+=======
+%define apptags %{nil} 
+%define apppublication %{nil}
+
+
+
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+<<<<<<< HEAD
 %description
 HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
 
 
+=======
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
+
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -132,10 +160,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+<<<<<<< HEAD
+=======
+#module load NAME/VERSION-RELEASE
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+<<<<<<< HEAD
 
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static --enable-parallel"
 #test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
@@ -165,6 +198,31 @@ test "%{type}" == "MPI" && export CC=mpiicc CXX=mpicpc FC=mpiifort
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
+=======
+export CONFIGOPTS="--enable-fortran --enable-shared --enable-static"
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-fortran --enable-cxx --enable-shared --enable-static \
+    --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
+    --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 
 
 
@@ -268,6 +326,10 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+<<<<<<< HEAD
+=======
+%{buildcomments}
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 ]]
 help(helpstr,"\n")
 
@@ -285,6 +347,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+<<<<<<< HEAD
 ---- environment changes (uncomment what is relevant)
 setenv("HDF5_HOME",                "%{_prefix}")
 setenv("HDF5_INCLUDE",             "%{_prefix}/include")
@@ -297,6 +360,20 @@ prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 
+=======
+
+---- environment changes (uncomment what is relevant)
+setenv("HDF5_HOME",                 "%{_prefix}")
+setenv("HDF5_INCLUDE",              "%{_prefix}/include")
+setenv("HDF5_LIB",                  "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+EOF
+
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
@@ -320,7 +397,10 @@ requestref          : %{requestref}
 EOF
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4c203e46857b9655c6d3911b7caa54e1d893c1fe
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
