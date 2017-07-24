@@ -48,13 +48,13 @@
 #make install
 #make publish
 
-export TYPE=MPI
-export NAME=netcdf
-export VERSION=4.4.0
-export RELEASE=fasrc02
-make
-make install
-make publish
+#export TYPE=MPI
+#export NAME=netcdf
+#export VERSION=4.4.0
+#export RELEASE=fasrc02
+#make
+#make install
+#make publish
 
 export TYPE=MPI
 export NAME=netcdf-cxx
