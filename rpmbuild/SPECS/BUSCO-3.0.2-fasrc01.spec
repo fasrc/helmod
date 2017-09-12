@@ -256,6 +256,7 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("BUSCO_HOME",                "%{_prefix}")
 prepend_path("PYTHONPATH",                "/n/sw/fasrcsw/apps/Core/BUSCO/3.0.2-fasrc01/lib/python3.4/site-packages/")
+prepend_path("PATH",	"%{_prefix}/bin")
 EOF
 
 #------------------- App data file
