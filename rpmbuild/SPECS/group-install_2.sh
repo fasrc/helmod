@@ -1,56 +1,80 @@
 #!/bin/env bash
-export TYPE=Comp
-export NAME=gsl
-export VERSION=2.3
-export RELEASE=fasrc01
+export TYPE=MPI
+export NAME=hdf5
+export VERSION=1.8.12
+export RELEASE=fasrc12
 make
 make install
 make publish
 
-export TYPE=Comp
-export NAME=OpenBLAS
-export VERSION=0.2.18
-export RELEASE=fasrc01
-make
-make install
-make publish
-
-export TYPE=Comp
-export NAME=armadillo
-export VERSION=6.700.6
-export RELEASE=fasrc01
-make
-make install
-make publish
-
-export TYPE=Comp
-export NAME=cfitsio
-export VERSION=3390
-export RELEASE=fasrc01
-make
-make install
-make publish
-
-export TYPE=Comp
-export NAME=openmpi
-export VERSION=2.1.0
-export RELEASE=fasrc01
-make
-make install
-make publish
-
-export TYPE=Comp
-export NAME=mvapich2
-export VERSION=2.2
-export RELEASE=fasrc01
-make
-make install
-make publish
-
-export TYPE=Comp
-export NAME=mpich
-export VERSION=3.2
+export TYPE=MPI
+export NAME=hdf5
+export VERSION=1.8.16
 export RELEASE=fasrc03
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=hdf5
+export VERSION=1.8.17
+export RELEASE=fasrc01
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf
+export VERSION=4.1.3
+export RELEASE=fasrc09
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf
+export VERSION=4.3.2
+export RELEASE=fasrc05
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf
+export VERSION=4.4.0
+export RELEASE=fasrc02
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf-cxx
+export VERSION=4.2
+export RELEASE=fasrc03
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf-cxx4
+export VERSION=4.2.1
+export RELEASE=fasrc03
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=netcdf-fortran
+export VERSION=4.4.3
+export RELEASE=fasrc02
+make
+make install
+make publish
+
+export TYPE=MPI
+export NAME=parallel-netcdf
+export VERSION=1.8.1
+export RELEASE=fasrc01
 make
 make install
 make publish
