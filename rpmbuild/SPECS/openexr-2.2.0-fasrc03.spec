@@ -83,7 +83,7 @@ OpenEXR is a high dynamic-range (HDR) image file format developed by Industrial 
 
 %define builddependencies ilmbase/2.2.0-fasrc03
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Force c++11
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -138,6 +138,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+export CXX="g++ -std=c++11"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \

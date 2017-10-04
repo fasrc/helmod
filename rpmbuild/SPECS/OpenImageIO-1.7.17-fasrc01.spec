@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: https://github.com/OpenImageIO/oiio/archive/Release-1.7.17.tar.gz
+Source: OpenImageIO-1.7.17.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,6 +54,15 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+OpenImageIO is a library for reading and writing images, and a bunch of related classes, utilities, and applications.  There is a particular emphasis on formats and functionality used in professional, large-scale animation and visual effects work for film.  OpenImageIO is used extensively in animation and VFX studios all over the world, and is also incorporated into several commercial products.
 
 #
 # Macros for setting app data 
@@ -73,29 +82,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+
+%define builddependencies cmake/2.8.12.2-fasrc01 boost/1.63.0-fasrc01 OpenColorIO/1.0.9-fasrc02 jpeg/6b-fasrc02 zlib/1.2.8-fasrc12
+%define rundependencies  boost/1.63.0-fasrc01 OpenColorIO/1.0.9-fasrc02 jpeg/6b-fasrc02 zlib/1.2.8-fasrc12
+%define buildcomments %{nil}0
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Image analysis
 %define apppublication %{nil}
-
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
-
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -112,9 +110,9 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf oiio-Release-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.gz
+cd oiio-Release-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,16 +137,16 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-Release-%{version}
 
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
 
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
+rm -rf build; mkdir build; cd build
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+# test "%{comp_name}" == 'intel' && export CC="$CC -diag-disable 177"
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$JPEG_INCLUDE;$OPENEXR_INCLUDE;$BOOST_INCLUDE;$ILMBASE_INCLUDE;$OPENCOLORIO_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$OPENEXR_LIB;$BOOST_LIB;$ILMBASE_LIB;$OPENCOLORIO_LIB;$JPEG_LIB" ..
+
+# Unused function causes errors for intel
+# sed -i -e '289,293{;s?^?//?}' ../src/libOpenImageIO/exif.cpp
 make
 
 
@@ -179,7 +177,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/oiio-Release-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -253,7 +251,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -273,14 +270,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
+setenv("OPENIMAGEIO_HOME",         "%{_prefix}")
+setenv("OPENIMAGEIO_LIB",          "%{_prefix}/lib")
+setenv("OPENIMAGEIO_INCLUDE",      "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python/site-packages")
 EOF
 
 #------------------- App data file
