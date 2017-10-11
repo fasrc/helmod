@@ -1,7 +1,8 @@
 #--- basic config -- adjust as needed
 
 #the location of production fasrcsw clone
-export FASRCSW_PROD=/n/sw/fasrcsw
+test -z "$FASRCSW_PROD" && export FASRCSW_PROD=/builds
+test -z "$FASRCSW_OS" && export FASRCSW_OS=centos6
 
 #default compilers and mpi stacks
 #update these as versions increase.
