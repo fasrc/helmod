@@ -137,7 +137,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 unset F90
 
-./configure LDFLAGS="-L/usr/lib64 -lpciaccess" --prefix=%{_prefix} \
+# Configuring a build for OFA-IB-CH3/OFA-iWARP-CH3/OFA-RoCE-CH3
+# See, http://mvapich.cse.ohio-state.edu/static/media/mvapich/mvapich2-2.3b-userguide.html#x1-120004.4
+# --with-device=ch3:mrail --with-rdma=gen2
+
+./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -153,12 +157,12 @@ unset F90
 	--infodir=%{_prefix}/share/info \
     --enable-fc \
     --enable-f77 \
-    --with-device=ch3:nemesis:ib \
+    --with-device=ch3:mrail \
+    --with-rdma=gen2 \
     --enable-threads=multiple \
     --enable-cxx \
     --with-pmi \
     --with-slurm
-
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
