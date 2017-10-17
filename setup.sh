@@ -2,7 +2,7 @@
 
 #the location of production fasrcsw clone
 test -z "$FASRCSW_PROD" && export FASRCSW_PROD=/n/helmod
-test -z "$FASRCSW_OS" && export FASRCSW_OS=centos6
+test -z "$FASRCSW_OS" && export FASRCSW_OS=centos7
 
 #default compilers and mpi stacks
 #update these as versions increase.
