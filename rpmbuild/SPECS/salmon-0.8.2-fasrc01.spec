@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static Highly-accurate & wicked fast transcript-level quantification from RNA-seq reads using lightweight alignments
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: https://github.com/COMBINE-lab/salmon/releases/download/v0.8.2/Salmon-0.8.2_linux_x86_64.tar.gz
+Source: Salmon-%{version}_linux_x86_64.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,16 +74,17 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define rundependencies %{nil}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor Aedin Culhane <aedin@jimmy.harvard.edu>
+%define requestref RCRT:118862
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -93,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+Salmon is a wicked-fast program to produce a highly-accurate, transcript-level quantification estimates from RNA-seq data. Salmon achieves is accuracy and speed via a number of different innovations, including the use of lightweight alignments (accurate but fast-to-compute proxies for traditional read alignments) and massively-parallel stochastic collapsed variational inference. The result is a versatile tool that fits nicely into many differnt pipelines. For example, you can choose to make use of our lightweight alignments by providing Salmon with raw sequencing reads, or, if it is more convenient, you can provide Salmon with regular alignments (e.g. computed with your favorite aligner), and it will use the same wicked-fast, state-of-the-art inference algorithm to estimate transcript-level abundances for your experiment.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -109,9 +110,9 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
-cd %{name}-%{version}
+rm -rf Salmon-latest_linux_x86_64
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Salmon-%{version}_linux_x86_64.tar.*
+cd Salmon-%{version}_linux_x86_64
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -119,31 +120,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} --with-x
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 
@@ -173,12 +149,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/Salmon-%{version}_linux_x86_64
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
-
+cp -r * %{buildroot}/%{_prefix}
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -267,11 +241,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("SALMON_HOME",            "%{_prefix}")
+prepend_path("PATH",             "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

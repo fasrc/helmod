@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -18,6 +18,9 @@ Version: %{getenv:VERSION}
 # and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
+# fasrc02 includes the links to sparsehash and bam
+# sparsehash must be installed on the build host- not needed when deployed
+#
 %define release_short %{getenv:RELEASE}
 
 #
@@ -30,15 +33,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static A software pipeline for building loci from short-read sequences
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: http://catchenlab.life.illinois.edu/stacks/source/stacks-2.0Beta6.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,6 +57,13 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Stacks is a software pipeline for building loci from short-read sequences, such as those generated on the Illumina platform. Stacks was developed to work with restriction enzyme-based data, such as RAD-seq, for the purpose of building genetic maps and conducting population genomics and phylogeography.
 
 #
 # Macros for setting app data 
@@ -73,35 +83,26 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+
+%define builddependencies samtools/0.1.19-fasrc01 perl-modules/5.10.1-fasrc12
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor Gustavo Bravo <gustavo_bravo@fas.harvard.edu>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence analysis & processing
 %define apppublication %{nil}
 
 
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
 
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -110,7 +111,7 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -125,8 +126,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
@@ -139,10 +138,35 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} --with-x
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+
+# Handle the TYPE=Core case where CC and CXX are not defined
+test -z "$CC" && export CC=gcc
+test -z "$CXX" && export CXX=g++
+
+CXX="$CXX -I$ZLIB_INCLUDE -L$ZLIB_LIB" 
+CC="$CC -I$ZLIB_INCLUDE -L$ZLIB_LIB"
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+	--disable-sparsehash \
+	--enable-bam \
+        --with-bam-include-path=$SAMTOOLS_INCLUDE \
+        --with-bam-lib-path=$SAMTOOLS_LIB
+
+
 make %{?_smp_mflags}
 
 
@@ -155,8 +179,6 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -175,7 +197,7 @@ make %{?_smp_mflags}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}
 make install DESTDIR=%{buildroot}
 
 
@@ -247,7 +269,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,12 +287,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+-- environment changes (uncomment what is relevant)
+setenv("STACKS_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

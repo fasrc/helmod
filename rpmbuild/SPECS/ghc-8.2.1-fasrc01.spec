@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static ...FIXME...
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: https://downloads.haskell.org/~ghc/8.2.1/ghc-8.2.1-x86_64-centos67-linux.tar.xz
+Source: %{name}-%{version}-x86_64-centos67-linux.tar.xz
 
 #
 # there should be no need to change the following
@@ -75,15 +75,16 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define buildcomments Binary used to boostrap source compilation
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -93,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+Haskell compiler
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,7 +111,7 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-x86_64-centos67-linux.tar.xz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -139,11 +140,10 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} --with-x
+./configure --prefix=%{_prefix} 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 
@@ -267,11 +267,32 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
+setenv("GHC_HOME",                 "%{_prefix}")
+setenv("GHC_INCLUDE",              "%{_prefix}/include")
+setenv("GHC_LIB",                  "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/unix-2.6.0.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/bytestring-0.10.0.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/base-4.6.0.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/process-1.1.0.2/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/time-1.4.0.1/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/old-time-1.1.0.1/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/directory-1.2.0.0/include")
+prepend_path("CPATH",              "%{_prefix}/lib/ghc-7.6.1/ghc-7.6.1/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/unix-2.6.0.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/bytestring-0.10.0.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/base-4.6.0.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/process-1.1.0.2/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/time-1.4.0.1/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/old-time-1.1.0.1/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/directory-1.2.0.0/include")
+prepend_path("FPATH",              "%{_prefix}/lib/ghc-7.6.1/ghc-7.6.1/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

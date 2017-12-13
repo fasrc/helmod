@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc01
+%define rundependencies bowtie2/2.3.2-fasrc01 jdk/1.8.0_45-fasrc01
 %define buildcomments %{nil}
 %define requestor Prashant Sharma <psharma37@wisc.edu>
 %define requestref RCRT:118320
