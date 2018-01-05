@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static The OpenGL Extension Wrangler Library
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: https://downloads.sourceforge.net/project/glew/glew/1.13.0/glew-1.13.0.tgz
+Source: %{name}-%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
+%define builddependencies Mesa/10.1.6-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define buildcomments Have to build with Mesa to line up the opengl stuff for blender
+%define requestor Colin Conwell <colinconwell@gmail.com>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -94,9 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
-
-
+The OpenGL Extension Wrangler Library is a simple tool that helps C/C++ developers initialize extensions and write portable applications. GLEW currently supports a variety of operating systems, including Windows, Linux, Darwin, Irix, and Solaris.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -113,7 +111,7 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tgz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -141,15 +139,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
 
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -182,7 +172,8 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+make CC="gcc -I$MESA_INCLUDE -L$MESA_LIB" LD="gcc -L$MESA_LIB" GLEW_PREFIX=%{_prefix} GLEW_DEST=%{_prefix}
+make install GLEW_DEST=%{_prefix} GLEW_PREFIX=%{_prefix} DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -273,14 +264,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
+setenv("GLEW_HOME",       "%{_prefix}")
+setenv("GLEW_INCLUDE",    "%{_prefix}/include")
+setenv("GLEW_LIB",        "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -288,7 +280,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

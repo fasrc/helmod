@@ -25,20 +25,20 @@ Version: %{getenv:VERSION}
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-#
+#j
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static St. Petersburg genome assembler for both standard isolates and single-cell MDA bacteria
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: http://spades.bioinf.spbau.ru/release3.11.0/SPAdes-3.11.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,17 +73,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+
+%define builddependencies cmake/2.8.12.2-fasrc01
+%define rundependencies %{nil}
+%define buildcomments %{nil}
+%define requestor Taj Azarian <tazarian@hsph.harvard.edu>
+%define requestref %{nil}
+
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Applicaitons; aci-ref-app-tag:Genome Assembly
+%define apppublication Anton Bankevich, Sergey Nurk, Dmitry Antipov, Alexey A. Gurevich, Mikhail Dvorkin, Alexander S. Kulikov, Valery M. Lesin, Sergey I. Nikolenko, Son Pham, Andrey D. Prjibelski, Alexey V. Pyshkin, Alexander V. Sirotkin, Nikolay Vyahhi, Glenn Tesler, Max A. Alekseyev, and Pavel A. Pevzner. Journal of Computational Biology. May 2012, 19(5): 455-477. doi:10.1089/cmb.2012.0021.
 
 
 
@@ -94,9 +96,11 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
+SPAdes – St. Petersburg genome assembler – is intended for both standard isolates and single-cell MDA bacteria assemblies. The current version of SPAdes works with Illumina or IonTorrent reads and is capable of providing hybrid assemblies using PacBio, Oxford Nanopore and Sanger reads. You can also provide additional contigs that will be used as long reads. Version 3.5.0 of SPAdes supports paired-end reads, mate-pairs and unpaired reads. SPAdes can take as input several paired-end and mate-pair libraries simultaneously.
 
+Note, that SPAdes was initially designed for small genomes. It was tested on single-cell and standard bacterial and fungal data sets. SPAdes is not intended for larger genomes (e.g. mammalian size genomes) and metagenomic projects. For such purposes you can use it at your own risk. SPAdes has also a separate module for assembling highly polymorphic diploid genomes. For more information see dipSPAdes manual.
 
+PLEASE NOTE that you will need to load your own Python environment in order to execute the code, as one will not be loaded by this module.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -113,7 +117,7 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -141,16 +145,28 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
 
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
+# ./configure --prefix=%{_prefix} \
+# 	--program-prefix= \
+# 	--exec-prefix=%{_prefix} \
+# 	--bindir=%{_prefix}/bin \
+# 	--sbindir=%{_prefix}/sbin \
+# 	--sysconfdir=%{_prefix}/etc \
+# 	--datadir=%{_prefix}/share \
+# 	--includedir=%{_prefix}/include \
+# 	--libdir=%{_prefix}/lib64 \
+# 	--libexecdir=%{_prefix}/libexec \
+# 	--localstatedir=%{_prefix}/var \
+# 	--sharedstatedir=%{_prefix}/var/lib \
+# 	--mandir=%{_prefix}/share/man \
+# 	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+#make
 
+# moved build to install section as it tries to write to /n/sw
+#PREFIX=%{_prefix} ./spades_compile.sh
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -182,7 +198,25 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
+PREFIX=%{buildroot}/%{_prefix} ./spades_compile.sh
+
+# now fix SPAdes so that 1 thread is default unless set by user
+pushd %{buildroot}/%{_prefix}/bin
+mv spades.py spades_orig.py
+
+# make new wrapper 
+cat > spades.py << EOF
+#!/bin/bash
+
+if [ -z $SLURM_NTASKS ]; then
+  SLURM_NTASKS=1
+fi
+
+spades_orig.py -t \$SLURM_NTASKS \$@
+EOF
+chmod a+x spades.py
+
 
 
 #(this should not need to be changed)
@@ -273,14 +307,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("SPADES_HOME",               "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -288,7 +316,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +332,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

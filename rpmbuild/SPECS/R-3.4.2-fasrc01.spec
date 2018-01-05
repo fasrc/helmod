@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static a module for loading R_core and R_packages
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+#URL: http://...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,28 +72,25 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define builddependencies %{nil}
+%define rundependencies R_core/%{version}-%{release_short} R_packages/%{version}-%{release_short}
+%define buildcomments %{nil}
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
 %define apppublication %{nil}
-
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
+The RPM is simply a modulefile that loads R_core (the base R package), and R_packages (a large set of the most popular packages from CRAN).
 
 
 
@@ -104,18 +100,12 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(n/a)
 
 
 
@@ -128,7 +118,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -138,18 +127,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
-
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+#(n/a)
 
 
 
@@ -162,7 +140,6 @@ make
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -178,12 +155,7 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+#(n/a)
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -253,7 +225,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -264,23 +235,13 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -288,7 +249,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +265,8 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

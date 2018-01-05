@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
+Source: Trinity-v%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+
+%define builddependencies %{nil}
+%define rundependencies bowtie2/2.3.2-fasrc01 jdk/1.8.0_45-fasrc01
+%define buildcomments %{nil}
+%define requestor Prashant Sharma <psharma37@wisc.edu>
+%define requestref RCRT:118320
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
-%define apppublication %{nil}
+%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
+%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
 
 
 
@@ -94,8 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
-
+Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -112,9 +112,9 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-Trinity-v%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
+cd %{name}-Trinity-v%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,17 +139,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
 
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
 
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+make -j 4
+make -j 4 plugins
 
 
 
@@ -179,10 +173,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
 
 #(this should not need to be changed)
@@ -273,14 +268,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PATH",               "%{_prefix}")
+setenv("TRINITY_HOME",             "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -288,7 +277,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +293,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

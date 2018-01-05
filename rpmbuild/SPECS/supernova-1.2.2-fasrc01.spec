@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static Supernova is a software package for de novo assembly from Chromium Linked-Reads that are made from a single whole-genome library from an individual DNA source.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: http://cf.10xgenomics.com/releases/assembly/supernova-1.2.2.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define buildcomments %{nil}
+%define requestor Tim Sackton <tsackton@g.harvard.edu>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -94,8 +94,17 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
+Supernova is a software package for de novo assembly from Chromium Linked-Reads that are made from a single whole-genome library from an individual DNA source. A key feature of Supernova is that it creates diploid assemblies, thus separately representing maternal and paternal chromosomes over very long distances. Almost all other methods instead merge homologous chromosomes into single incorrect 'consensus' sequences. Supernova is the only practical method for creating diploid assemblies of large genomes.
 
+The Supernova software package includes two processing pipelines:
+
+supernova mkfastq wraps Illumina's bcl2fastq to correctly demultiplex Chromium-prepared sequencing samples and to convert barcode and read data to FASTQ files.
+
+supernova run takes FASTQ files containing barcoded reads from supernova mkfastq and builds a graph-based assembly. The approach is to first build an assembly using read kmers (K = 48), then resolve this assembly using read pairs (to K = 200), then use barcodes to effectively resolve this assembly to K ≈ 100,000. The final step pulls apart homologous chromosomes into phase blocks, which are typically multi-megabase for human genomes.
+
+and for post-processing:
+
+supernova mkoutput takes Supernova's graph-based assemblies and produces several styles of FASTA suitable for downstream processing and analysis.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -113,7 +122,7 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -127,29 +136,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
-
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -182,8 +168,22 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
+cat <<EOF > %{buildroot}/%{_prefix}/martian-cs/2.2.2/jobmanagers/slurm.template
+#!/usr/bin/env bash
+#SBATCH -J __MRO_JOB_NAME__
+#SBATCH --export=ALL
+#SBATCH -N 1
+#SBATCH --n=__MRO_THREADS__
+#SBATCH --mem=__MRO_MEM_GB__G
+#SBATCH -o __MRO_STDOUT__
+#SBATCH -e __MRO_STDERR__
+#SBATCH -p serial_requeue
+#SBATCH -t 1-0:00
+
+__MRO_CMD__
+EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -273,14 +273,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("SUPERNOVA_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -288,7 +282,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

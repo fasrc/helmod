@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static Jim Kent command line bioinformatic utilities (UCSC tools)
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: https://github.com/ENCODE-DCC/kentUtils/archive/v302.1.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define buildcomments Uses prebuilt binaries
+%define requestor Tim Sackton <tsackton@g.harvard.edu>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -94,9 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
-
-
+Jim Kent command line bioinformatic utilities (UCSC) including addCols ameme autoDtd autoSql autoXml ave aveCols axtChain axtSort axtSwap axtToMaf axtToPsl bedClip bedCommonRegions bedCoverage bedExtendRanges bedGeneParts bedGraphPack bedGraphToBigWig bedIntersect bedItemOverlapCount bedPileUps bedRemoveOverlap bedRestrictToPositions bedSort bedToBigBed bedToExons bedToGenePred bedToPsl bedWeedOverlapping bigBedInfo bigBedNamedItems bigBedSummary bigBedToBed bigWigAverageOverBed bigWigCat bigWigCorrelate bigWigInfo bigWigMerge bigWigSummary bigWigToBedGraph bigWigToWig blastToPsl blastXmlToPsl calc catDir catUncomment chainAntiRepeat chainFilter chainMergeSort chainNet chainPreNet chainSort chainSplit chainStitchId chainSwap chainToAxt chainToPsl checkAgpAndFa checkCoverageGaps checkHgFindSpec checkTableCoords chopFaLines chromGraphFromBin chromGraphToBin colTransform countChars crTreeIndexBed crTreeSearchBed dbSnoop dbTrash estOrient faCmp faCount faFilter faFilterN faFrag faNoise faOneRecord faPolyASizes faRandomize faRc faSize faSomeRecords faSplit fastqToFa faToFastq faToTab faToTwoBit faTrans featureBits fetchChromSizes findMotif gapToLift genePredCheck genePredHisto genePredSingleCover genePredToBed genePredToFakePsl genePredToGtf genePredToMafFrames gfClient gff3ToGenePred gff3ToPsl gfServer gmtime gtfToGenePred headRest hgFindSpec hgGcPercent hgLoadBed hgLoadOut hgLoadWiggle hgsql hgsqldump hgTrackDb hgWiggle htmlCheck hubCheck ixIxx lavToAxt lavToPsl ldHgGene liftOver liftOverMerge liftUp linesToRa localtime mafAddIRows mafAddQRows mafCoverage mafFetch mafFilter mafFrag mafFrags mafGene mafMeFirst mafOrder mafRanges mafsInRegion mafSpeciesList mafSpeciesSubset mafSplit mafSplitPos mafToAxt mafToPsl makeTableList maskOutFa mktime mrnaToGene netChainSubset netClass netFilter netSplit netSyntenic netToAxt netToBed newProg nibFrag nibSize oligoMatch overlapSelect paraFetch paraSync positionalTblCheck pslCat pslCDnaFilter pslCheck pslDropOverlap pslFilter pslHisto pslLiftSubrangeBlat pslMap pslMrnaCover pslPairs pslPartition pslPretty pslRecalcMatch pslReps pslSelect pslSort pslStats pslSwap pslToBed pslToChain pslToPslx pslxToFa qacAgpLift qacToQa qacToWig qaToQac randomLines raSqlQuery raToLines raToTab rmFaDups rowsToCols sizeof spacedToTab splitFile splitFileByColumn sqlToXml stringify subChar subColumn tailLines tdbQuery textHistogram tickToDate toLower toUpper trfBig twoBitDup twoBitInfo twoBitMask twoBitToFa validateFiles validateManifest wigCorrelate wigEncode wigToBigWig wordLine xmlCat xmlToSql
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -113,7 +111,7 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -122,34 +120,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
-
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 
@@ -181,9 +151,8 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp -r bin/linux.x86_64/* %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -273,14 +242,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("KENTUTILS_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -288,7 +251,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}

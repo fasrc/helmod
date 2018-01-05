@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static AUGUSTUS is a program that predicts genes in eukaryotic genomic sequences.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: http://bioinf.uni-greifswald.de/augustus/binaries/augustus-3.3.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,29 +72,26 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
+%define builddependencies boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02 bamtools/2.3.0-fasrc01 samtools/0.1.19-fasrc01 htslib/1.1-fasrc01 bcftools/1.0-fasrc01 tabix/0.2.6-fasrc01 lp_solve/5.5.2.5-fasrc01 SuiteSparse/4.2.1-fasrc01
+
 %define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define buildcomments %{nil}
+%define requestor Tim Sackton <tsackton@g.harvard.edu>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
-
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
-
+AUGUSTUS is a program that predicts genes in eukaryotic genomic sequences.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -112,9 +108,9 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,18 +135,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
+# Clean up the object files
+find auxprogs -name "*.o" | xargs rm -f
+rm auxprogs/checkTargetSortedness/checkTargetSortedness
+rm bin/*
 
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
+# Update variables in auxprogs Makefiles
+sed -i -e 's?^BAMTOOLS.*?BAMTOOLS = $(BAMTOOLS_HOME)?' \
+        -e 's?^INCLUDES.*?INCLUDES = $(BAMTOOLS_INCLUDE)/bamtools?' \
+        -e 's?libbamtools.a?bamtools/libbamtools.a?' auxprogs/bam2hints/Makefile
+sed -i -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/checkTargetSortedness/Makefile
+sed -i  -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?^BCFTOOLS.*?BCFTOOLS = $(BCFTOOLS_HOME)?' \
+        -e 's?^TABIX.*?TABIX = $(TABIX_INCLUDE)?' \
+        -e 's?^HTSLIB.*?HTSLIB = $(HTSLIB_LIB)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/bam2wig/Makefile
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+sed -i  -e 's?^INCLUDES.*?INCLUDES = -I$(BAMTOOLS_HOME)/include/bamtools -Iheaders -I$(BAMTOOLS_HOME)/src/toolkit?' \
+        -e 's?^LIBS.*?LIBS = -L$(ZLIB_LIB) $(BAMTOOLS_HOME)/lib/bamtools/libbamtools.a -lz?' auxprogs/filterBam/src/Makefile
+sed -i -e 's?^# COMPGENEPRED?COMPGENEPRED?' -e 's?^# SQLITE?SQLITE?' common.mk
 
+# Make sure lpsolve is visible
+export CXXFLAGS="-I${LP_SOLVE_INCLUDE} -L${LP_SOLVE_LIB} -L${SUITESPARSE_HOME}/COLAMD/Lib" 
+make -j 4
+(cd auxprogs/checkTargetSortedness && make)
+(cd auxprogs/bam2hints && make)
+(cd auxprogs/bam2wig && make)
+export BAMTOOLS=$BAMTOOLS_HOME
+(cd auxprogs/filterBam && make)
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -179,11 +194,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -a config bin scripts %{buildroot}%{_prefix}
+cp auxprogs/bam2hints/bam2hints auxprogs/bam2wig/bam2wig auxprogs/checkTargetSortedness/checkTargetSortedness auxprogs/filterBam/src/filterBam  %{buildroot}%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -253,7 +268,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -273,14 +287,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("AUGUSTUS_HOME",             "%{_prefix}")
+setenv("AUGUSTUS_CONFIG",           "%{_prefix}/config")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/scripts")
 EOF
 
 #------------------- App data file
@@ -288,7 +298,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +314,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

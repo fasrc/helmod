@@ -1,5 +1,8 @@
 #------------------- package info ----------------------------------------------
-#
+
+# binary package
+%define __prelink_undo_cmd %{nil}
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +33,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics. 
+%define summary_static a Python distribution for large-scale data processing, predictive analytics, and scientific computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.freedesktop.org/pub/mesa/older-versions/10.x/10.1.6/MesaLib-10.1.6.tar.gz
-Source: %{name}Lib-%{version}.tar.gz
+URL: https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +56,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,16 +75,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies dri2proto/2.8-fasrc01 dri3proto/1.0-fasrc01 llvm/3.4.2-fasrc01 autoconf/2.69-fasrc01 automake/1.15-fasrc01 libtool/2.4.6-fasrc01 presentproto/1.0-fasrc01 libxcb/1.11-fasrc01 xcb-proto/1.11-fasrc01 libxshmfence/1.2-fasrc01 libdrm/2.4.60-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added dri-drivers for xcrysden
-%define requestor Sooran Kim <sooran@seas.harvard.edu>
-%define requestref RCRT:98742
+%define buildcomments Remove hdf5 h5py AND libgcc.  This removes matplotlib and a number of others
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:3D graphics
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
@@ -91,10 +93,8 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-Mesa is an open-source implementation of the OpenGL specification - a system for rendering interactive 3D graphics.
+A completely free enterprise-ready Python distribution for large-scale data processing, predictive analytics, and scientific computing, from Continuum Analytics.
 
 
 
@@ -102,20 +102,12 @@ Mesa is an open-source implementation of the OpenGL specification - a system for
 
 %prep
 
-
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}Lib-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(do nothing)
 
 
 
@@ -123,33 +115,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-export CC="$CC -I$LLVM_HOME/include"
-export ACLOCAL="aclocal -I$AUTOMAKE_HOME/share/aclocal-1.15 -I$LIBTOOL_HOME/share/aclocal -I/usr/share/aclocal"
-
-NOCONFIGURE=1 ./autogen.sh
-./configure --prefix=%{_prefix} --with-dri-drivers
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+#(do nothing)
 
 
 
@@ -157,43 +134,49 @@ make
 
 %install
 
+#
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
+#
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+#--- This app insists on writing directly to the prefix.  Complicating, things, 
+#    it also insists that the prefix not exist, so even the symlink hack needs 
+#    to be further hacked (introduce an additional sub-directory).
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+# Standard stuff.
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
 
+# Symlink the final prefix (which the build insists on using), to the 
+# buildroot (the temporary place where we want to install it now).  
+# Note that this will fail if this is not the first build of this 
+# NAME/VERSION/RELEASE/TYPE.
+sudo mkdir -p "$(dirname %{_prefix})"
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+#base sharball execution
+#-b ~ batch, -p ~ prefix
+unset PYTHONPATH
+bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
+
+# Remove hdf5 so that a local version can be created when needed.
+# Remove others to reduce the size of the binary so it can be rpm'd
+for pkg in hdf5 pyqt qt gstreamer; do
+    %{_prefix}/x/bin/conda remove --yes $pkg
 done
 
-#(this should not need to be changed)
+
+# Clean up that symlink.  The parent dir may be left over, oh well.
+sudo rm "%{_prefix}"
+
+#---
+
+
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -229,15 +212,9 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
+# - uncomment any applicable prepend_path things
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
-#
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -248,12 +225,12 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-mkdir -p %{buildroot}/%{_prefix}
+# FIXME (but the above is enough for a "trial" build)
+
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -261,26 +238,11 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
----- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
-
-
----- environment changes (uncomment what is relevant)
-setenv("MESA_HOME",                "%{_prefix}")
-setenv("MESA_INCLUDE",             "%{_prefix}/include")
-setenv("MESA_LIB",                 "%{_prefix}/lib")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+-- environment changes (uncomment what is relevant)
+setenv("PYTHON_HOME",               "%{_prefix}/x")
+setenv("PYTHON_INCLUDE",            "%{_prefix}/x/include")
+setenv("PYTHON_LIB",                "%{_prefix}/x/lib")
+prepend_path("PATH",                "%{_prefix}/x/bin")
 EOF
 
 #------------------- App data file
@@ -288,7 +250,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -305,6 +266,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
@@ -325,7 +287,7 @@ EOF
 # everything in fasrcsw is installed in an app hierarchy in which some 
 # components may need creating, but no single rpm should own them, since parts 
 # are shared; only do this if it looks like an app-specific prefix is indeed 
-# being used (that's the fasrcsw default)
+# being used (that is the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 #
