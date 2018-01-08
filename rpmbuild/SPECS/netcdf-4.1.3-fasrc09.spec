@@ -148,7 +148,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 export CFLAGS=-fPIC
 export CXXFLAGS=-fPIC
 
-autoreconf
+#autoreconf
 ./configure --prefix=%{_prefix} \
     --enable-netcdf-4 \
     --with-temp-large=/scratch

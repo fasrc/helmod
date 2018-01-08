@@ -1,54 +1,49 @@
-%define __os_install_post %{nil}
-
-
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
 
 #------------------- package info ----------------------------------------------
-
 #
-# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
-# FIXME
-#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
-# FIXME
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
+#
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# FIXME
-#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static Intel Cluster Studio XE 2017 High Performance MPI Hybrid Cluster Development Suite
+%define summary_static PETSc version 3.8.1
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#(not applicable)
-#Source: %{name}-%{version}.tar.bz2
+URL: http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.8.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -63,6 +58,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -82,7 +78,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+
+%define builddependencies Anaconda/4.3.0-fasrc01 cmake/3.5.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -97,57 +94,74 @@ Prefix: %{_prefix}
 
 
 #
-# FIXME
-#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-High Performance Comprehensive Cluster Development Tools for HPC.
-Scale Development Efforts with Standards Driven Compilers, Programming Models and Tools.
-Supports the Latest Multicore and Manycore Based Systems.
-To use vtune, inspector or advisor, source the appropriate *vars.sh file:
-vtune      source amplxe-vars.sh
-inspector  source inspxe-vars.sh
-advisor    source advixe-vars.sh
-
-
+PETSc, pronounced PET-see (the S is silent), is a suite of data structures and routines for the scalable (parallel) solution of scientific applications modeled by partial differential equations. It supports MPI, shared memory pthreads, and GPUs through CUDA or OpenCL, as well as hybrid MPI-shared memory pthreads or MPI-GPU parallelism. This module has been built by Plamen G. Krastev.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
+
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things
+# style things -- hopefully it'll just work as-is.
 #
 
-#%%setup
-
-
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
-#
-# FIXME
-#
-# configure and make the software here; the default below is for standard 
-# GNU-toolchain style things
-# 
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-##prerequisite apps (uncomment and tweak if necessary)
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-#%%configure
-#make
+
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
 
 
 
@@ -155,29 +169,81 @@ advisor    source advixe-vars.sh
 
 %install
 
-#
-# FIXME
-#
-# make install here; the default below is for standard GNU-toolchain style 
-# things; plus we add some handy files (if applicable) and build a modulefile
-#
-
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#%%makeinstall
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
 
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+# Standard stuff.
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+if [ "%{comp_name}" == "intel" ] 
+then
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --with-blas-lapack-dir=$MKL_HOME --with-debugging=0 --with-scalar-type=complex --download-hdf5
+
+else
+    ./configure --prefix=%{_prefix} --with-mpi-dir=$MPI_HOME --download-superlu_dist --download-mumps --download-pastix --download-parmetis --download-metis --download-ptscotch --download-scalapack --with-debugging=0 --with-scalar-type=complex --download-hdf5
+
+fi
+
+make
+
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#make install DESTDIR=%{buildroot}
+
+#cd %{buildroot}
+#cp -r bin/  conf/  include/  lib/  share/ %{buildroot}/%{_prefix}/
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+#sudo mkdir -p "%{_prefix}"
+#sudo chown -R pkrastev:rc_admin "%{_prefix}/" 
+
+make PETSC_DIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} PETSC_ARCH=arch-linux2-c-opt install
+
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
+
+#rsync -av %{_prefix}/* "%{buildroot}/%{_prefix}/"
+#rm -r "%{_prefix}/"
+
+#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
+#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
-#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -194,6 +260,14 @@ done
 
 	echo
 	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -207,9 +281,13 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# - uncomment any applicable prepend_path things
+# This is the part that builds the modulefile.  However, stop now and run 
+# `make trial'.  The output from that will suggest what to add below.
 #
-# - do any other customizing of the module, e.g. load dependencies
+# - uncomment any applicable prepend_path things (`--' is a comment in lua)
+#
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
+#   any dependency loading is in sync with the %%build section above!
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -219,10 +297,13 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -240,40 +321,15 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("CC" , "icc")
-setenv("CXX", "icpc")
-setenv("FC" , "ifort")
-setenv("F77", "ifort")
-
-setenv("INTEL_HOME",                "/n/sw/intel-cluster-studio-2017")
-setenv("INTEL_LIB",                 "/n/sw/intel-cluster-studio-2017/compilers_and_libraries_2017.2.174/linux/compiler/lib/intel64")
-setenv("INTEL_LICENSE_FILE",        "/n/sw/intel-cluster-studio-2017/license.lic")
-setenv("INTEL_COMPOSER_INCLUDE",    "/n/sw/intel-cluster-studio-2017/compilers_and_libraries_2017.2.174/linux/compiler/include")
-setenv("MKL_HOME",                  "/n/sw/intel-cluster-studio-2017/mkl")
-setenv("TBB_HOME",                  "/n/sw/intel-cluster-studio-2017/tbb")
-prepend_path("PATH",                "/n/sw/intel-cluster-studio-2017/compilers_and_libraries_2017.2.174/linux/bin/intel64")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-cluster-studio-2017/compilers_and_libraries_2017.2.174/linux/compiler/lib/intel64")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-cluster-studio-2017/mkl/lib/intel64")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-cluster-studio-2017/tbb/lib/intel64")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2017/compilers_and_libraries_2017.2.174/linux/compiler/lib/intel64")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2017/mkl/lib/intel64")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2017/tbb/lib/intel64")
-prepend_path("MANPATH",             "/n/sw/intel-cluster-studio-2017/man/common")
-
----- Support for starting vtune, etc.  Just source the appropriate vars.sh
-prepend_path("PATH",                "/n/sw/intel-cluster-studio-2017/vtune_amplifier_xe")
-prepend_path("PATH",                "/n/sw/intel-cluster-studio-2017/inspector")
-prepend_path("PATH",                "/n/sw/intel-cluster-studio-2017/advisor")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_NAME"   , "%{name}")
-setenv("FASRCSW_COMP_VERSION", "%{version}")
-setenv("FASRCSW_COMP_RELEASE", "%{release_short}")
-family("Comp")
+setenv("PETSC_DIR",                "%{_prefix}")
+setenv("PETSC_ARCH",               "")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -297,7 +353,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

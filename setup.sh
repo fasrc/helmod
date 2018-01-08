@@ -30,3 +30,4 @@ fi
 export FASRCSW_DEV="$(dirname "$(readlink -e "$BASH_SOURCE")")"  #(the abs path of the dir containing this setup.sh)
 
 export PATH="$FASRCSW_DEV/bin:$PATH"
+

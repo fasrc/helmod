@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies libtool/2.4.6-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -84,7 +84,6 @@ Prefix: %{_prefix}
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
-
 
 
 #
@@ -162,12 +161,13 @@ unset F90
     --enable-threads=multiple \
     --enable-cxx \
     --with-pmi \
-    --with-slurm
+    --with-slurm \
+  --disable-option-checking \
+  --enable-plugins
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------

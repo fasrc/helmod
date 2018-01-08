@@ -287,11 +287,14 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+---- See RT 120487 for details on MV2 environmental variables
 
 ---- environment changes (uncomment what is relevant)
 setenv("MPI_HOME",                 "%{_prefix}")
 setenv("MPI_INCLUDE",              "%{_prefix}/include")
 setenv("MPI_LIB",                  "%{_prefix}/lib64")
+setenv("MV2_ENABLE_AFFINITY",	   "0")
+setenv("MV2_USE_SHARED_MEM",	   "0")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
