@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3b.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -76,14 +76,15 @@ Prefix: %{_prefix}
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -93,15 +94,12 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+MPI-3 over OpenFabrics-IB, OpenFabrics-iWARP, PSM, uDAPL and TCP/IP
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -110,7 +108,7 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -123,9 +121,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -138,8 +133,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# configure complains about F90
 
-./configure --prefix=%{_prefix} --with-x
+unset F90
+
+# Configuring a build for OFA-IB-CH3/OFA-iWARP-CH3/OFA-RoCE-CH3
+# See, http://mvapich.cse.ohio-state.edu/static/media/mvapich/mvapich2-2.3b-userguide.html#x1-120004.4
+# --with-device=ch3:mrail --with-rdma=gen2
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-fc \
+    --enable-f77 \
+    --with-device=ch3:mrail \
+    --with-rdma=gen2 \
+    --enable-threads=multiple \
+    --enable-cxx \
+    --with-pmi=pmi2 \
+    --with-pm=slurm \
+    --with-slurm
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -155,8 +179,6 @@ make %{?_smp_mflags}
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -265,13 +287,29 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+---- See RT 120487 for details on MV2 environmental variables
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
+setenv("MPI_HOME",                 "%{_prefix}")
+setenv("MPI_INCLUDE",              "%{_prefix}/include")
+setenv("MPI_LIB",                  "%{_prefix}/lib64")
+setenv("MV2_ENABLE_AFFINITY",	   "0")
+setenv("MV2_USE_SHARED_MEM",	   "0")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+
+local mroot = os.getenv("MODULEPATH_ROOT")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
+prepend_path("MODULEPATH", mdir)
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 #------------------- App data file

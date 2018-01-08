@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static Genome-wide Efficient Mixed Model Association 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: https://github.com/genetics-statistics/GEMMA/archive/v0.96.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies gsl/2.1-fasrc04 zlib/1.2.8-fasrc08
+%define rundependencies %{nil}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor Yaowu Liu <yaowuliu@hsph.harvard.edu>
+%define requestref RCRT:119269
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -93,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+GEMMA is a software toolkit for fast application of linear mixed models (LMMs) and related models to genome-wide association studies (GWAS) and other large-scale data sets.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,7 +111,7 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -124,26 +125,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} --with-x
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+# Needed for newer versions of gfortran
+sed -i -e 's/-lgfortran/-lgfortran -lquadmath/' \
+       -e 's?/usr/lib/lapack?/usr/lib64?g' \
+       -e 's?/usr/lib/libblas?/usr/lib64?g' \
+       -e 's?/usr/lib/atlas-base/libatlas.a??g' Makefile
+make
 
 
 
@@ -176,8 +166,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r bin %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -267,11 +256,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("GEMMA_HOME",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

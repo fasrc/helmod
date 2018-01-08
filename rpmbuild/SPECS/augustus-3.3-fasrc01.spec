@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static AUGUSTUS is a program that predicts genes in eukaryotic genomic sequences.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: http://bioinf.uni-greifswald.de/augustus/binaries/augustus-3.3.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,11 +72,12 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02 bamtools/2.3.0-fasrc01 samtools/0.1.19-fasrc01 htslib/1.1-fasrc01 bcftools/1.0-fasrc01 tabix/0.2.6-fasrc01 lp_solve/5.5.2.5-fasrc01 SuiteSparse/4.2.1-fasrc01
+
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor Tim Sackton <tsackton@g.harvard.edu>
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -90,10 +90,9 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+AUGUSTUS is a program that predicts genes in eukaryotic genomic sequences.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -109,9 +108,9 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
-cd %{name}-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -136,15 +135,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
+# Clean up the object files
+find auxprogs -name "*.o" | xargs rm -f
+rm auxprogs/checkTargetSortedness/checkTargetSortedness
+rm bin/*
 
-./configure --prefix=%{_prefix} --with-x
+# Update variables in auxprogs Makefiles
+sed -i -e 's?^BAMTOOLS.*?BAMTOOLS = $(BAMTOOLS_HOME)?' \
+        -e 's?^INCLUDES.*?INCLUDES = $(BAMTOOLS_INCLUDE)/bamtools?' \
+        -e 's?libbamtools.a?bamtools/libbamtools.a?' auxprogs/bam2hints/Makefile
+sed -i -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/checkTargetSortedness/Makefile
+sed -i  -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
+        -e 's?^BCFTOOLS.*?BCFTOOLS = $(BCFTOOLS_HOME)?' \
+        -e 's?^TABIX.*?TABIX = $(TABIX_INCLUDE)?' \
+        -e 's?^HTSLIB.*?HTSLIB = $(HTSLIB_LIB)?' \
+        -e 's?\(^CFLAGS.*\)?\1 -L$(ZLIB_LIB)?' auxprogs/bam2wig/Makefile
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+sed -i  -e 's?^INCLUDES.*?INCLUDES = -I$(BAMTOOLS_HOME)/include/bamtools -Iheaders -I$(BAMTOOLS_HOME)/src/toolkit?' \
+        -e 's?^LIBS.*?LIBS = -L$(ZLIB_LIB) $(BAMTOOLS_HOME)/lib/bamtools/libbamtools.a -lz?' auxprogs/filterBam/src/Makefile
+sed -i -e 's?^# COMPGENEPRED?COMPGENEPRED?' -e 's?^# SQLITE?SQLITE?' common.mk
 
+# Make sure lpsolve is visible
+export CXXFLAGS="-I${LP_SOLVE_INCLUDE} -L${LP_SOLVE_LIB} -L${SUITESPARSE_HOME}/COLAMD/Lib" 
+make -j 4
+(cd auxprogs/checkTargetSortedness && make)
+(cd auxprogs/bam2hints && make)
+(cd auxprogs/bam2wig && make)
+export BAMTOOLS=$BAMTOOLS_HOME
+(cd auxprogs/filterBam && make)
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -173,11 +194,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -a config bin scripts %{buildroot}%{_prefix}
+cp auxprogs/bam2hints/bam2hints auxprogs/bam2wig/bam2wig auxprogs/checkTargetSortedness/checkTargetSortedness auxprogs/filterBam/src/filterBam  %{buildroot}%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -247,7 +268,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -267,11 +287,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("AUGUSTUS_HOME",             "%{_prefix}")
+setenv("AUGUSTUS_CONFIG",           "%{_prefix}/config")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/scripts")
 EOF
 
 #------------------- App data file
@@ -295,6 +314,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

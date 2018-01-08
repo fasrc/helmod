@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static V_Sim visualizes atomic structures such as crystals, grain boundaries and so on
+%define summary_static Tools test whether admixture occurred and more
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://inac.cea.fr/L_Sim/V_Sim/download.html
-Source: %{name}-%{version}.bz2
+URL: https://github.com/DReichLab/AdmixTools.git
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,17 +73,18 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies OpenBLAS/0.2.19-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor Sooran Kim <sok673@g.harvard.edu>
-%define requestref RCRT:98570
+%define requestor Tauna Cunha <tauanacunha@g.harvard.edu>
+%define requestref RCRT:118750
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
@@ -93,7 +94,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
+The ADMIXTOOLS package implements 5 methods described in 
+Patterson et al. (2012) Ancient Admixture in Human History. Details of the methods and algorithm can be found in this paper.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,7 +112,7 @@ V_Sim visualizes atomic structures such as crystals, grain boundaries and so on.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.bz2
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -136,15 +138,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
-
-./configure --prefix=%{_prefix} --with-x
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
-
+make
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -173,11 +169,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp {qp3Pop,qpDstat,qpF4ratio,qpAdm,qpWave,rolloff,convertf,dowtjack,grabpars,qpBound,qpGraph,qpreroot,qpff3base,rolloffp,qpDpart} %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -267,11 +262,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("V_SIM_HOME",               "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("ADMIXTOOLS_HOME",       "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
