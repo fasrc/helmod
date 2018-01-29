@@ -150,7 +150,7 @@ A completely free enterprise-ready Python distribution for large-scale data proc
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
-# Symlink the final prefix (which the build insists on using), to the 
+## Symlink the final prefix (which the build insists on using), to the 
 # buildroot (the temporary place where we want to install it now).  
 # Note that this will fail if this is not the first build of this 
 # NAME/VERSION/RELEASE/TYPE.
