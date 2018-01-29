@@ -160,7 +160,7 @@ sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 #base sharball execution
 #-b ~ batch, -p ~ prefix
 unset PYTHONPATH
-bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
+bash %{_topdir}/SOURCES/%{name}2-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
 
 # Remove hdf5 so that a local version can be created when needed.
 # Remove others to reduce the size of the binary so it can be rpm'd
