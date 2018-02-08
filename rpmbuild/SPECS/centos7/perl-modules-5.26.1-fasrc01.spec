@@ -1,36 +1,30 @@
 #------------------- package info ----------------------------------------------
 #
-# For this to work, cpanm (CPAN Minus) must be installed
-#
-
-#
-# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
-# FIXME
-#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
 #
-# FIXME
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
 
 #
-# FIXME
-#
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
+
 
 #
 # FIXME
@@ -48,7 +42,7 @@ Summary: %{summary_static}
 # suffix if applicable
 #
 #http://...FIXME...
-# Source: %{name}-%{version}.tar.gz
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -66,14 +60,31 @@ Prefix: %{_prefix}
 
 
 #
-# The list of modules installed via cpan
+# The list of modules installed 
 #
-%define MODULES ExtUtils-MakeMaker-6.98 IO-String-1.08 Test-Deep-0.112 Tree-DAG_Node-1.20 Test-Warn-0.24 Class-Data-Inheritable-0.08 Algorithm-Diff-1.1902 Scalar-List-Utils-1.38 Parse-CPAN-Meta-1.4409 CPAN-Meta-YAML-0.010 CPAN-Meta-Requirements-2.125 CPAN-Meta-2.133380 Module-Metadata-1.000019 version-0.9907 Sub-Uplevel-0.24 Test-Exception-0.32 Test-Simple-1.001002 Data-Dumper-2.145 Carp-1.32 File-Slurp-9999.19 ExtUtils-CBuilder-0.280212 ExtUtils-ParseXS-3.22 Perl-OSType-1.007 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41 DBI-1.631 Devel-StackTrace-1.31 Exception-Class-1.37 GD-2.50 JSON-PP-2.27203 Data-Stag-0.14 URI-1.71 Module-Build-0.4204 DBD-SQLite-1.40 IPC-Run-0.92 Graph-0.96 GraphViz-2.15 XML-NamespaceSupport-1.11 XML-SAX-Base-1.08 XML-Parser-2.44 XML-SAX-0.99 XML-Simple-2.20 XML-Twig-3.44 XML-SAX-Writer-0.54 XML-Filter-BufferText-1.01 Acme-Damn-0.06 Bit-Vector-7.3 DBD-Pg-3.0.0 Clone-0.36 Class-Load-0.20 Task-Weaken-1.04 Sub-Exporter-Progressive-0.001011 Devel-GlobalDestruction-0.12 Sub-Name-0.05 Eval-Closure-0.11 Dist-CheckConflicts-0.10 Data-OptList-0.109 Moose-2.1202 Module-Runtime-0.013 Params-Util-1.07 Sub-Install-0.927 Module-Implementation-0.07 Try-Tiny-0.19 List-MoreUtils-0.413 Package-Stash-0.36 Package-DeprecationManager-0.13 MRO-Compat-0.12 Sub-Exporter-0.987 Compress-Raw-Zlib-2.065 Compress-Raw-Bzip2-2.064 Convert-Binary-C-0.76 Mozilla-CA-20130114 WWW-RobotRules-6.02 HTTP-Cookies-6.01 HTTP-Daemon-6.01 HTML-Tagset-3.20 HTML-Parser-3.71 HTTP-Negotiate-6.01 File-Listing-6.04 HTTP-Date-6.02 IO-HTML-1.00 HTTP-Message-6.06 Encode-Locale-1.03 LWP-MediaTypes-6.02 libwww-perl-6.05 Net-HTTP-6.06 Net-SSLeay-1.58 IO-Socket-SSL-1.966 LWP-Protocol-https-6.04 MIME-Base64-3.14 Crypt-SSLeay-0.64 Math-Random-0.71 Perl-Unsafe-Signals-0.02 Socket6-0.25 Storable-2.45 String-Approx-3.26 Tk-804.032 Sys-SigAction-0.21 XML-LibXML-2.0110 Data-Utilities-0.04 Time-HiRes-1.9726 Time-Piece-1.27 Want-0.22 DIYA-1.0 YAML-0.95 local-lib-2.000012 Statistics-Descriptive-3.0607 File-Copy-Link-0.113 Math-Matrix-0.8 Math-MatrixReal-1.9 ExtUtils-F77-1.16 SVG-2.28 Text-Glob-0.09 Spreadsheet-WriteExcel-2.40 TermReadKey-2.32
+# NOTE: If you need to version of the modules in a future install, the latest versions of the same modules can be downloaded automatically 
+# from cpan, for example, feeding the following list to something like 
+# [francesco@builds02 New-Perl-Mods]$ mylist="ExtUtils-MakeMaker-6.98 IO-String-1.08 Test-Deep-0.112"
+# [francesco@builds02 New-Perl-Mods]$ for i in `echo $mylist | sed 's/-[0-9]\+\(\.[0-9]\+\)*//g' | sed 's/-/::/g'` ; do cpan -g $i ; done 
+# [francesco@builds02 New-Perl-Mods]$ ls *gz  
+# ExtUtils-MakeMaker-7.30.tar.gz  IO-String-1.08.tar.gz  Test-Deep-1.127.tar.gz
+# [francesco@builds02 New-Perl-Mods]$  ls *gz | sed 's/.tar.gz//g' | tr '\n' ' '
+# ExtUtils-MakeMaker-7.30 IO-String-1.08 Test-Deep-1.127
+# 
+# This is true for everything in the list except for :
+# Scalar-List-Utils : search for  Scalar::Util
+# TermReadKey       : search for  Term::ReadKey
+# TimeDate          : search for  Date::Format
+# libwww-perl       : search for  LWP 
+# DIYA  ..... https://github.com/bioteam/DIYA most likely abandoned project (last commit was march 2013. but someone may still need it.
+# 
+# Also, in the build the modules are supposed to be in tar.gz archives. please check that there are no bz2 or other extensions.
+#
+%define MODULES Text-Diff-1.45 Text-Glob-0.11 Capture-Tiny-0.46 Try-Tiny-0.30 Test-Deep-1.127 Test-Differences-0.64 Test-Exception-0.43 Test-Harness-3.39 Test-Most-0.35 Test-Simple-1.302120 Test-Warn-0.32 Test-Fatal-0.014 Test-Needs-0.002005  Module-Build-0.4224 Module-Implementation-0.09 Module-Metadata-1.000033 Module-Runtime-0.016  Package-DeprecationManager-0.17 Package-Stash-0.37 Test-Needs-0.002005 Acme-Damn-0.08 Algorithm-Diff-1.1903 Carp-1.38 Bit-Vector-7.4 Class-Data-Inheritable-0.08 Path-Class-0.37 Data-Dumper-2.161 Data-OptList-0.110 Data-Utilities-0.04 Class-Load-0.24 Clone-0.39 XML-Filter-BufferText-1.01 XML-LibXML-2.0132 XML-NamespaceSupport-1.12 XML-Parser-2.44 XML-SAX-0.99 XML-SAX-Base-1.09 XML-SAX-Writer-0.57 XML-Simple-2.24 XML-Twig-3.52 YAML-1.24 Compress-Raw-Bzip2-2.074 Compress-Raw-Zlib-2.076 Convert-Binary-C-0.78 CPAN-Meta-2.150010 CPAN-Meta-Requirements-2.140 CPAN-Meta-YAML-0.018 Crypt-SSLeay-0.72 DBD-Pg-3.7.0 DBD-SQLite-1.54 DBI-1.640 Devel-GlobalDestruction-0.14 Devel-StackTrace-2.03 Dist-CheckConflicts-0.11 Email-Date-Format-1.005 Encode-Locale-1.05 Eval-Closure-0.14 Exception-Class-1.44 ExtUtils-CBuilder-0.280230 ExtUtils-F77-1.20 ExtUtils-MakeMaker-7.30 ExtUtils-ParseXS-3.35 File-Copy-Link-0.140 File-Listing-6.04 File-ShareDir-Install-0.11 File-Slurp-9999.19 File-Which-1.22 forks-0.36 GD-2.67 Graph-0.9704 GraphViz-2.24 Hash-Merge-0.299 HTML-Parser-3.72 HTML-Tagset-3.20 HTTP-Cookies-6.04 HTTP-Daemon-6.01 HTTP-Date-6.02 HTTP-Message-6.14 HTTP-Negotiate-6.01 Inline-0.80 Inline-C-0.78 IO-All-0.87 IO-HTML-1.001 IO-Prompt-0.997004 IO-Socket-SSL-2.054 IO-String-1.08 IPC-Run-0.96 JSON-PP-2.97001 libwww-perl-6.31 List-MoreUtils-0.428 local-lib-2.000024 Logger-Simple-2.0 LWP-MediaTypes-6.02 LWP-Protocol-https-6.07 MailTools-2.20 Math-Matrix-0.8 Math-MatrixReal-2.13 Math-Random-0.72 MIME-Base64-3.15 MIME-Lite-3.030 MIME-Types-2.17 Moose-2.2009 Mozilla-CA-20160104 MRO-Compat-0.13 Net-HTTP-6.17 Net-SSLeay-1.84Parallel-ForkManager-1.19 Params-Util-1.07 Parse-RecDescent-1.967015 Perl-OSType-1.010 Perl-Unsafe-Signals-0.03 Scalar-List-Utils-1.49 Socket6-0.28 Spreadsheet-WriteExcel-2.40 Statistics-Descriptive-3.0612 Storable-2.51 String-Approx-3.28 Sub-Exporter-0.987 Sub-Exporter-Progressive-0.001013 Sub-Install-0.928 Sub-Name-0.21 Sub-Uplevel-0.2800 SVG-2.82 Sys-SigAction-0.23 Task-Weaken-1.05 TermReadKey-2.37 Time-HiRes-1.9753 Time-Piece-1.3203 Tk-804.034 Tree-DAG_Node-1.30  URI-1.73 version-0.9918 Want-0.29 Data-Stag-0.14  WWW-RobotRules-6.02  DIYA-1.0
 
-%define BUILDPL BioPerl-1.6.923 Class-Load-XS-0.06 Astro-FITS-Header-3.07
+%define BUILDPL BioPerl-1.007002 Class-Load-XS-0.10 Astro-FITS-Header-3.07
 
-%define PDL PDL-2.007 
-# Module-Build-0.4204 Tree-DAG_Node-1.20 Test-Warn-0.24 Test-Differences-0.61 Test-Harness-3.30 Test-Most-0.33 Exception-Class-1.37 Devel-StackTrace-1.31 Text-Diff-1.41
+%define PDL PDL-2.018 
 
 #
 # FIXME
@@ -82,8 +93,8 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-There is a lot of stuff here including the following:
-%{MODULES} %{BUILDPL}
+Built against the fasrc01 release of perl-5.26.1.  There is a lot of stuff here including the following:
+%{MODULES} %{BUILDPL} 
 
 #
 # Macros for setting app data 
@@ -104,9 +115,9 @@ There is a lot of stuff here including the following:
 
 
 
-%define builddependencies  perl/5.22.0-fasrc01 gd/2.0.28-fasrc01
+%define builddependencies  perl/5.26.1-fasrc01 
 %define rundependencies %{builddependencies}
-%define buildcomments Updated URI::Escape to remove regex warning Module list: %{MODULES}"
+%define buildcomments Set HTTP_CA_FILE, "Module list: %{MODULES}"
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -134,6 +145,7 @@ There is a lot of stuff here including the following:
 %build
 
 %include fasrcsw_module_loads.rpmmacros
+
 
 
 export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:$PERL5LIB
@@ -296,7 +308,6 @@ prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("PERL5LIB",              "%{_prefix}/lib")
 prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl")
 prepend_path("PERL5LIB",              "%{_prefix}/lib/perl5")
-prepend_path("PERL5LIB",              "%{_prefix}/lib/site_perl/%{version}/x86_64-linux")
 prepend_path("MANPATH",             "%{_prefix}/man")
 EOF
 
@@ -305,6 +316,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -321,7 +333,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
