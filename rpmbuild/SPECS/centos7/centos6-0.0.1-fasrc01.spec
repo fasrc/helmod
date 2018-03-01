@@ -256,10 +256,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("MODULEPATH_ROOT",        "/n/sw/fasrcsw/modulefiles")
 prepend_path("MODULEPATH",       "/n/sw/fasrcsw/modulefiles/Core")
-prepend_path("MODULEPATH_ROOT",  "/n/sw/fasrcsw/modulefiles")
-prepend_path("FASRCSW_PROD",     "/n/sw/fasrcsw")
-setenv("FASRCSW_OS",	   "centos6")
 EOF
 
 #------------------- App data file
