@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,16 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The GNU Binutils are a collection of binary tools.
+%define summary_static Software for base-calling and demultiplexing Illumina NextSeq sequencing data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://ftp.gnu.org/gnu/binutils/binutils-2.26.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://support.illumina.com/downloads/bcl2fastq-conversion-software-v2-19.html
+Source: bcl2fastq2-v2.20.0.422-Source.tar.gz
+
 
 #
 # there should be no need to change the following
@@ -53,7 +54,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,28 +73,27 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies mpc/1.0.2-fasrc03 zlib/1.2.8-fasrc05 libxml2/2.7.8-fasrc02 boost/1.54.0-fasrc02 cmake/3.5.2-fasrc01
+%define rundependencies mpc/1.0.2-fasrc03 zlib/1.2.8-fasrc05 libxml2/2.7.8-fasrc02 boost/1.54.0-fasrc01 
 %define buildcomments %{nil}
-%define requestor Gregory Green <ggreen@cfa.harvard.edu>
-%define requestref RCRT:95643
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Libraries
+%define apptags %{nil} 
 %define apppublication %{nil}
-
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-The GNU Binutils are a collection of binary tools. The main ones are ld - the GNU linker, and as - the GNU assembler.
+bcl2fastq2 combines BCL files from an Illumina NextSeq run and converts them into FASTQ files. At the same time as converting, bcl2fastq2 separates reads from multiplexed samples (demultiplexing). The multiplexed reads are assigned to samples based on a user-generated sample sheet, and are written to corresponding FASTQ files.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,11 +109,10 @@ The GNU Binutils are a collection of binary tools. The main ones are ld - the GN
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf bcl2fastq  
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.422-Source.tar.gz
+cd bcl2fastq
 chmod -Rf a+rX,u+w,g-w,o-w .
-
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -136,28 +134,53 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
+# Handle TYPE=Core
+test -z "$CC" && export CC=gcc
+test -z "$CXX" && export CXX=g++
+
+export CC="$CC -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
+export CXX="$CXX -I${LIBXML2_INCLUDE} -L${LIBXML2_LIB}"
+export LDFLAGS="-L$BOOST_LIB -lboost_filesystem"
+export BOOST_ROOT=$BOOST_HOME
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq
+
+# Patch the bcl2fastq redist macros cmake file
+cat <<EOF | patch src/cmake/bcl2fastq_redist_macros.cmake
+33a34
+>        set(\${\${libname}_UPPER}_FOUND "TRUE")
+EOF
+
+# Patch the cxxConfigure cmake file
+cat <<EOF | patch src/cmake/cxxConfigure.cmake
+110c110,116
+< if((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
+---
+> if(LIBXML2_FOUND) #rebuild libxslt against libxml2, regardless of whether libxslt was found
+>   redist_package(LIBXSLT \${BCL2FASTQ_LIBXSLT_VERSION} "--prefix=\${REINSTDIR};--with-libxml-prefix=\${LIBXML2_HOME};--without-plugins;--without-crypto")
+>   find_library_redist(LIBEXSLT \${REINSTDIR} libexslt/exslt.h exslt)
+>   find_library_redist(LIBXSLT \${REINSTDIR} libxslt/xsltconfig.h xslt)
+> endif(LIBXML2_FOUND)
+> 
+> if(NOT LIBXML2_FOUND) #build libxml2, and then build libxslt against libxml2
+117c123
+< endif((NOT HAVE_LIBXML2) OR (NOT HAVE_LIBXSLT))
+---
+> endif(NOT LIBXML2_FOUND)
+EOF
 
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+# Create the build directory if it isn't here
+test -d build && rm -rf build
+mkdir build
+cd build
+
+../src/configure --prefix=%{_prefix} --with-cmake=${CMAKE_HOME}/bin/cmake  --build-type Release
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make 
+make
 
 
 
@@ -187,8 +210,8 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/bcl2fastq/build
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot} 
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
@@ -261,7 +284,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -279,18 +301,11 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("BINUTILS_HOME",            "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/x86_64-unknown-linux-gnu/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64-unknown-linux-gnu/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64-unknown-linux-gnu/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
@@ -314,6 +329,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

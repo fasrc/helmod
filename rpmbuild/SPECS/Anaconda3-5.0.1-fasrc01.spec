@@ -164,7 +164,7 @@ bash %{_topdir}/SOURCES/%{name}-%{version}-Linux-x86_64.sh -b -p "%{_prefix}"/x
 
 # Remove hdf5 so that a local version can be created when needed.
 # Remove others to reduce the size of the binary so it can be rpm'd
-for pkg in hdf5 pyqt qt gstreamer; do
+for pkg in hdf5 pyqt qt gstreamer libgcc-ng; do
     %{_prefix}/x/bin/conda remove --yes $pkg
 done
 
