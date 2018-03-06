@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
-Source: Trinity-v%{version}.tar.gz
+#Source: Trinity-v%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc02 jdk/1.8.0_45-fasrc01
+%define rundependencies trinityrnaseq/2.4.0-fasrc02
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -95,100 +95,12 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
-
-
-#------------------- %%prep (~ tar xvf) ---------------------------------------
-
+Alias for trinityrnaseq/2.4.0-fasrc02
 %prep
-
-
-#
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-Trinity-v%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
-cd %{name}-Trinity-v%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
-
-#------------------- %%build (~ configure && make) ----------------------------
-
 %build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
-
-
-make -j 4
-make -j 4 plugins
-
-
-
-#------------------- %%install (~ make install + create modulefile) -----------
-
 %install
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-cp -r * %{buildroot}/%{_prefix}
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
-
-#(this should not need to be changed)
-#this is the part that allows for inspecting the build output without fully creating the rpm
+%include fasrcsw_module_loads.rpmmacros 
+mkdir -p %{buildroot}%{_prefix}
 %if %{defined trial}
 	set +x
 	
@@ -260,7 +172,7 @@ whatis("Description: %{summary_static}")
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
@@ -268,8 +180,6 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}")
-setenv("TRINITY_HOME",             "%{_prefix}")
 EOF
 
 #------------------- App data file

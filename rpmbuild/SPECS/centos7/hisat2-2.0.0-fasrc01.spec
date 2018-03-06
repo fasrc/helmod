@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
+%define summary_static HISAT2 is a fast and sensitive alignment program for mapping next-generation sequencing reads (both DNA and RNA) to a population of human genomes (as well as against a single reference genome)
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
-Source: Trinity-v%{version}.tar.gz
+URL:  http://ccb.jhu.edu/software/hisat2/downloads/hisat2-2.0.0-beta-source.zip
+Source: %{name}-%{version}-beta-source.zip
 
 #
 # there should be no need to change the following
@@ -73,9 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc02 jdk/1.8.0_45-fasrc01
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -83,8 +82,8 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
-%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
+%define apptags %{nil} 
+%define apppublication %{nil}
 
 
 
@@ -95,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
-
+HISAT2 is a fast and sensitive alignment program for mapping next-generation sequencing reads (both DNA and RNA) to a population of human genomes (as well as against a single reference genome). Based on an extension of BWT for graphs [Sirén et al. 2014], we designed and implemented a graph FM index (GFM), an original approach and its first implementation to the best of our knowledge. In addition to using one global GFM index that represents a population of human genomes, HISAT2 uses a large set of small GFM indexes that collectively cover the whole genome (each index representing a genomic region of 56 Kbp, with 55,000 indexes needed to cover the human population). These small indexes (called local indexes), combined with several alignment strategies, enable rapid and accurate alignment of sequencing reads. This new indexing scheme is called a Hierarchical Graph FM index (HGFM)
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,9 +110,9 @@ Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-Trinity-v%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
-cd %{name}-Trinity-v%{version}
+rm -rf %{name}-%{version}-beta
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-beta-source.zip
+cd %{name}-%{version}-beta
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,11 +137,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-beta
 
-
-make -j 4
-make -j 4 plugins
+make
 
 
 
@@ -173,10 +169,9 @@ make -j 4 plugins
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-beta
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
 cp -r * %{buildroot}/%{_prefix}
 
 
@@ -268,8 +263,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("HISAT2_HOME",              "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}")
-setenv("TRINITY_HOME",             "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -293,7 +288,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

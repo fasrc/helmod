@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
+%define summary_static Cell Ranger is a set of analysis pipelines that processes Chromium single cell 3’ RNA-seq output to align reads, generate gene-cell matrices and perform clustering and gene expression analysis.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
-Source: Trinity-v%{version}.tar.gz
+URL: http://cf.10xgenomics.com/releases/cell-exp/cellranger-2.1.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,18 +73,17 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc02 jdk/1.8.0_45-fasrc01
-%define buildcomments %{nil}
+%define rundependencies bcl2fastq2/2.20.0-fasrc01
+%define buildcomments Build for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
-%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
+%define apptags %{nil} 
+%define apppublication %{nil}
 
 
 
@@ -95,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
-
+Cell Ranger is a set of analysis pipelines that processes Chromium single cell 3’ RNA-seq output to align reads, generate gene-cell matrices and perform clustering and gene expression analysis.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,9 +110,9 @@ Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-Trinity-v%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
-cd %{name}-Trinity-v%{version}
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -125,25 +123,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
-
-
-make -j 4
-make -j 4 plugins
 
 
 
@@ -173,12 +152,25 @@ make -j 4 plugins
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
 cp -r * %{buildroot}/%{_prefix}
 
+cat <<EOF > %{buildroot}/%{_prefix}/martian-cs/2.3.0/jobmanagers/slurm.template
+#!/usr/bin/env bash
+#SBATCH -J __MRO_JOB_NAME__
+#SBATCH --export=ALL
+#SBATCH -N 1
+#SBATCH --n=__MRO_THREADS__
+#SBATCH --mem=__MRO_MEM_GB__G
+#SBATCH -o __MRO_STDOUT__
+#SBATCH -e __MRO_STDERR__
+#SBATCH -p serial_requeue
+#SBATCH -t 1-0:00
+
+__MRO_CMD__
+EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -268,8 +260,25 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}")
-setenv("TRINITY_HOME",             "%{_prefix}")
+setenv("CELLRANGER_HOME",           "%{_prefix}") 
+setenv("MROFLAGS",                  "--vdrmode=rolling")
+setenv("LC_ALL",                    "C")
+setenv("MROPATH",                   "%{_prefix}/cellranger-cs/%{version}/tenkit/mro:%{_prefix}/cellranger-cs/%{version}/mro")
+setenv("PYTHONUSERBASE",            "%{_prefix}/cellranger-cs/%{version}/lib")
+prepend_path("PATH",                "%{_prefix}/STAR/5dda596")
+prepend_path("PATH",                "%{_prefix}/martian-cs/2.3.0/bin")
+prepend_path("PATH",                "%{_prefix}/lz4/v1.8.0")
+prepend_path("PATH",                "%{_prefix}/cellranger-cs/%{version}/bin")
+prepend_path("PATH",                "%{_prefix}/cellranger-cs/%{version}/tenkit/bin")
+prepend_path("PATH",                "%{_prefix}/cellranger-cs/%{version}/tenkit/lib/bin")
+prepend_path("PATH",                "%{_prefix}/cellranger-cs/%{version}/lib/bin")
+prepend_path("PATH",                "%{_prefix}/miniconda-cr-cs/4.3.21-miniconda-cr-cs-c9/bin")
+prepend_path("PATH",                "%{_prefix}/cellranger-tiny-ref/1.2.0")
+prepend_path("PATH",                "%{_prefix}/cellranger-tiny-fastq/1.2.0")
+prepend_path("PATH",                "%{_prefix}/samtools_new/1.6")
+prepend_path("PYTHONPATH",          "%{_prefix}/martian-cs/2.3.0/adapters/python")
+prepend_path("PYTHONPATH",          "%{_prefix}/cellranger-cs/%{version}/lib/python")
+prepend_path("PYTHONPATH",          "%{_prefix}/cellranger-cs/%{version}/tenkit/lib/python")
 EOF
 
 #------------------- App data file
@@ -293,7 +302,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

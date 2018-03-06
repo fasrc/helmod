@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
+%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
-Source: Trinity-v%{version}.tar.gz
+URL: http://downloads.sourceforge.net/project/boost/boost/1.54.0/boost_1_54_0.tar.bz2
+Source: %{name}_1_54_0.tar.bz2
 
 #
 # there should be no need to change the following
@@ -56,10 +56,15 @@ Prefix: %{_prefix}
 
 
 #
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+
+#
 # Macros for setting app data 
 # The first set can probably be left as is
-# the nil construct should be used for empty values
-#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -74,28 +79,14 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc02 jdk/1.8.0_45-fasrc01
-%define buildcomments %{nil}
+%define builddependencies python/2.7.14-fasrc01 bzip2/1.0.6-fasrc01
+%define rundependencies bzip2/1.0.6-fasrc01
+%define buildcomments Had to unset CPATH for intel 15.0.0 because it threw an error with std::complex for some reason.
 %define requestor %{nil}
 %define requestref %{nil}
+%define apptags  aci-ref-app-category:Libraries; aci-ref-app-tag:Utility 
+%define apppublication %{nil}
 
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
-%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
-
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -112,9 +103,9 @@ Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-Trinity-v%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
-cd %{name}-Trinity-v%{version}
+rm -rf %{name}_1_54_0
+tar xvjf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_54_0.tar.*
+cd %{name}_1_54_0
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,17 +125,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
+
+# Build based on instructions from this page
+# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
 
 
-make -j 4
-make -j 4 plugins
 
+%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
+%define c_version %( test "$TYPE" == "Core" && echo "4.8.5" || echo "%{comp_version}" )
+
+# test "%{toolset_name}" == "cc" && export CXX="g++ -Wno-unused-local-typedefs" CC="gcc -Wno-unused-local-typedefs"
+
+./bootstrap.sh --prefix=%{_prefix} --with-python-root=${PYTHON_HOME} \
+--with-toolset=%{toolset_name}
+
+test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
+# the cc toolset makes use of CC, CFLAGS, etc.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -173,11 +172,13 @@ make -j 4 plugins
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_54_0
+echo %{buildroot} | grep -q %{name}_1_54_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-cp -r * %{buildroot}/%{_prefix}
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./b2 install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix}  cxxflags="-Wno-unused-local-typedefs"
 
 
 #(this should not need to be changed)
@@ -248,7 +249,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -268,15 +268,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}")
-setenv("TRINITY_HOME",             "%{_prefix}")
+setenv("BOOST_HOME",                 "%{_prefix}")
+setenv("BOOST_INCLUDE",              "%{_prefix}/include")
+setenv("BOOST_LIB",                  "%{_prefix}/lib")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -293,7 +299,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

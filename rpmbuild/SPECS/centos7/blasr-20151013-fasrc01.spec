@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static De-novo assembler from RNA-Seq from Broad Inst. et al.
+%define summary_static PacBio read aligner
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/trinityrnaseq/trinityrnaseq/archive/Trinity-v2.4.0.tar.gz
-Source: Trinity-v%{version}.tar.gz
+URL:https://github.com/PacificBiosciences/blasr 
+#  Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,9 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies %{nil}
-%define rundependencies bowtie2/2.3.2-fasrc02 jdk/1.8.0_45-fasrc01
+%define builddependencies hdf5/1.8.12-fasrc08 
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -83,8 +82,8 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Application; aci-ref-app-tag:Sequence Assembly
-%define apppublication Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.
+%define apptags %{nil} 
+%define apppublication %{nil}
 
 
 
@@ -95,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem, represents a novel method for the efficient and robust de novo reconstruction of transcriptomes from RNA-seq data. Trinity combines three independent software modules: Inchworm, Chrysalis, and Butterfly, applied sequentially to process large volumes of RNA-seq reads. Trinity partitions the sequence data into many individual de Bruijn graphs, each representing the transcriptional complexity at at a given gene or locus, and then processes each graph independently to extract full-length splicing isoforms and to tease apart transcripts derived from paralogous genes. 
-
+PacBio read aligner
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,9 +110,11 @@ Trinity, developed at the Broad Institute and the Hebrew University of Jerusalem
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-Trinity-v%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/Trinity-v%{version}.tar.*
-cd %{name}-Trinity-v%{version}
+rm -rf %{name}
+git clone --recursive https://github.com/PacificBiosciences/blasr.git
+cd %{name}
+git checkout 2551eada563a3e9caa5c19535c94582e2a0891ee
+git submodule update --init
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,11 +139,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
+./configure.py --sub --no-pbbam
 
-make -j 4
-make -j 4 plugins
+# Make sure the szip lib that hdf5 was built with is picked up
+sed -i -e 's/\(HDF5_LIBFLAGS        ?= -lhdf5_cpp -lhdf5\)/\1 -L\$(SZIP_LIB) -lsz/' defines.mk
+
+# Remove all of the shared object builds; some kind of weird error with this gcc
+sed -i -e 's?^all: libblasr.a.*?all: libblasr.a?' libcpp/alignment/makefile
+sed -i -e 's?^all: libpbihdf.a.*?all: libpbihdf.a?' libcpp/hdf/makefile
+sed -i -e 's?^all: libpbdata.a.*?all: libpbdata.a?' libcpp/pbdata/makefile
+
+# Force utils makefile to append to LD_LIBRARY_PATH rather than reset it so that the 
+# mpc, mpfr, and gmp that gcc was built with are available
+sed -i -e 's?^LD_LIBRARY_PATH=\(.*\)?LD_LIBRARY_PATH:=\${LD_LIBRARY_PATH}:\1?' utils/makefile
+
+make build-submodule
+make
 
 
 
@@ -173,12 +186,10 @@ make -j 4 plugins
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-Trinity-v%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-cp -r * %{buildroot}/%{_prefix}
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp blasr %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -259,8 +270,7 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
@@ -268,8 +278,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}")
-setenv("TRINITY_HOME",             "%{_prefix}")
+setenv("BLASR_HOME",           "%{_prefix}")
+prepend_path("PATH",           "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -293,7 +303,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
