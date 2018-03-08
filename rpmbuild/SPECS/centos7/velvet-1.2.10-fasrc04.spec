@@ -1,8 +1,4 @@
 #------------------- package info ----------------------------------------------
-#
-# In order for this spec file to work, you need to have Perl on the build machine and have
-# the Perl::Configure module installed.
-#
 
 #
 # FIXME
@@ -15,8 +11,8 @@ Name: %{getenv:NAME}
 # FIXME
 #
 # enter the app version, e.g. 0.0.1
-#
 Version: %{getenv:VERSION}
+
 
 #
 # FIXME
@@ -24,7 +20,8 @@ Version: %{getenv:VERSION}
 # enter the base release; start with fasrc01 and increment in subsequent 
 # releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short  %{getenv:RELEASE}
+%define release_short %{getenv:RELEASE}
+
 
 #
 # FIXME
@@ -33,13 +30,7 @@ Version: %{getenv:VERSION}
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
-#
-# FIXME
-#
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
-#
-%define summary_static Perl interpreter
+%define summary_static Sequence assembler for very short reads
 Summary: %{summary_static}
 
 #
@@ -49,7 +40,9 @@ Summary: %{summary_static}
 # suffix if applicable
 #
 #http://...FIXME...
-Source: http://www.cpan.org/src/5.0/perl-5.26.1.tar.gz
+URL: http://www.ebi.ac.uk/~zerbino/velvet/%{name}_%{version}.tgz
+Source: %{name}_%{version}.tgz
+
 
 #
 # there should be no need to change the following
@@ -73,18 +66,15 @@ Prefix: %{_prefix}
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Perl interpreter
+Velvet is a de novo genomic assembler specially designed for short read sequencing technologies, such as Solexa or 454, developed by Daniel Zerbino and Ewan Birney at the European Bioinformatics Institute (EMBL-EBI), near Cambridge, in the United Kingdom.  Velvet currently takes in short read sequences, removes errors then produces high quality unique contigs. It then uses paired-end read and long read information, when available, to retrieve the repeated areas between contigs.
 
-
-
-#
-# Disable stripping.  Seems to be causing permission failures.
-%define __os_install_post %{nil}
-
+This package has been compiled for openMP with a default thread (core/cpu) limit to 1 (OMP_THREAD_LIMIT=1). You must set the environment variable OMP_THREAD_LIMIT to the number of cores requested from SLURM.
 
 #
 # Macros for setting app data 
 # The first set can probably be left as is
+# the nil construct should be used for empty values
+#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -93,37 +83,40 @@ Perl interpreter
 %define specauthor %{getenv:FASRCSW_AUTHOR}
 %define builddate %(date)
 %define buildhost %(hostname)
-%define buildhostversion %(hostname)
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
+%define buildhostversion 1
 
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for CentOS 7. Boosted max kmer length to 127, openMP build, set OMP_THREAD_LIMIT to 1 by default
 %define requestor %{nil}
 %define requestref %{nil}
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
+
+# apptags
+# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
+# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Sequence assembly
 %define apppublication %{nil}
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+# %setup
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}_%{version}.tgz
+# stat %{name}-%{version}
+cd %{name}_%{version}
+
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -140,20 +133,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#
-# Perl uses it's own configure like script (Configure) that prompts for 
-# various options (and, inexplicably, does not allow you to set the values 
-# from the command line.  The script below uses a module called Perl::Configure
-# to answer those questions.
-#
-# The compiler binary needs to be set here.  It's default is 'cc', not $CC
-# and so it doesn't pick up the change to icc.
-#
-%define compilerbin $CC
+##prerequisite apps (uncomment and tweak if necessary)
+#module load NAME/VERSION-RELEASE
 
-cd %{_topdir}/BUILD/%{name}-%{version}
-./Configure -des -Accflags=-fPIC -Dprefix=%{prefix}
-make
+cd %{_topdir}/BUILD/%{name}_%{version}
+test "%{comp_name}" == "intel" && sed -i 's/gcc/icc/' Makefile
+make 'MAXKMERLENGTH=127' 'OPENMP=1'
 
 
 
@@ -171,10 +156,9 @@ make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-cd %{_topdir}/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{name}_%{version}/velvetg %{_topdir}/BUILD/%{name}_%{version}/velveth %{buildroot}/%{_prefix}/bin
 
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -237,20 +221,22 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
+---- prerequisite apps (uncomment and tweak if necessary)
 
 ---- environment changes (uncomment what is relevant)
-setenv("PERL_HOME",                   "%{_prefix}")
-setenv("HTTPS_CA_FILE",             "/etc/ssl/certs/ca-bundle.crt")
-prepend_path("PATH",                  "%{_prefix}/bin")
-prepend_path("PERL5LIB",              "%{_prefix}/lib")
-prepend_path("MANPATH",             "%{_prefix}/man")
+setenv("VELVET_HOME",          "%{_prefix}")
+setenv("OMP_THREAD_LIMIT",     "1")
+prepend_path("PATH",           "%{_prefix}/bin")
+
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -267,7 +253,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 
