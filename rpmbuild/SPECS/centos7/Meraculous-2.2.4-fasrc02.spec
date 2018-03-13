@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies cmake/3.5.2-fasrc01 %{rundependencies}
-%define rundependencies perl/5.26.1-fasrc01 gnuplot/5.0.3-fasrc02 boost/1.54.0-fasrc03
+%define rundependencies perl/5.26.1-fasrc01 gnuplot/5.0.3-fasrc02 boost/1.63.0-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}

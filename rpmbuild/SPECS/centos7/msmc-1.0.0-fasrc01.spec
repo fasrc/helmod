@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Tophat v2.0.13
+%define summary_static Implementation of the multiple sequential markovian coalescent
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ccb.jhu.edu/software/tophat/downloads/tophat-2.1.1.tar.gz
+URL: https://github.com/stschiff/msmc/releases/download/v1.0.0/msmc_1.0.0_linux64bit
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies boost/1.54.0-fasrc03 bowtie2/2.3.2-fasrc02 zlib/1.2.8-fasrc09
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7. Added a patch needed to support /tmp and output on different file systems 
+%define buildcomments Built for CentOS 7.  Tarball manually constructed from the binary download.
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,14 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-TopHat is a fast splice junction mapper for RNA-Seq reads. It aligns RNA-Seq reads to mammalian-sized genomes using the ultra high-throughput short read aligner Bowtie, and then analyzes the mapping results to identify splice junctions between exons. 
-
-
+This software implements MSMC, a method to infer population size and gene flow from multiple genome sequences. In short, msmc can infer 1.  the scaled population size of a single population as a function of time, 2. the timing and nature of population separations between two populations from multiple phased haplotypes. When only two haplotypes are given, MSMC is similar to PSMC, and we call it PSMC' because of subtle differences in the method and the underlying model, which allows PSMC' to infer more accurately the recombination rate.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -123,48 +125,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-test -z "$CC" && export CC=gcc
-CC="$CC -L$ZLIB_LIB -I$ZLIB_INCLUDE"
-
-test -z "$CXX" && export CXX=g++
-CXX="$CXX -L$ZLIB_LIB -I$ZLIB_INCLUDE"
-
-sed -i -e '/^CC=/d' src/samtools-0.1.18/Makefile
-
-./configure --prefix=%{_prefix} \
-    --with-boost=/n/sw/fasrcsw/apps/Core/boost/1.55.0-fasrc01 \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -196,8 +156,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -267,6 +226,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -286,8 +246,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("TOPHAT_HOME",                 "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("MSMC_HOME",            "%{_prefix}")
+prepend_path("PATH",           "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -311,7 +271,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

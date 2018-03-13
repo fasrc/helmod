@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+%define summary_static MAKER is a portable and easily configurable genome annotation pipeline. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/deweylab/RSEM/archive/v1.2.29.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://yandell.topaz.genetics.utah.edu/cgi-bin/maker_license.cgi
+Source: %{name}-%{version}.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R/3.4.2-fasrc01 bowtie2/2.3.2-fasrc02 bowtie/1.1.1-fasrc01
+%define builddependencies RepeatMasker/4.0.5-fasrc05 ncbi-blast/2.2.29+-fasrc03 perl/5.26.1-fasrc01 snap/2013.11.29-fasrc01 exonerate/2.4.0-fasrc01 augustus/3.3-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
+%define buildcomments Built for CentOS 7. Manual install instead of Build.pl install since it would not respect PREFIX or --install_base
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,14 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
-
-
+MAKER is a portable and easily configurable genome annotation pipeline. Its purpose is to allow smaller eukaryotic and prokaryotic genome projects to independently annotate their genomes and to create genome databases. MAKER identifies repeats, aligns ESTs and proteins to a genome, produces ab-initio gene predictions and automatically synthesizes these data into gene annotations having evidence-based quality values. MAKER is also easily trainable: outputs of preliminary runs can be used to automatically retrain its gene prediction algorithm, producing higher quality gene-models on seusequent runs. MAKER's inputs are minimal and its ouputs can be directly loaded into a GMOD database. They can also be viewed in the Apollo genome browser; this feature of MAKER provides an easy means to annotate, view and edit individual contigs and BACs without the overhead of a database. MAKER should prove especially useful for emerging model organism projects with minimal bioinformatics expertise and computer resources.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,9 +110,9 @@ RSEM is a software package for estimating gene and isoform expression levels fro
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf RSEM-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd RSEM-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tgz
+cd %{name}/src
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -135,30 +137,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
-
-# Here we skip this as it requires "make" only!
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-#
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-(cd EBSeq && make rsem-for-ebseq-calculate-clustering-info)
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/src
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -186,21 +165,50 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/lib/R/library
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/src
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_prefix}/perl/man
 
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/blockmodeling_0.1.8.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gtools_3.5.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gdata_2.17.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/bitops_1.0-6.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/caTools_1.17.1.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/KernSmooth_2.23-15.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gplots_2.17.0.tar.gz
-export R_LIBS_USER=%{buildroot}/%{_prefix}/lib/R/library:$R_LIBS_USER
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/EBSeq_1.2.0.tar.gz
+# Perl module installs
+export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:%{buildroot}/%{_prefix}/lib/%{version}:%{buildroot}/%{_prefix}/lib/perl5:$PERL5LIB
 
-cp -r * %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}
+for m in Module-Build-0.4224 Test-Most-0.35 Parse-RecDescent-1.967015 URI-1.73 Inline-0.80 Data-Stag-0.14 File-ShareDir-Install-0.11 IO-String-1.08 Bit-Vector-7.4 DBI-1.640 DBD-SQLite-1.56 IO-All-0.87 Inline-C-0.78 Perl-Unsafe-Signals-0.03 Want-0.29 forks-0.36 libwww-perl-6.33; do
+  cd %{_topdir}/BUILD
+  tar xvf %{_topdir}/SOURCES/$m.tar.*
+
+  cd %{_topdir}/BUILD/$m
+  perl Makefile.PL PREFIX=%{_prefix}
+  make
+  make install DESTDIR=%{buildroot}
+done
+
+# For BioPerl
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/BioPerl-1.007002.tar.gz
+
+cd %{_topdir}/BUILD/BioPerl-1.007002
+perl Build.PL --install_base %{_prefix} --accept
+./Build
+./Build install --destdir %{buildroot}
+
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/src
+
+cat <<EOF | perl Build.PL
+y
+
+
+EOF
+
+./Build
+
+sed -i -e 's?#!/usr/bin/perl?#!/usr/bin/env perl?' bin/*
+chmod a+x bin/*
+cp -r bin %{buildroot}%{_prefix} 
+cp -r ../lib %{buildroot}%{_prefix}/perl
+cp -r blib/lib %{buildroot}%{_prefix}/perl
+cp -r blib/config-x86_64-linux-thread-multi-5.026001 %{buildroot}%{_prefix}/perl
+cp blib/libdoc/* %{buildroot}%{_prefix}/perl/man
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -270,6 +278,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -280,21 +289,18 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
 end
 
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("RSEM_HOME",                "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("R_LIBS_USER",        "%{_prefix}/lib/R/library")
-prepend_path("CPATH",              "%{_prefix}/boost/fusion/include")
-prepend_path("FPATH",              "%{_prefix}/boost/fusion/include")
+setenv("MAKER_HOME",               "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PERL5LIB",           "%{_prefix}/perl/lib")
+prepend_path("MANPATH",            "%{_prefix}/perl/man")
 EOF
 
 #------------------- App data file
@@ -320,7 +326,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -328,6 +333,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+
 
 
 #------------------- scripts (there should be no need to change these) --------

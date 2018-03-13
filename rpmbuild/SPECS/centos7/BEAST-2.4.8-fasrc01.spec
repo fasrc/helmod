@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+%define summary_static Bayesian Evolutionary Analysis by Sampling Trees 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/deweylab/RSEM/archive/v1.2.29.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/CompEvol/beast2/releases/download/v2.4.8/BEAST.v2.4.8.Linux.tgz
+Source: %{name}.v%{version}.Linux.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,26 +73,31 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R/3.4.2-fasrc01 bowtie2/2.3.2-fasrc02 bowtie/1.1.1-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
+
+%define builddependencies %{nil}
+%define rundependencies beagle/2.1.2-fasrc01
+%define buildcomments Built for CentOS 7.  Can set java options with JAVA_OPTS environment variable.
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Phylogenetic Trees
 %define apppublication %{nil}
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+BEAST 2 is a cross-platform program for Bayesian MCMC analysis of molecular sequences. It is entirely orientated towards rooted, time-measured phylogenies inferred using strict or relaxed molecular clock models. It can be used as a method of reconstructing phylogenies but is also a framework for testing evolutionary hypotheses without conditioning on a single tree topology. BEAST 2 uses MCMC to average over tree space, so that each tree is weighted proportional to its posterior probability. BEAST 2 includes a graphical user-interface for setting up standard analyses and a suit of programs for analysing the results.
 
+BE SURE TO EXPLICITLY USE THE "-THREADS (# CORES)" OPTION, AS THE DEFAULT WILL CAUSE YOUR JOB TO RUN MORE SLOWLY THAN EXPECTED.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -108,9 +114,9 @@ RSEM is a software package for estimating gene and isoform expression levels fro
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf RSEM-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd RSEM-%{version}
+rm -rf beast
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.v%{version}.Linux.tgz
+cd beast
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,30 +140,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
+# fix source code to not use all threads by default
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/beast
+cat <<EOF | patch bin/beast
+51a52,56
+> opts="-Xms64m -Xmx4g"
+> if [ -n "\$JAVA_OPTS" ]; then
+>     opts="\$JAVA_OPTS"
+> fi
+>  
+55c60
+<   \$JAVA -Xms64m -Xmx4g -Djava.library.path=\$BEAST_EXTRA_LIBS -Duser.language=en -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+---
+>   \$JAVA \$opts -Djava.library.path=\$BEAST_EXTRA_LIBS -Duser.language=en -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+57c62
+<   \$JAVA -Xms64m -Xmx4g -Duser.language=en -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
+---
+>   \$JAVA \$opts -Duser.language=en -cp "\$BEAST_LIB/launcher.jar" beast.app.beastapp.BeastLauncher \$*
 
-# Here we skip this as it requires "make" only!
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-#
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-(cd EBSeq && make rsem-for-ebseq-calculate-clustering-info)
+sed -i 's@LIB:/usr@LIB:$BEAGLE_PATH/lib:/usr@' bin/beast
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -186,21 +187,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/beast
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/lib/R/library
+mkdir -p %{buildroot}/%{_prefix}
+cp -r * %{buildroot}%{_prefix}
 
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/blockmodeling_0.1.8.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gtools_3.5.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gdata_2.17.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/bitops_1.0-6.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/caTools_1.17.1.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/KernSmooth_2.23-15.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gplots_2.17.0.tar.gz
-export R_LIBS_USER=%{buildroot}/%{_prefix}/lib/R/library:$R_LIBS_USER
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/EBSeq_1.2.0.tar.gz
-
-cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -270,6 +261,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -288,13 +280,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("RSEM_HOME",                "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("R_LIBS_USER",        "%{_prefix}/lib/R/library")
-prepend_path("CPATH",              "%{_prefix}/boost/fusion/include")
-prepend_path("FPATH",              "%{_prefix}/boost/fusion/include")
+setenv("BEAST_HOME",               "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
@@ -328,6 +316,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+
 
 
 #------------------- scripts (there should be no need to change these) --------

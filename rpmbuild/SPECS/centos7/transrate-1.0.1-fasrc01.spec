@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies blast/2.2.29+-fasrc01
+%define builddependencies ncbi-blast/2.2.29+-fasrc03
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor melissa whitaker <melliwhitaker@gmail.com>
-%define requestref RCRT:94228 
+%define buildcomments Built for CentOS 7
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:sequence alignment
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:sequence alignment; aci-ref-app-tag:Informatics
 %define apppublication %{nil}
 
 

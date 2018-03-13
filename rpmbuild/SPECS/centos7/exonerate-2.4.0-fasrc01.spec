@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7.  Dependency of MAKER.  This is from the Nathan Weeks github fork, since the original source is defunct.
+%define buildcomments Built for CentOS 7. Dependency of MAKER.  This is from the Nathan Weeks github fork, since the original source is defunct.
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -269,7 +269,6 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("EXONERATE_HOME",       "%{_prefix}")
-
 prepend_path("PATH",                "%{_prefix}/bin")
 prepend_path("MANPATH",             "%{_prefix}/share/man")
 EOF

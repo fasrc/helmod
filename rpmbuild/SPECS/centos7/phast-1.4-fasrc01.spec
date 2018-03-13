@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
+%define summary_static PHAST is a freely available software package for comparative and evolutionary genomics.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/deweylab/RSEM/archive/v1.2.29.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://compgen.cshl.edu/phast/downloads/phast.v1_4.tgz
+Source: %{name}.v1_4.tgz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R/3.4.2-fasrc01 bowtie2/2.3.2-fasrc02 bowtie/1.1.1-fasrc01
+%define builddependencies CLAPACK/3.2.1-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
-%define requestor %{nil}
-%define requestref %{nil}
+%define buildcomments %{nil}
+%define requestor Nathaniel Edelman <nedelman@g.harvard.edu>
+%define requestref 110194
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -85,14 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-RSEM is a software package for estimating gene and isoform expression levels from RNA-Seq data.
-
-
+PHAST is a freely available software package for comparative and evolutionary genomics. It consists of about half a dozen major programs, plus more than a dozen utilities for manipulating sequence alignments, phylogenetic trees, and genomic annotations (see left panel). For the most part, PHAST focuses on two kinds of applications: the identification of novel functional elements, including protein-coding exons and evolutionarily conserved sequences; and statistical phylogenetic modeling, including estimation of model parameters, detection of signatures of selection, and reconstruction of ancestral sequences. It consists of over 60,000 lines of C code.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,9 +110,9 @@ RSEM is a software package for estimating gene and isoform expression levels fro
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf RSEM-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd RSEM-%{version}
+rm -rf %{name}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}.v1_4.tgz
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -135,29 +137,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-# Here we skip this as it requires "make" only!
+# Needs symlinks of the CLAPACK libraries.
+mkdir lib
+cd lib
+ln -s $CLAPACK_HOME/libcblaswr.a libblaswr.a
+ln -s $CLAPACK_HOME/lapack_LINUX.a liblapack.a
+ln -s $CLAPACK_HOME/tmglib_LINUX.a libtmg.a
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-#
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-(cd EBSeq && make rsem-for-ebseq-calculate-clustering-info)
+cd ../src/lib
+make CLAPACKPATH=$CLAPACK_HOME PLAT=_LINUX
+cd ..
+make CLAPACKPATH=$CLAPACK_HOME PLAT=_LINUX
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -186,20 +179,9 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/RSEM-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}/lib/R/library
-
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/blockmodeling_0.1.8.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gtools_3.5.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gdata_2.17.0.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/bitops_1.0-6.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/caTools_1.17.1.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/KernSmooth_2.23-15.tar.gz
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/gplots_2.17.0.tar.gz
-export R_LIBS_USER=%{buildroot}/%{_prefix}/lib/R/library:$R_LIBS_USER
-R CMD INSTALL -l %{buildroot}/%{_prefix}/lib/R/library EBSeq/EBSeq_1.2.0.tar.gz
-
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
 cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
@@ -270,6 +252,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -288,13 +271,10 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("RSEM_HOME",                "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}")
-prepend_path("R_LIBS_USER",        "%{_prefix}/lib/R/library")
-prepend_path("CPATH",              "%{_prefix}/boost/fusion/include")
-prepend_path("FPATH",              "%{_prefix}/boost/fusion/include")
+setenv("PHAST_HOME",              "%{_prefix}")
+prepend_path("PATH",              "%{_prefix}/bin")
+prepend_path("MANPATH",           "%{_prefix}/doc/man")
 EOF
 
 #------------------- App data file
@@ -320,7 +300,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -328,6 +307,7 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+
 
 
 #------------------- scripts (there should be no need to change these) --------

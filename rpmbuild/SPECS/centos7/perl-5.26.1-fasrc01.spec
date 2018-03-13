@@ -152,7 +152,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %define compilerbin $CC
 
 cd %{_topdir}/BUILD/%{name}-%{version}
-./Configure -des -Accflags=-fPIC -Dprefix=%{prefix}
+./Configure -des -Accflags=-fPIC -Dusethreads -Dprefix=%{prefix}
 make
 
 
