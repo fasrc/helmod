@@ -53,7 +53,7 @@ AUTHOR
 """
 
 import sys, os, time, socket, getopt
-# MySQLdb is imported below
+#M ySQLdb is imported below
 
 if __name__ == '__main__':
     d = {}
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         sys.stderr.write("*** ERROR *** this script requires MySQLdb\n")
         sys.exit(1)
 
-    #input checks
+    # input checks
     if not os.path.exists(mysql_cnf_file):
         sys.stderr.write("*** ERROR *** you must create [%s] with database connection details\n" % mysql_cnf_file)
         sys.exit(1)
@@ -111,14 +111,14 @@ if __name__ == '__main__':
             sys.exit(1)
 
     for modulename in args:
-        #total hack to avoid serious arg parsing in the module function patch
-        if d['source']=='cli' and modulename=='load': continue
+        # total hack to avoid serious arg parsing in the module function patch
+        if d['source'] == 'cli' and modulename == 'load': continue
 
         d['modulename'] = modulename
 
-        #(debug)
+        # (debug)
         if False:
-            open('/tmp/modulestats.log','a').write('%s\n' % ' '.join([ str(x) for x in 
+            open('/tmp/modulestats.log', 'a').write('%s\n' % ' '.join([str(x) for x in 
                 d['timestamp'],
                 d['source'],
                 d['action'],
@@ -128,16 +128,17 @@ if __name__ == '__main__':
                 d['modulefname'],
             ]))
 
-        #build sql insert
+        # build sql insert
         sql = 'insert into log (timestamp, source,  action, hostname, username, modulename, modulefname) values (%s, %s, %s, %s, %s, %s, %s)'
         
 
-        #execute the insert
+        # execute the insert
         try:
-            c = MySQLdb.connect(read_default_file=mysql_cnf_file).cursor()
-            result = c.execute(sql, [d['timestamp'], d['source'], d['action'], d['hostname'], d['username'], d['modulename'], d['modulefname']])
+            db = MySQLdb.connect(read_default_file=mysql_cnf_file)
+            c = db.cursor()
+            c.execute(sql, [d['timestamp'], d['source'], d['action'], d['hostname'], d['username'], d['modulename'], d['modulefname']])
+            db.commit()
             c.close()
         except Exception, e:
-            print "Exception %s " % str(e) 
             sys.stderr.write("*** ERROR *** unable to perform sql insert: %s\n" % str(e).strip())
             sys.exit(1)
