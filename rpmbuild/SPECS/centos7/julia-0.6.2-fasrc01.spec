@@ -95,7 +95,6 @@ Prefix: %{_prefix}
 %description
 Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
 
-
 %prep
 
 %build
@@ -192,43 +191,6 @@ help(helpstr,"\n")
 whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
-
----- environment changes (uncomment what is relevant)
-setenv("CUDA_HOME",                 "%{_prefix}")
-setenv("CUDA_LIB",                  "%{_prefix}/lib64")
-setenv("CUDA_INCLUDE",              "%{_prefix}/include")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/extras/CUPTI/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/extras/CUPTI/lib64")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local cudadir = pathJoin(mroot, "CUDA")
-local cudapath = pathJoin("%{name}","%{version}-%{release_short}")
-local mdir = pathJoin(cudadir,cudapath)
-local comppath = ''
-prepend_path("MODULEPATH",mdir)
-if os.getenv("FASRCSW_COMP_NAME") ~= nil then
-    comppath = pathJoin(os.getenv("FASRCSW_COMP_NAME"),os.getenv("FASRCSW_COMP_VERSION") .. '-' .. os.getenv("FASRCSW_COMP_RELEASE"))
-    mdir = pathJoin(cudadir, comppath, cudapath)
-    prepend_path("MODULEPATH",mdir)
-end
-if os.getenv("FASRCSW_MPI_NAME") ~= nil then
-    mpipath = pathJoin(os.getenv("FASRCSW_MPI_NAME"),os.getenv("FASRCSW_MPI_VERSION") .. '-' .. os.getenv("FASRCSW_MPI_RELEASE"))
-    mdir = pathJoin(cudadir, comppath, mpipath, cudapath)
-    prepend_path("MODULEPATH",mdir)
-end
-setenv("FASRCSW_CUDA_NAME"   , "%{name}")
-setenv("FASRCSW_CUDA_VERSION", "%{version}")
-setenv("FASRCSW_CUDA_RELEASE", "%{release_short}")
-family("CUDA")
-
-EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
