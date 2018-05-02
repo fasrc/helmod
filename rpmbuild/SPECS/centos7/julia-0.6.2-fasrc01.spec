@@ -95,15 +95,101 @@ Prefix: %{_prefix}
 %description
 Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
 
+#------------------- %%prep (~ tar xvf) ---------------------------------------
+
 %prep
+
+
+#
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# style things -- hopefully it'll just work as-is.
+#
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}
+#git clone https://github.com/JuliaLang/julia.git
+#cd %{name}
+#git checkout tags/v%{version}
+#chmod -Rf a+rX,u+w,g-w,o-w .
+
+#------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
+#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+#------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
+#(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
+
+#
+# FIXME
+#
+# make install here.  The default below is for standard GNU-toolchain style 
+# things -- hopefully it'll just work as-is.
+#
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
+# does not support this:
+#
+# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
+#
+# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
+# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+#
+
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+done
+
+#(this should not need to be changed)
+#this is the part that allows for inspecting the build output without fully creating the rpm
+%if %{defined trial}
+	set +x
+	
+	echo
+	echo
+	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
+	echo 
+	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
+	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
+	echo
+	echo
+	
+	tree '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
+	echo "******************************************************************************"
+	echo
+	echo
+	
+	#make the build stop
+	false
+
+	set -x
+%endif
 
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
