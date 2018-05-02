@@ -99,7 +99,6 @@ Julia is a high-level, high-performance dynamic programming language for technic
 
 %prep
 
-
 #
 # FIXME
 #
@@ -109,16 +108,15 @@ Julia is a high-level, high-performance dynamic programming language for technic
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-#rm -rf %{name}
-#git clone https://github.com/JuliaLang/julia.git
-#cd %{name}
-#git checkout tags/v%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
+wget https://github.com/JuliaLang/julia/releases/download/v0.6.2/julia-0.6.2-full.tar.gz
+tar -xvf julia-0.6.2-full.tar.gz
+cd julia-0.6.2
 
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
+make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
