@@ -84,7 +84,7 @@ The ATLAS (Automatically Tuned Linear Algebra Software) project is an ongoing re
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7.  CPU timer set to 2500 (2.5 Ghz)
+%define buildcomments Built for CentOS 7.  CPU timer set to 2500 (2.5 Ghz).  Built on coxgpu01- may not be optimal elsewhere.
 %define requestor %{nil}
 %define requestref %{nil}
 

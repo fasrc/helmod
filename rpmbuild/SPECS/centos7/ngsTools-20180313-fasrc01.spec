@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ExaBayes is a software package for Bayesian tree inference. It is particularly suitable for large-scale analyses on computer clusters.
+%define summary_static ngsTools is a collection of programs for population genetics analyses from NGS data, taking into account its statistical uncertainty.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://sco.h-its.org/exelixis/resource/download/software/exabayes-1.5.tar.gz
+URL: https://github.com/harvardinformatics/ngsTools
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies zlib/1.2.8-fasrc09 gsl/1.16-fasrc03 
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
+%define buildcomments Built for CentOS 7.  Includes ngsRelate and ngsadminx
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-ExaBayes is a software package for Bayesian tree inference. It is particularly suitable for large-scale analyses on computer clusters.
+ngsTools is a collection of programs for population genetics analyses from NGS data, taking into account its statistical uncertainty. The methods implemented in these programs do not rely on SNP or genotype calling, and are particularly suitable for low sequencing depth data.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ ExaBayes is a software package for Bayesian tree inference. It is particularly s
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf %{name}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd %{name}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,20 +137,20 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 
-export CXXFLAGS="-std=c++11 $CXXFLAGS"
-export MPI_CXXFLAGS="-std=c++11"
+test -z "$CC" && export CC=gcc
+test -z "$CXX" && export CXX=g++
 
-sed -i '4i#include <functional>' src/comm/LocalComm.tpp
-sed -i '4i#include <functional>' src/comm/LocalComm.hpp
+make CC="$CC -I$ZLIB_INCLUDE -I$GSL_INCLUDE -L$ZLIB_LIB -L$ZLIB_INCLUDE" CXX="$CXX -I$ZLIB_INCLUDE -I$GSL_INCLUDE -L$ZLIB_LIB -L$ZLIB_INCLUDE"
 
-./configure --prefix=%{_prefix} --enable-mpi
+# Add ngsRelate
+wget https://raw.githubusercontent.com/ANGSD/NgsRelate/master/ngsRelate.cpp
+$CXX ngsRelate.cpp -O3 -lpthread -lz -o ngsRelate
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-
+# Add ngsAdminx
+wget http://popgen.dk/software/download/NGSadmix/ngsadmix32.cpp
+$CXX ngsadmix32.cpp -O3 -lpthread -lz -o NGSadmix
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -179,11 +179,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -273,8 +272,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("EXABAYES_HOME",             "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("NGSTOOLS_HOME",             "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/angsd")
 EOF
 
 #------------------- App data file

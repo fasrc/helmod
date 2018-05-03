@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ExaBayes is a software package for Bayesian tree inference. It is particularly suitable for large-scale analyses on computer clusters.
+%define summary_static f2c'd version of LAPACK
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://sco.h-its.org/exelixis/resource/download/software/exabayes-1.5.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.netlib.org/clapack/clapack.tgz
+Source: clapack.tgz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies atlas/3.10.2-fasrc05
 %define rundependencies %{builddependencies}
 %define buildcomments Built for CentOS 7
 %define requestor %{nil}
@@ -94,8 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-ExaBayes is a software package for Bayesian tree inference. It is particularly suitable for large-scale analyses on computer clusters.
-
+f2c'd version of LAPACK
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -111,7 +110,7 @@ ExaBayes is a software package for Bayesian tree inference. It is particularly s
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/clapack.tgz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -139,16 +138,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export CXXFLAGS="-std=c++11 $CXXFLAGS"
-export MPI_CXXFLAGS="-std=c++11"
-
-sed -i '4i#include <functional>' src/comm/LocalComm.tpp
-sed -i '4i#include <functional>' src/comm/LocalComm.hpp
-
-./configure --prefix=%{_prefix} --enable-mpi
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+# sed 's?^BLASLIB.*?BLASLIB      = ../../libcblaswr.a -lcblas -latlas?' < make.inc.example > make.inc
+cp make.inc.example make.inc
 make
 
 
@@ -182,8 +173,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -273,8 +263,12 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("EXABAYES_HOME",             "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("CLAPACK_HOME",            "%{_prefix}")
+setenv("CLAPACK_LIB",             "%{_prefix}")
+setenv("CLAPACK_INCLUDE",         "%{_prefix}/INCLUDE")
+prepend_path("CPATH",             "%{_prefix}/INCLUDE")
+prepend_path("FPATH",             "%{_prefix}/INCLUDE")
+prepend_path("LIBRARY_PATH",      "%{_prefix}")
 EOF
 
 #------------------- App data file

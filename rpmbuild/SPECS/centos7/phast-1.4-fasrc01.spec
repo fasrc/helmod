@@ -75,9 +75,9 @@ Prefix: %{_prefix}
 
 %define builddependencies CLAPACK/3.2.1-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Nathaniel Edelman <nedelman@g.harvard.edu>
-%define requestref 110194
+%define buildcomments Built for CentOS 7
+%define requestor %{nil}
+%define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -142,7 +142,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
 # Needs symlinks of the CLAPACK libraries.
 mkdir lib
 cd lib
-ln -s $CLAPACK_HOME/libcblaswr.a libblaswr.a
+# ln -s $CLAPACK_HOME/libcblaswr.a libblaswr.a
 ln -s $CLAPACK_HOME/lapack_LINUX.a liblapack.a
 ln -s $CLAPACK_HOME/tmglib_LINUX.a libtmg.a
 
