@@ -13,8 +13,9 @@ export FASRCSW_COMPS="gcc/7.1.0-fasrc01 intel/17.0.4-fasrc01"
 export FASRCSW_MPIS="openmpi/2.1.0-fasrc02 mvapich2/2.3b-fasrc02"
 
 #the build host
-export FASRCSW_BUILD_HOST=builds
-test "$(hostname -s)" != "$FASRCSW_BUILD_HOST" && echo "WARNING: the current host is not the canonical build host, $FASRCSW_BUILD_HOST" >&2
+export FASRCSW_BUILD_HOST_01=builds
+export FASRCSW_BUILD_HOST_02=builds02
+test "$(hostname -s)" != "$FASRCSW_BUILD_HOST_01" || "$FASRCSW_BUILD_HOST02" && echo "WARNING: the current host is not the canonical build host, $FASRCSW_BUILD_HOST" >&2
 
 #rpm packager credits
 export FASRCSW_AUTHOR="$(getent passwd $USER | cut -d: -f5), Harvard FAS Research Computing <rchelp@fas.harvard.edu>"
