@@ -15,7 +15,7 @@ export FASRCSW_MPIS="openmpi/2.1.0-fasrc02 mvapich2/2.3b-fasrc02"
 #the build host
 export FASRCSW_BUILD_HOST_01=builds
 export FASRCSW_BUILD_HOST_02=builds02
-if [ test "$(hostname -s)" != "$FASRCSW_BUILD_HOST_01" ]; then #|| [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST02" ]; then 
+if test [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST_01" ] || [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST02" ]; then 
 	echo "WARNING: the current host is not the canonical build host, use builds or builds02." >&2
 fi
 
