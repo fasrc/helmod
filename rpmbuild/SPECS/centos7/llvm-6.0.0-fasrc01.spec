@@ -30,15 +30,19 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GMP is a free library for arbitrary precision arithmetic, operating on signed integers, rational numbers, and floating-point numbers.
+%define summary_static The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.  This build also contains clang.  Clang is an 'LLVM native' C/C++/Objective-C compiler, which aims to deliver amazingly fast compiles (e.g. about 3x faster than GCC when compiling Objective-C code in a debug configuration), extremely useful error and warning messages and to provide a platform for building great source level tools.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://gmplib.org/download/gmp/gmp-6.1.2.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://releases.llvm.org/6.0.0/llvm-6.0.0.src.tar.xz
+Source0: %{name}-%{version}.src.tar.xz
+Source1: cfe-%{version}.src.tar.xz
+Source2: compiler-rt-%{version}.src.tar.xz
+Source3: libcxx-%{version}.src.tar.xz
+Source4: libcxxabi-%{version}.src.tar.xz
 
 #
 # there should be no need to change the following
@@ -73,7 +77,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies cmake/3.5.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +98,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-GMP is a free library for arbitrary precision arithmetic, operating on signed integers, rational numbers, and floating-point numbers.
+The LLVM Core libraries provide a modern source- and target-independent optimizer, along with code generation support for many popular CPUs (as well as some less common ones!) These libraries are built around a well specified code representation known as the LLVM intermediate representation ('LLVM IR'). The LLVM Core libraries are well documented, and it is particularly easy to invent your own language (or port an existing compiler) to use LLVM as an optimizer and code generator.
+Clang is an 'LLVM native' C/C++/Objective-C compiler, which aims to deliver amazingly fast compiles (e.g. about 3x faster than GCC when compiling Objective-C code in a debug configuration), extremely useful error and warning messages and to provide a platform for building great source level tools. The Clang Static Analyzer is a tool that automatically finds bugs in your code, and is a great example of the sort of tool that can be built using the Clang frontend as a library to parse C/C++ code.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +115,21 @@ GMP is a free library for arbitrary precision arithmetic, operating on signed in
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}.src
+rm -rf cfe-%{version}.src
+rm -rf compiler-rt-%{version}.src
+rm -rf libcxx-%{version}.src
+rm -rf libcxxabi-%{version}.src
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/cfe-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/compiler-rt-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/libcxx-%{version}.src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/libcxxabi-%{version}.src.tar.*
+cp -r cfe-%{version}.src %{name}-%{version}.src/tools/clang
+cp -r compiler-rt-%{version}.src  %{name}-%{version}.src/projects/compiler-rt
+cp -r libcxx-%{version}.src  %{name}-%{version}.src/projects/libcxx
+cp -r libcxxabi-%{version}.src  %{name}-%{version}.src/projects/libcxxabi
+cd %{name}-%{version}.src
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,29 +154,21 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}.src
 
+export GCC=`which gcc`
+export GCC_BIN=`dirname $GCC`
+export GCC_HOME=`dirname $GCC_BIN`
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-%configure --enable-cxx --enable-shared --prefix=%{prefix}
+mkdir build
+cd build
+cmake -DCMAKE_C_COMPILER=${GCC} -DCMAKE_CXX_COMPILER=${GCC_BIN}/g++ -DGCC_INSTALL_PREFIX=${GCC_HOME} -DCMAKE_CXX_LINK_FLAGS="-L${GCC_HOME}/lib64 -Wl,-rpath,${GCC_HOME}/lib64" -DLLVM_ENABLE_ASSERTIONS=ON  -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix}  ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make -j 4
+
+make cxx -j 4
 
 
 
@@ -189,9 +198,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}.src/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+cd tools/clang
 make install DESTDIR=%{buildroot}
 
 
@@ -283,15 +294,20 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("GMP_HOME",       "%{_prefix}")
-setenv("GMP_INCLUDE",    "%{_prefix}/include")
-setenv("GMP_LIB",		 "%{_prefix}/lib64")
-
+setenv("LLVM_HOME",                "%{_prefix}")
+setenv("LLVM_INCLUDE",             "%{_prefix}/include")
+setenv("LLVM_LIB",                 "%{_prefix}/lib")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib/clang/6.0.0/include")
 prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/lib/clang/6.0.0/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib/clang/6.0.0/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib/clang/6.0.0/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+
 EOF
 
 #------------------- App data file
