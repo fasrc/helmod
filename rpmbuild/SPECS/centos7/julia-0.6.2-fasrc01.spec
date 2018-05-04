@@ -116,6 +116,8 @@ tar -xvf julia-0.6.2-full.tar.gz
 
 %build
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 make
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
