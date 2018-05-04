@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies cmake/3.5.2-fasrc01 python/2.7.14-fasrc01 OpenBLAS/0.2.20-fasrc02 
+%define builddependencies cmake/3.5.2-fasrc01 python/2.7.14-fasrc01 #OpenBLAS/0.2.20-fasrc02 
 %define rundependencies python/2.7.13-fasrc01 OpenBLAS/0.2.18-fasrc01 
 %define buildcomments This Julia was built against the general compute processor architecture (JULIA_CPU_TARGET=core2) for Odyssey (i.e. general and interact partitions).  It will not work for login nodes and may not work on many nodes in serial_requeue.  Using the git release-0.5 branch due to bugs in the tarball release
 %define requestor %{nil}
