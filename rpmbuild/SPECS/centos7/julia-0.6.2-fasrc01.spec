@@ -112,7 +112,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} 
 rm -rf %{name}-%{version}
 wget https://github.com/JuliaLang/julia/releases/download/v%{version}/julia-%{version}-full.tar.gz
-tar -xvf "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/julia-%{version}-full.tar.*
+tar -xvf julia-%{version}-full.tar.gz
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
