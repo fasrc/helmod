@@ -111,6 +111,7 @@ Julia is a high-level, high-performance dynamic programming language for technic
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} 
 rm -rf %{name}-%{version}
+rm julia-%{version}-full.tar.*
 wget https://github.com/JuliaLang/julia/releases/download/v%{version}/julia-%{version}-full.tar.gz
 tar -xvf julia-%{version}-full.tar.gz
 cd %{name}-%{version}
