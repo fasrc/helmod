@@ -111,14 +111,13 @@ Julia is a high-level, high-performance dynamic programming language for technic
 umask 022
 
 cd "$FASRCSW_DEV"/rpmbuild/SOURCES
-wget https://github.com/JuliaLang/julia/releases/download/v%{version}/julia-%{version}-full.tar.gz
-
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} 
-rm -rf %{name}-%{version}
 rm julia-%{version}-full.tar.*
 wget https://github.com/JuliaLang/julia/releases/download/v%{version}/julia-%{version}-full.tar.gz
-tar -xvf julia-%{version}-full.tar.gz
-cd %{name}-%{version}
+
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
+rm -rf %{name}-%{version}
+rm julia-%{version}-full.tar.*
+tar -xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/julia-%{version}-full.tar.gz -C "$FASRCSW_DEV"/rpmbuild/BUILD/
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -143,9 +142,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 ./contrib/download_cmake.sh
-make > debug.txt
+make &> debug.log
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
