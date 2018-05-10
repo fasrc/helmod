@@ -33,3 +33,14 @@ fi
 export FASRCSW_DEV="$(dirname "$(readlink -e "$BASH_SOURCE")")"  #(the abs path of the dir containing this setup.sh)
 
 export PATH="$FASRCSW_DEV/bin:$PATH"
+
+#create build directories
+
+if [ ! -d "$FASRCSW_DEV"/rpmbuild/BUILD ]; then
+    mkdir "$FASRCSW_DEV"/rpmbuild/BUILD
+fi
+
+
+if [ ! -d "$FASRCSW_DEV"/appdata ]; then
+    mkdir "$FASRCSW_DEV"/appdata
+fi
