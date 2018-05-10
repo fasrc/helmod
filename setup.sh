@@ -13,8 +13,11 @@ export FASRCSW_COMPS="gcc/7.1.0-fasrc01 intel/17.0.4-fasrc01"
 export FASRCSW_MPIS="openmpi/2.1.0-fasrc02 mvapich2/2.3b-fasrc02"
 
 #the build host
-export FASRCSW_BUILD_HOST=builds
-test "$(hostname -s)" != "$FASRCSW_BUILD_HOST" && echo "WARNING: the current host is not the canonical build host, $FASRCSW_BUILD_HOST" >&2
+export FASRCSW_BUILD_HOST_01=builds
+export FASRCSW_BUILD_HOST_02=builds02
+if [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST_01" ] && [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST_02" ]; then 
+	echo "WARNING: the current host is not the canonical build host, use builds or builds02." >&2
+fi
 
 #rpm packager credits
 export FASRCSW_AUTHOR="$(getent passwd $USER | cut -d: -f5), Harvard FAS Research Computing <rchelp@fas.harvard.edu>"
@@ -31,3 +34,13 @@ export FASRCSW_DEV="$(dirname "$(readlink -e "$BASH_SOURCE")")"  #(the abs path 
 
 export PATH="$FASRCSW_DEV/bin:$PATH"
 
+#create build directories
+
+if [ ! -d "$FASRCSW_DEV"/rpmbuild/BUILD ]; then
+    mkdir "$FASRCSW_DEV"/rpmbuild/BUILD
+fi
+
+
+if [ ! -d "$FASRCSW_DEV"/appdata ]; then
+    mkdir "$FASRCSW_DEV"/appdata
+fi
