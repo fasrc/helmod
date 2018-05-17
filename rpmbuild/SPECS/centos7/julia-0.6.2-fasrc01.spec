@@ -85,6 +85,9 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
+# Turn off the Fascist build policy
+# For more information, see: https://docs-old.fedoraproject.org/en-US/Fedora_Draft_Documentation/0.1/html/RPM_Guide/ch09s05s07.html
+%define _unpackaged_files_terminate_build 0
 
 
 #
