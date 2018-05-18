@@ -275,9 +275,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
+setenv("JULIA_HOME",       "%{_prefix}")
 
---prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("PATH",                "%{_prefix}/usr/bin")
 --prepend_path("CPATH",               "%{_prefix}/include")
 --prepend_path("FPATH",               "%{_prefix}/include")
 --prepend_path("INFOPATH",            "%{_prefix}/info")
