@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies libctl/4.0.1-fasrc01 fftw/3.3.7-fasrc01 hdf5/1.10.1-fasrc01
+%define builddependencies libctl/4.0.1-fasrc01 fftw/3.3.7-fasrc01 hdf5/1.10.1-fasrc01 intel-mkl/2017.2.174-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
