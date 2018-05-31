@@ -44,3 +44,6 @@ fi
 if [ ! -d "$FASRCSW_DEV"/appdata ]; then
     mkdir "$FASRCSW_DEV"/appdata
 fi
+
+#parallelize make
+${BUILD_CPUS:-$(cat /proc/cpuinfo | tac | grep processor | sed -n 1p | sed 's/[^0-9]*//g')}
