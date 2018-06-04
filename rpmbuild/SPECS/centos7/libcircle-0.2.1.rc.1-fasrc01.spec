@@ -115,7 +115,7 @@ tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
-sed '3i#include <stddef.h>' libcircle/libcircle.h
+sed -i '4i#include <stddef.h>' libcircle/libcircle.h
 
 #------------------- %%build (~ configure && make) ----------------------------
 
