@@ -35,7 +35,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://ftp.postgresql.org/pub/source/v9.4.1/postgresql-9.4.1.tar.gz
+URL: https://ftp.postgresql.org/pub/source/v9.3.9/postgresql-9.3.9.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
