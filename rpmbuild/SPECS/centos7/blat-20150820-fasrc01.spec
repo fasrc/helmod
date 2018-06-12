@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a free software environment for statistical computing and graphics
+%define summary_static  UCSC tools
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# Tarball was created by downloading the individual binaries and packing them locally
 #
-URL: https://cran.r-project.org/src/base/R-3/R-3.4.2.tar.gz
-Source: R-%{version}.tar.gz
+URL: http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,6 +52,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,132 +72,37 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies readline/6.3-fasrc02 jdk/1.8.0_45-fasrc01 curl/7.45.0-fasrc01 zlib/1.2.8-fasrc07 bzip2/1.0.6-fasrc01 xz/5.2.2-fasrc01 pcre/8.37-fasrc02 libtiff/4.0.9-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define builddependencies %{nil}
+%define rundependencies ucsc/20150820-fasrc01
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
-R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
-
-
-
+Alias for ucsc/20150820-fasrc01
+Download of all UCSC genomics utilities, including the following executables:
+addCols ameme autoDtd autoSql autoXml ave aveCols axtChain axtSort axtSwap axtToMaf axtToPsl bedClip bedCommonRegions bedCoverage bedExtendRanges bedGeneParts bedGraphPack bedGraphToBigWig bedIntersect bedItemOverlapCount bedPileUps bedRemoveOverlap bedRestrictToPositions bedSort bedToBigBed bedToExons bedToGenePred bedToPsl bedWeedOverlapping bigBedInfo bigBedNamedItems bigBedSummary bigBedToBed bigWigAverageOverBed bigWigCat bigWigCluster bigWigCorrelate bigWigInfo bigWigMerge bigWigSummary bigWigToBedGraph bigWigToWig blastToPsl blastXmlToPsl blat calc catDir catUncomment chainAntiRepeat chainFilter chainMergeSort chainNet chainPreNet chainSort chainSplit chainStitchId chainSwap chainToAxt chainToPsl checkAgpAndFa checkCoverageGaps checkHgFindSpec checkTableCoords chopFaLines chromGraphFromBin chromGraphToBin colTransform countChars crTreeIndexBed crTreeSearchBed dbSnoop dbTrash estOrient faAlign faCmp faCount faFilter faFilterN faFrag faNoise faOneRecord faPolyASizes faRandomize faRc faSize faSomeRecords faSplit fastqToFa faToFastq faToTab faToTwoBit faTrans featureBits fetchChromSizes findMotif gapToLift genePredCheck genePredFilter genePredHisto genePredSingleCover genePredToBed genePredToBigGenePred genePredToFakePsl genePredToGtf genePredToMafFrames getRna getRnaPred gfClient gff3ToGenePred gff3ToPsl gfServer gmtime gtfToGenePred headRest hgFindSpec hgGcPercent hgLoadBed hgLoadOut hgLoadOutJoined hgLoadWiggle hgSpeciesRna hgsql hgsqldump hgTrackDb hgWiggle htmlCheck hubCheck hubPublicCheck index.html ixIxx lavToAxt lavToPsl ldHgGene liftOver liftOverMerge liftUp linesToRa localtime mafAddIRows mafAddQRows mafCoverage mafFetch mafFilter mafFrag mafFrags mafGene mafMeFirst mafOrder mafRanges mafsInRegion mafSpeciesList mafSpeciesSubset mafSplit mafSplitPos mafToAxt mafToPsl mafToSnpBed makeTableList maskOutFa mktime mrnaToGene netChainSubset netClass netFilter netSplit netSyntenic netToAxt netToBed newProg nibFrag nibSize oligoMatch overlapSelect paraFetch paraSync positionalTblCheck pslCat pslCDnaFilter pslCheck pslDropOverlap pslFilter pslHisto pslLiftSubrangeBlat pslMap pslMrnaCover pslPairs pslPartition pslPosTarget pslPretty pslRecalcMatch pslReps pslScore pslSelect pslSort pslStats pslSwap pslToBed pslToChain pslToPslx pslxToFa qacAgpLift qacToQa qacToWig qaToQac randomLines raSqlQuery raToLines raToTab rmFaDups rowsToCols sizeof spacedToTab splitFile splitFileByColumn sqlToXml stringify subChar subColumn tailLines tdbQuery textHistogram tickToDate toLower toUpper trfBig twoBitDup twoBitInfo twoBitMask twoBitToFa validateFiles validateManifest wigCorrelate wigEncode wigToBigWig wordLine xmlCat xmlToSql
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
-
-
-#
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf R-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
-cd R-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
-
-#------------------- %%build (~ configure && make) ----------------------------
-
 %build
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
-
-
-CC="$CC -I$CURL_INCLUDE -I$BZIP2_INCLUDE -I$XZ_INCLUDE -I$PCRE_INCLUDE -I$READLINE_INCLUDE -L$BZIP2_LIB -L$XZ_LIB -L$PCRE_LIB -L$CURL_LIB -L$READLINE_LIB"
-
-export BLAS=""
-if [[ "%{comp_name}" == "intel" ]]; then
-    export CFLAGS="-O3 -ipo -qopenmp -fPIC $CFLAGS"
-    export LDFLAGS="-qopenmp $LDFLAGS"
-    export CXXFLAGS="-O3 -ipo -qopenmp -fPIC $CXXFLAGS"
-    ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas="-lmkl_rt -liomp5 -lpthread" --with-lapack
-else
-    ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas --with-lapack
-fi
-
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
-
-
-
-#------------------- %%install (~ make install + create modulefile) -----------
-
 %install
-
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-#
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-#export R_HOME=%{buildroot}/%{_prefix}
-#%{buildroot}/%{_prefix}/bin/R CMD javareconf
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
-
-#(this should not need to be changed)
-#this is the part that allows for inspecting the build output without fully creating the rpm
+%include fasrcsw_module_loads.rpmmacros 
+mkdir -p %{buildroot}%{_prefix}
 %if %{defined trial}
 	set +x
 	
@@ -233,6 +138,7 @@ done
 %endif
 
 # 
+# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -256,6 +162,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -267,25 +174,14 @@ whatis("Description: %{summary_static}")
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
 end
 
--- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+
+---- environment changes (uncomment what is relevant)
 EOF
 
 #------------------- App data file
@@ -309,7 +205,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

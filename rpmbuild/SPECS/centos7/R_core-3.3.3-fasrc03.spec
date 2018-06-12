@@ -142,9 +142,9 @@ CC="$CC -I$READLINE_INCLUDE -I$CURL_INCLUDE -I$BZIP2_INCLUDE -I$XZ_INCLUDE -I$PC
 
 export BLAS=""
 if [[ "%{comp_name}" == "intel" ]]; then
-    export CFLAGS="-O3 -ipo -qopenmp -xHost -fPIC $CFLAGS"
+    export CFLAGS="-O3 -ipo -qopenmp -fPIC $CFLAGS"
     export LDFLAGS="-qopenmp $LDFLAGS"
-    export CXXFLAGS="-O3 -ipo -qopenmp -xHost -fPIC $CXXFLAGS"
+    export CXXFLAGS="-O3 -ipo -qopenmp -fPIC $CXXFLAGS"
     ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas="-lmkl_rt -liomp5 -lpthread" --with-lapack
 else 
     ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas --with-lapack
