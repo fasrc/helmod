@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies hdf/4.2.12-fasrc01 hdf5/1.10.1-fasrc03
+%define builddependencies hdf/4.2.12-fasrc01 hdf5/1.10.1-fasrc03 libtiff/4.0.9-fasrc01 libxml2/2.7.8-fasrc02
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Added libtiff and libxml2 to prevent system conflicts
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -139,6 +139,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+test -z "$CC" && export CC=gcc
+test -z "$CXX" && export CXX=g++
+
+CC="$CC -I$LIBXML2_INCLUDE -L$LIBXML2_LIB"
+CXX="$CXX -I$LIBXML2_INCLUDE -L$LIBXML2_LIB"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -155,7 +160,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
     --with-hdf4="$HDF4_HOME" \
-	--with-hdf5="$HDF5_HOME"
+	--with-hdf5="$HDF5_HOME" \
+    --with-libtiff="$LIBTIFF_HOME"  \
+    --with-xml2="$LIBXML2_HOME/bin"
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
