@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments This build is specifically tuned for AMD "Abu Dhabi" chips
+%define buildcomments This build is specifically tuned for sandybridge chips
 %define requestor %{nil}
 %define requestref %{nil}
 
