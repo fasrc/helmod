@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies yasm/1.3.0-fasrc01 
+%define builddependencies nasm/2.13.03-fasrc01 
 %define rundependenciesa %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}
