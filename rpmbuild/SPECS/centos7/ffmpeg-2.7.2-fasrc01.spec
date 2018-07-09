@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static x264 is a free software library and application for encoding video streams into the H.264/MPEG-4 AVC compression format, and is released under the terms of the GNU GPL. 
+%define summary_static FFMPEG version 2.7.2
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20180705-2245-stable.tar.bz2
-Source: x264-snapshot-20180705-2245-stable.tar.bz2
+URL: http://ffmpeg.org/releases/ffmpeg-2.7.2.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies nasm/2.13.03-fasrc01 
+%define builddependencies xvidcore/1.3.3-fasrc01 yasm/1.3.0-fasrc01 opus/1.0.3-fasrc01 fdk-aac/0.1.3-fasrc01 lame/3.99.5-fasrc01 nasm/2.13.03-fasrc01 x264/20180705-fasrc01 faac/1.28-fasrc01 libvpx/v1.3.0-fasrc01 opencore-amr/0.1.3-fasrc01 libass/0.11.2-fasrc01 fribidi/0.19.1-fasrc01 enca/1.19-fasrc01 libogg/1.3.2-fasrc01 libtheora/1.1.1-fasrc01 libvorbis/1.3.4-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -85,17 +86,15 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-Provides best-in-class performance, compression, and features.
-Achieves dramatic performance, encoding 4 or more 1080p streams in realtime on a single consumer-level computer.
-Gives the best quality, having the most advanced psychovisual optimizations.
-Support features necessary for many different applications, such as television broadcast, Blu-ray low-latency video applications, and web video.
-x264 forms the core of many web video services, such as Youtube, Facebook, Vimeo, and Hulu. It is widely used by television broadcasters and ISPs.
-
+FFmpeg is the leading multimedia framework, able to decode, encode, transcode, mux, demux, stream, filter and play pretty much anything that humans and machines have created.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,9 +110,9 @@ x264 forms the core of many web video services, such as Youtube, Facebook, Vimeo
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf x264-snapshot-20180705-2245-stable
-tar xjvf "$FASRCSW_DEV"/rpmbuild/SOURCES/x264-snapshot-20180705-2245-stable.tar.bz2
-cd x264-snapshot-20180705-2245-stable
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -135,16 +134,16 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/x264-snapshot-20180705-2245-stable
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-./configure --enable-shared --enable-pic --disable-opencl --enable-static --prefix=%{_prefix} 
+./configure --enable-shared --enable-gpl --enable-libass --enable-libfdk-aac --enable-libopus --enable-libfaac --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libtheora --enable-libvorbis --enable-libx264 --enable-libxvid --enable-nonfree --enable-postproc --enable-version3 --enable-x11grab --enable-libvpx --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
-
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -173,8 +172,8 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/x264-snapshot-20180705-2245-stable
-echo %{buildroot} | grep -q x264-snapshot-20180705-2245-stable && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
@@ -247,6 +246,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -266,11 +266,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("FFMPEG_HOME",              "%{_prefix}")
+setenv("FFMPEG_LIB",               "%{_prefix}/lib")
+setenv("FFMPEG_INCLUDE",           "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
@@ -295,7 +299,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
