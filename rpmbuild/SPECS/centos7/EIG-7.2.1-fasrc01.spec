@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
+URL: https://github.com/DReichLab/EIG/archive/v7.2.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
