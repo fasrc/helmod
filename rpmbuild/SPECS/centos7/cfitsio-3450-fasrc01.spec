@@ -1,44 +1,51 @@
 #------------------- package info ----------------------------------------------
 
 #
+# FIXME
+#
 # enter the simple app name, e.g. myapp
 #
-Name: %{getenv:NAME}
-
+Name:  %{getenv:NAME}
+ 
+#
+# FIXME
 #
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
+# FIXME
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
-%define release_short %{getenv:RELEASE}
+%define release_short  %{getenv:RELEASE} 
 
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
-Packager: %{getenv:FASRCSW_AUTHOR}
+Packager:  %{getenv:FASRCSW_AUTHOR} 
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static Data Analysis, Simulations and Visualization on the Sphere
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static CFITSIO is a library of C and Fortran subroutines for reading and writing data files in FITS (Flexible Image Transport System) data format.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL:  http://downloads.sourceforge.net/project/healpix/Healpix_3.31/Healpix_3.31_2016Aug26.tar.gz
-Source: %{name}_%{version}_2016Aug26.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+#https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio3450.tar.gz
+Source: %{name}%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,11 +63,14 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
 %description
-Software for pixelization, hierarchical indexation, synthesis, analysis, and visualization of data on the sphere.
+CFITSIO is a library of C and Fortran subroutines for reading and writing data files in FITS (Flexible Image Transport System) data format.
+
 
 #
 # Macros for setting app data 
@@ -80,8 +90,7 @@ Software for pixelization, hierarchical indexation, synthesis, analysis, and vis
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies cfitsio/3420-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -90,7 +99,7 @@ Software for pixelization, hierarchical indexation, synthesis, analysis, and vis
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Applications;  aci-ref-app-tag:Image analysis
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
 
@@ -98,20 +107,17 @@ Software for pixelization, hierarchical indexation, synthesis, analysis, and vis
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}_%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_%{version}_2016Aug26.tar.*
-cd %{name}_%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#%%setup
+cd %{_topdir}/BUILD
+tar xvf %{_topdir}/SOURCES/%{name}%{version}.tar.gz
+stat %{name}
 
 
 
@@ -119,194 +125,56 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
+#
+# FIXME
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-
-%define cfitsiohome ${CFITSIO_HOME}
-%define cfitsioinclude ${CFITSIO_INCLUDE}
-%define cfitsiolib ${CFITSIO_LIB}
-%define builddir ${FASRCSW_DEV}/rpmbuild/BUILD/%{name}_%{version}
-
-export healpixtarget=basic_gcc
-test "%{comp_name}" == "intel" && healpixtarget=linux_icc
-
-test -z $CC && CC=gcc
-test -z $FC && FC=gfortran
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
-
-cat > Makefile.patch <<EOF
-7,11c7,11
-< ALL       = c-void cpp-void f90-void healpy-void 
-< TESTS     = c-void cpp-void f90-void healpy-void 
-< CLEAN     = c-void cpp-void f90-void healpy-void 
-< TIDY      = c-void cpp-void f90-void healpy-void 
-< DISTCLEAN = c-void cpp-void f90-void healpy-void 
----
-> ALL       = c-all cpp-void f90-all healpy-void 
-> TESTS     = c-test cpp-void f90-test healpy-void 
-> CLEAN     = c-clean cpp-void f90-clean healpy-void 
-> TIDY      = c-tidy cpp-void f90-tidy healpy-void 
-> DISTCLEAN = c-distclean cpp-void f90-distclean healpy-void 
-16,21c16,21
-< HEALPIX=
-< F90_BINDIR	=
-< F90_INCDIR	=
-< F90_LIBDIR	=
-< FITSDIR	= 
-< LIBFITS	= 
----
-> HEALPIX   = %builddir
-> F90_BINDIR    =  %builddir/bin
-> F90_INCDIR    =  %builddir/include
-> F90_LIBDIR    =  %builddir/lib
-> FITSDIR   = $CFITSIO_LIB
-> LIBFITS   = cfitsio
-23,24c23,24
-< F90_FFTSRC  = 
-< F90_ADDUS   = 
----
-> F90_FFTSRC    = healpix_fft
-> F90_ADDUS =  
-28,35c28,35
-< F90_FC	= 
-< F90_FFLAGS	= 
-< F90_CC	= 
-< F90_CFLAGS	= 
-< F90_LDFLAGS	=
-< F90_AR      = 
-< F90_PPFLAGS =
-< F90_I8FLAG  = 
----
-> F90_FC    = $FC
-> F90_FFLAGS    = -O3 -I\$(F90_INCDIR) -DGFORTRAN -fno-second-underscore -fopenmp -fPIC
-> F90_CC    = $CC
-> F90_CFLAGS    = -O3 -std=c99 -DgFortran -fopenmp -fPIC
-> F90_LDFLAGS   = -L\$(F90_LIBDIR) -L\$(FITSDIR) -lhealpix -lhpxgif -l\$(LIBFITS) -Wl,-R\$(FITSDIR)
-> F90_AR        = ar -rsv
-> F90_PPFLAGS   = 
-> F90_I8FLAG  = -fdefault-integer-8
-37,38c37,38
-< F90_PGFLAG  =
-< F90_PGLIBS  =
----
-> F90_PGFLAG  = 
-> F90_PGLIBS  = 
-40c40
-< F90_MOD	=
----
-> F90_MOD   = mod
-42c42
-< F90_OS	=
----
-> F90_OS    = Linux
-54,56c54,56
-< C_CC  = 
-< C_PIC = 
-< C_OPT = 
----
-> C_CC        = $CC
-> C_PIC       = -fPIC
-> C_OPT       = -O2 -Wall
-59,61c59,61
-< C_LIBDIR = 
-< C_INCDIR = 
-< C_AR     = 
----
-> C_LIBDIR      = %builddir/lib
-> C_INCDIR      = %builddir/include
-> C_AR        = ar -rsv
-64,66c64,66
-< C_CFITSIO_INCDIR = 
-< C_CFITSIO_LIBDIR = 
-< C_WLRPATH = 
----
-> C_CFITSIO_INCDIR = $CFITSIO_INCLUDE
-> C_CFITSIO_LIBDIR = $CFITSIO_LIB
-> C_WLRPATH = -Wl,-R${CFITSIO_LIB}
-69c69
-< C_ALL =
----
-> C_ALL     = c-static
-76c76
-< HEALPIX_TARGET =
----
-> HEALPIX_TARGET = %healpixtarget
-78,79c78,79
-< CFITSIO_EXT_LIB=
-< CFITSIO_EXT_INC=
----
-> CFITSIO_EXT_LIB = -L%cfitsiolib -lcfitsio
-> CFITSIO_EXT_INC = -I%cfitsioinclude
-EOF
-
-patch -o Makefile Makefile.in Makefile.patch
-
-#Fix screwed up Makefile
-sed -i -e 's?@cp -p libsharp_healpix_f.a $(LIBDIR)/?@cp -p libsharp_healpix_f.a $(LIBDIR)?' src/f90/sharp/Makefile
-
-#Create include, bin, and lib dirs
-for d in %builddir/lib %builddir/include %builddir/bin
-do
-    mkdir -p $d || echo "Directory $d exists"
-done
-
-make
-
-
-
+cd %{_topdir}/BUILD/%{name}
+./configure --prefix=%{_prefix}
+make all
+make fpack
+make funpack
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_%{version}
-echo %{buildroot} | grep -q %{name}_%{version} && rm -rf %{buildroot}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+#%%makeinstall
+
+cd %{_topdir}/BUILD/%{name}
+echo %{buildroot} | grep -q %{name} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r {bin,include,lib}  %{buildroot}/%{_prefix}
+make prefix=%{buildroot}/%{_prefix} install
 
-#(this should not need to be changed)
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{name}/fpack %{buildroot}/%{_prefix}/bin
+cp %{_topdir}/BUILD/%{name}/funpack %{buildroot}/%{_prefix}/bin
+
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -323,14 +191,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -344,13 +204,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -360,8 +216,6 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
-
-mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
@@ -382,15 +236,15 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("HEALPIX_HOME",              "%{_prefix}")
-setenv("HEALPIX_INCLUDE",           "%{_prefix}/include")
-setenv("HEALPIX_LIB",               "%{_prefix}/lib")
+setenv("CFITSIO_HOME",              "%{_prefix}")
+setenv("CFITSIO_INCLUDE",           "%{_prefix}/include")
+setenv("CFITSIO_LIB",               "%{_prefix}/lib")
 prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
 EOF
 
 
