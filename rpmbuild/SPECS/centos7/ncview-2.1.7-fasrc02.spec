@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static LAMMPS Molecular Dynamics Simulator 
+%define summary_static Ncview version 2.1.7: a netCDF visual browser
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://lammps.sandia.gov/download.html
+URL: ftp://cirrus.ucsd.edu/pub/ncview/ncview-2.1.7.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -56,6 +56,14 @@ Prefix: %{_prefix}
 
 
 #
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Ncview is a visual browser for netCDF format files. Typically you would use ncview to get a quick and easy, push-button look at your netCDF files. 
+You can view simple movies of the data, view along various dimensions, take a look at the actual data values, change color maps, invert the data, etc.
+
+#
 # Macros for setting app data 
 # The first set can probably be left as is
 # the nil construct should be used for empty values
@@ -69,11 +77,9 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-# cmake/3.12.1-fasrc01 fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 QUIP/28Aug18-fasrc01 QE/6.2.0-fasrc01
-%define builddependencies %{nil}
+
+%define builddependencies udunits/2.2.26-fasrc01 netcdf/4.3.2-fasrc05
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -82,19 +88,9 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-LAMMPS is a classical molecular dynamics code with a focus on materials modeling. It's an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -134,25 +130,34 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
+for m in %{builddependencies}
+do
+    module load ${m}
+done
+
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-cd src
-#make lib-qmmm args="-m mpi"
-#cd ..
+./configure CC=mpicc --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
-#rm -rf build
-#mkdir build
-#cd build
-
-#cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQUIP_LIBRARY=${QUIP_LIB} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/lib64 -DQMOD_LIBRARY=${QE_HOME}/lib64 -DQEFFT_LIBRARY=${QE_HOME}/lib64 -DQELA_LIBRARY=${QE_HOME}/lib64 -DQEMOD_LIBRARY=${QE_HOME}/lib64 -DPW_LIBRARY=${QE_HOME}/lib64 -DCLIB_LIBRARY=${QE_HOME}/lib64 -DIOTK_LIBRARY=${QE_HOME}/lib64 ../cmake 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make yes-all
-make mpi
+make
 
 
 
@@ -182,7 +187,7 @@ make mpi
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -256,7 +261,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -274,31 +278,17 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -315,6 +305,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
