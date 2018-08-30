@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static LAMMPS Molecular Dynamics Simulator 
+%define summary_static Quantum ESPRESSO
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://lammps.sandia.gov/download.html
+URL: https://github.com/QEF/q-e/releases/download/qe-6.3/qe-6.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/3.12.1-fasrc01 fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 QUIP/28Aug18-fasrc01 QE/6.2.0-fasrc01 VTK/8.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 cuda/9.2.88-fasrc01 gsl/2.4-fasrc01
-%define rundependencies fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 QUIP/28Aug18-fasrc01 QE/6.2.0-fasrc01 VTK/8.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 cuda/9.2.88-fasrc01 gsl/2.4-fasrc01
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-LAMMPS is a classical molecular dynamics code with a focus on materials modeling. It's an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator. 
+Quantum ESPRESSO is an integrated suite of Open-Source computer codes for electronic-structure calculations and materials modeling at the nanoscale. It is based on density-functional theory, plane waves, and pseudopotentials.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,19 +139,25 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-cd src
-make lib-qmmm args="-m mpi"
-cd ..
 
-rm -rf build
-mkdir build
-cd build
-
-cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DDOWNLOAD_KIM=ON -DDOWNLOAD_MSCG=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQUIP_LIBRARY=${QUIP_LIB} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/lib64 -DQMOD_LIBRARY=${QE_HOME}/lib64 -DQEFFT_LIBRARY=${QE_HOME}/lib64 -DQELA_LIBRARY=${QE_HOME}/lib64 -DQEMOD_LIBRARY=${QE_HOME}/lib64 -DPW_LIBRARY=${QE_HOME}/lib64 -DCLIB_LIBRARY=${QE_HOME}/lib64 -DIOTK_LIBRARY=${QE_HOME}/lib64 -DTBB_LIBRARY=${TBB_LIB} -DTBB_INCLUDE_DIR=${TBB_INCLUDE} -DTBB_MALLOC_LIBRARY=${TBB_LIB} -DOpenCL_LIBRARY=${CUDA_LIB} -DOpenCL_INCLUDE_DIR=${CUDA_INCLUDE} ../cmake 
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make all
 
 
 
@@ -181,11 +187,12 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
 
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/* %{buildroot}/%{_prefix}/.
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -275,22 +282,38 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
+setenv("QE_HOME",       "%{_prefix}")
 
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/iotk/bin")
+prepend_path("PATH",               "%{_prefix}/S3DE/iotk/bin")
+prepend_path("PATH",               "%{_prefix}/S3DE/IDE/bin")
+prepend_path("PATH",               "%{_prefix}/FoX/bin")
+prepend_path("PATH",               "%{_prefix}/test-suite/testcode/bin")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/TDDFPT/bin")
+prepend_path("PATH",               "%{_prefix}/EPW/bin")
+prepend_path("CPATH",              "%{_prefix}/COUPLE/include")
+prepend_path("CPATH",              "%{_prefix}/iotk/include")
+prepend_path("CPATH",              "%{_prefix}/S3DE/iotk/include")
+prepend_path("CPATH",              "%{_prefix}/S3DE/IDE/include")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/COUPLE/include")
+prepend_path("FPATH",              "%{_prefix}/iotk/include")
+prepend_path("FPATH",              "%{_prefix}/S3DE/iotk/include")
+prepend_path("FPATH",              "%{_prefix}/S3DE/IDE/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/FoX/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/test-suite/testcode/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/GUI/PWgui/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/GUI/PWgui/external/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/GUI/Guib/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/GUI/Guib/external/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/FoX/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/test-suite/testcode/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/GUI/PWgui/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/GUI/PWgui/external/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/GUI/Guib/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/GUI/Guib/external/lib")
 EOF
 
 #------------------- App data file
