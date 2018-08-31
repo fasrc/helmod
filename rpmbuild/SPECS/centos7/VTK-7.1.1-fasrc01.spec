@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static LAMMPS Molecular Dynamics Simulator 
+%define summary_static The Visualization Toolkit (VTK)
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://lammps.sandia.gov/download.html
+URL: https://www.vtk.org/files/release/7.1/VTK-7.1.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/3.12.1-fasrc01 fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 QUIP/28Aug18-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 cuda/9.2.88-fasrc01 gsl/2.4-fasrc01
-%define rundependencies fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 QUIP/28Aug18-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 cuda/9.2.88-fasrc01 gsl/2.4-fasrc01
+%define builddependencies cmake/3.12.1-fasrc01
+%define rundependencies %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-LAMMPS is a classical molecular dynamics code with a focus on materials modeling. It's an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator. 
+The Visualization Toolkit (VTK) is an open-source, freely available software system for 3D computer graphics, image processing, and visualization. It consists of a C++ class library and several interpreted interface layers including Tcl/Tk, Java, and Python. VTK supports a wide variety of visualization algorithms including scalar, vector, tensor, texture, and volumetric methods, as well as advanced modeling techniques such as implicit modeling, polygon reduction, mesh smoothing, cutting, contouring, and Delaunay triangulation. VTK has an extensive information visualization framework and a suite of 3D interaction widgets. The toolkit supports parallel processing and integrates with various databases on GUI toolkits such as Qt and Tk. VTK is cross-platform and runs on Linux, Windows, Mac, and Unix platforms. VTK is part of Kitware’s collection of commercially supported open-source platforms for software development.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,15 +139,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-cd src
-make lib-qmmm args="-m mpi"
-cd ..
-
 rm -rf build
 mkdir build
 cd build
 
-cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DDOWNLOAD_KIM=ON -DDOWNLOAD_MSCG=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQUIP_LIBRARY=${QUIP_LIB} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/COUPLE/include -DQEMOD_LIBRARY=${QE_HOME}/Modules -DQEFFT_LIBRARY=${QE_HOME}/FFTXlib -DQELA_LIBRARY=${QE_HOME}/LAXlib -DPW_LIBRARY=${QE_HOME}/PW -DCLIB_LIBRARY=${QE_HOME}/clib -DIOTK_LIBRARY=${QE_HOME}/iotk -DTBB_LIBRARY=${TBB_LIB} -DTBB_INCLUDE_DIR=${TBB_INCLUDE} -DTBB_MALLOC_LIBRARY=${TBB_LIB} -DOpenCL_LIBRARY=${CUDA_LIB} -DOpenCL_INCLUDE_DIR=${CUDA_INCLUDE} ../cmake 
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ../.
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -275,22 +271,24 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
+setenv("VTK_HOME",       "%{_prefix}")
+setenv("VTK_INCLUDE",    "%{_prefix}/include")
+setenv("VTK_LIB",        "%{_prefix}/lib")
+setenv("VTK_PATH",       "%{_prefix}/bin")
 
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/include/vtk-7.1/vtkoggtheora/include")
+prepend_path("CPATH",              "%{_prefix}/include/vtk-7.1/vtknetcdf/include")
+prepend_path("CPATH",              "%{_prefix}/include/vtk-7.1/vtkfreetype/include")
+prepend_path("CPATH",              "%{_prefix}/include/vtk-7.1/vtkglew/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include/vtk-7.1/vtkoggtheora/include")
+prepend_path("FPATH",              "%{_prefix}/include/vtk-7.1/vtknetcdf/include")
+prepend_path("FPATH",              "%{_prefix}/include/vtk-7.1/vtkfreetype/include")
+prepend_path("FPATH",              "%{_prefix}/include/vtk-7.1/vtkglew/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
