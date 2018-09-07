@@ -19,14 +19,14 @@ OPTIONS
     -s, --source cli|lmod
         The thing calling this.  `cli' is for the hook built into the module 
         function, and `lmod' is for the internal lua hook.  The default is 
-		`cli`.
+        `cli`.
 
     -a, --action ACTION
         The default is `load', and as of writing that is the only hook used.
 
     -u, --username USERNAME
         The user who performed the module action.  The default is the value of 
-		the USER environment variable.
+        the USER environment variable.
 
     -f, --modulefname MODULEFNAME
         The path of the modulefile used.  Optional.
@@ -53,103 +53,92 @@ AUTHOR
 """
 
 import sys, os, time, socket, getopt
-#MySQLdb is imported below
+#M ySQLdb is imported below
 
+if __name__ == '__main__':
+    d = {}
+    d['timestamp'] = int(round(time.time()))
+    d['action'] = ''
+    d['hostname'] = socket.gethostname().split('.', 1)[0]
+    d['username'] = ''
+    d['modulename'] = ''
+    d['modulefname'] = ''
+    d['source'] = 'lmod'
 
-if __name__=='__main__':
-	d = {}
-	d['timestamp'] = int(round(time.time()))
-	d['action'] = 'NULL'
-	d['hostname'] = socket.gethostname().split('.',1)[0]
-	d['username'] = 'NULL'
-	d['modulename'] = 'NULL'
-	d['modulefname'] = 'NULL'
+    mysql_cnf_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.my.cnf.modulelogger')
 
-	mysql_cnf_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.my.cnf.modulelogger')
+    try:
+        opts, args = getopt.gnu_getopt(sys.argv[1:], 's:a:u:f:c:h', ('source=', 'action=', 'username=', 'modulefname=', 'mysql-cnf-file=', 'help',))
+    except getopt.GetoptError, e:
+        sys.stderr.write("*** ERROR **** unable to process command line options: %s\n" % e)
+        sys.exit(1)
+    for opt, optarg in opts:
+        if opt in ('-s', '--source'):
+            d['source'] = optarg
+        elif opt in ('-a', '--action'):
+            d['action'] = optarg
+        elif opt in ('-u', '--username'):
+            d['username'] = optarg
+        elif opt in ('-f', '--modulefname'):
+            d['modulefname'] = optarg
 
-	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], 's:a:u:f:c:h', ('source=', 'action=', 'username=', 'modulefname=', 'mysql-cnf-file=', 'help',))
-	except getopt.GetoptError, e:
-		sys.stderr.write("*** ERROR **** unable to process command line options: %s\n" % e)
-		sys.exit(1)
-	for opt, optarg in opts:
-		if opt in ('-s', '--source'):
-			d['source'] = optarg
-		elif opt in ('-a', '--action'):
-			d['action'] = optarg
-		elif opt in ('-u', '--username'):
-			d['username'] = optarg
-		elif opt in ('-f', '--modulefname'):
-			d['modulefname'] = optarg
+        elif opt in ('-c', '--mysql-cnf-file'):
+            mysql_cnf_file = optarg
 
-		elif opt in ('-c', '--mysql-cnf-file'):
-			mysql_cnf_file = optarg
+        elif opt in ('-h', '--help'):
+            sys.stdout.write(__doc__)
+            sys.exit(0)
 
-		elif opt in ('-h', '--help'):
-			sys.stdout.write(__doc__)
-			sys.exit(0)
+    try:
+        import MySQLdb
+    except ImportError:
+        sys.stderr.write("*** ERROR *** this script requires MySQLdb\n")
+        sys.exit(1)
 
-	try:
-		import MySQLdb
-	except ImportError:
-		sys.stderr.write("*** ERROR *** this script requires MySQLdb\n")
-		sys.exit(1)
+    # input checks
+    if not os.path.exists(mysql_cnf_file):
+        sys.stderr.write("*** ERROR *** you must create [%s] with database connection details\n" % mysql_cnf_file)
+        sys.exit(1)
+    if d['source'] not in ('cli', 'lmod'):
+        sys.stderr.write("*** ERROR *** bad -s/--source value [%s]\n" % d['source'])
+        sys.exit(1)
+    if d['action'] is None:
+        d['action'] = 'load'
+    if d['username'] is None:
+        d['username'] = os.getenv('USER')
+        if d['username'] is None:
+            sys.stderr.write("*** ERROR *** no -u/--username given and no $USER in environment\n")
+            sys.exit(1)
 
-	#input checks
-	if not os.path.exists(mysql_cnf_file):
-		sys.stderr.write("*** ERROR *** you must create [%s] with database connection details\n" % mysql_cnf_file)
-		sys.exit(1)
-	if d['source'] not in ('cli', 'lmod'):
-		sys.stderr.write("*** ERROR *** bad -s/--source value [%s]\n" % d['source'])
-		sys.exit(1)
-	if d['action'] is None:
-		d['action'] = 'load'
-	if d['username'] is None:
-		d['username'] = os.getenv('USER')
-		if d['username'] is None:
-			sys.stderr.write("*** ERROR *** no -u/--username given and no $USER in environment\n")
-			sys.exit(1)
+    for modulename in args:
+        # total hack to avoid serious arg parsing in the module function patch
+        if d['source'] == 'cli' and modulename == 'load': continue
 
-	for modulename in args:
-		#total hack to avoid serious arg parsing in the module function patch
-		if d['source']=='cli' and modulename=='load': continue
+        d['modulename'] = modulename
 
-		d['modulename'] = modulename
+        # (debug)
+        if False:
+            open('/tmp/modulestats.log', 'a').write('%s\n' % ' '.join([str(x) for x in 
+                d['timestamp'],
+                d['source'],
+                d['action'],
+                d['hostname'],
+                d['username'],
+                d['modulename'],
+                d['modulefname'],
+            ]))
 
-		#(debug)
-		if False:
-			open('/tmp/modulestats.log','a').write('%s\n' % ' '.join([ str(x) for x in 
-				d['timestamp'],
-				d['source'],
-				d['action'],
-				d['hostname'],
-				d['username'],
-				d['modulename'],
-				d['modulefname'],
-			]))
+        # build sql insert
+        sql = 'insert into log (timestamp, source,  action, hostname, username, modulename, modulefname) values (%s, %s, %s, %s, %s, %s, %s)'
+        
 
-		#build sql insert
-		sql = 'INSERT INTO log SET '
-		kvs = []
-		for k, v in d.items():
-			if type(v)==type(''):
-				if "'" in v:
-					sys.stderr.write("*** ERROR *** bad value [%s] for field [%s] -- must not contain single quote\n")
-					sys.exit(1)
-				kvs.append("%s='%s'" % (k, v))
-			elif type(v)==type(0):
-				kvs.append("%s=%s" % (k,v))
-			else:
-				sys.stderr.write("*** ERROR *** unexpected type [%s] for value of key [%s]"% (type(v), k))
-				sys.exit(1)
-		sql += ','.join(kvs)
-		sql += ';'
-
-		#execute the insert
-		try:
-			c = MySQLdb.connect(read_default_file=mysql_cnf_file).cursor()
-			c.execute(sql)
-			c.close()
-		except Exception, e:
-			sys.stderr.write("*** ERROR *** unable to perform sql insert: %s\n" % str(e).strip())
-			sys.exit(1)
+        # execute the insert
+        try:
+            db = MySQLdb.connect(read_default_file=mysql_cnf_file)
+            c = db.cursor()
+            c.execute(sql, [d['timestamp'], d['source'], d['action'], d['hostname'], d['username'], d['modulename'], d['modulefname']])
+            db.commit()
+            c.close()
+        except Exception, e:
+            sys.stderr.write("*** ERROR *** unable to perform sql insert: %s\n" % str(e).strip())
+            sys.exit(1)

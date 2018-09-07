@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The GNU Binutils are a collection of binary tools.
+%define summary_static Blender provides a broad spectrum of modeling, texturing, lighting, animation and video post-processing functionality in one package. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://ftp.gnu.org/gnu/binutils/binutils-2.26.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://download.blender.org/release/Blender2.78/blender-2.78-linux-glibc211-x86_64.tar.bz2
+Source: %{name}-%{version}-linux-glibc211-x86_64.tar.bz2
 
 #
 # there should be no need to change the following
@@ -54,6 +54,15 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Blender was first conceived in December 1993 and became a usable product in August 1994 as an integrated application that enables the creation of a diverse range of 2D and 3D content. Blender provides a broad spectrum of modeling, texturing, lighting, animation and video post-processing functionality in one package. Through its open architecture, Blender provides cross-platform interoperability, extensibility, an incredibly small footprint, and a tightly integrated workflow. Blender is one of the most popular Open Source 3D graphics applications in the world.
 
 #
 # Macros for setting app data 
@@ -73,28 +82,19 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor Gregory Green <ggreen@cfa.harvard.edu>
-%define requestref RCRT:95643
+%define buildcomments Pre-built binary
+%define requestor Colin Conwell
+%define requestref RCRT:114372
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Libraries
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Visualization
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-The GNU Binutils are a collection of binary tools. The main ones are ld - the GNU linker, and as - the GNU assembler.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ The GNU Binutils are a collection of binary tools. The main ones are ld - the GN
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}-%{version}-linux-glibc211-x86_64
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-linux-glibc211-x86_64.tar.*
+cd %{name}-%{version}-linux-glibc211-x86_64
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -136,28 +136,33 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make 
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#
+#for m in %{builddependencies}
+#do
+#    module load ${m}
+#done
+#
+#
+#
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+#
+##if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+##percent sign) to build in parallel
+#make
 
 
 
@@ -187,10 +192,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-linux-glibc211-x86_64
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}%{_prefix}
 
 
 #(this should not need to be changed)
@@ -261,7 +266,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -279,18 +283,27 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("BINUTILS_HOME",            "%{_prefix}")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/x86_64-unknown-linux-gnu/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64-unknown-linux-gnu/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64-unknown-linux-gnu/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("BLENDER_HOME",       "%{_prefix}")
+setenv("BLENDER_LIB",        "%{_prefix}/lib")
+
+prepend_path("PATH",               "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/2.78/python/bin")
+prepend_path("CPATH",              "%{_prefix}/2.78/python/include")
+prepend_path("FPATH",              "%{_prefix}/2.78/python/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/2.78/python/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/2.78/python/lib/python3.5/site-packages/numpy/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/2.78/python/lib/python3.5/site-packages/numpy/core/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/2.78/scripts/addons/cycles/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/2.78/python/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/2.78/python/lib/python3.5/site-packages/numpy/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/2.78/python/lib/python3.5/site-packages/numpy/core/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/2.78/scripts/addons/cycles/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/2.78/python/lib/python3.5/site-packages")
+
 EOF
 
 #------------------- App data file
@@ -298,6 +311,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -362,6 +376,7 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 #
 
 %postun
+#
 #
 # undo the last component of the mkdir done in the %%pre (yes, orphans will be 
 # left over after the last package in the app family is removed); also put a 

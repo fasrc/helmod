@@ -72,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02 bamtools/2.3.0-fasrc01 samtools/0.1.19-fasrc01 htslib/1.1-fasrc01 bcftools/1.0-fasrc01 tabix/0.2.6-fasrc01 lp_solve/5.5.2.5-fasrc01 SuiteSparse/4.2.1-fasrc01
+%define builddependencies boost/1.55.0-fasrc01 zlib/1.2.8-fasrc02 bamtools/2.3.0-fasrc01 samtools/0.1.19-fasrc01 htslib/1.1-fasrc01 bcftools/1.0-fasrc01 tabix/0.2.6-fasrc01 lp_solve/5.5.2.5-fasrc01 SuiteSparse/4.2.1-fasrc01 sqlite/3081101-fasrc01
 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
@@ -156,11 +156,13 @@ sed -i  -e 's?^SAMTOOLS.*?SAMTOOLS = $(SAMTOOLS_INCLUDE)?' \
 
 sed -i  -e 's?^INCLUDES.*?INCLUDES = -I$(BAMTOOLS_HOME)/include/bamtools -Iheaders -I$(BAMTOOLS_HOME)/src/toolkit?' \
         -e 's?^LIBS.*?LIBS = -L$(ZLIB_LIB) $(BAMTOOLS_HOME)/lib/bamtools/libbamtools.a -lz?' auxprogs/filterBam/src/Makefile
-sed -i -e 's?^# COMPGENEPRED?COMPGENEPRED?' -e 's?^# SQLITE?SQLITE?' common.mk
+sed -i -e 's?^# COMPGENEPRED?COMPGENEPRED?' -e 's?^# SQLITE.*?SQLITE = true?' common.mk
+sed -i -e 's?^# BOOST?BOOST?' -e 's?^# SQLITE?SQLITE?' auxprogs/homGeneMapping/src/Makefile
 
 # Make sure lpsolve is visible
 export CXXFLAGS="-I${LP_SOLVE_INCLUDE} -L${LP_SOLVE_LIB} -L${SUITESPARSE_HOME}/COLAMD/Lib" 
 make -j 4
+(cd auxprogs/homGeneMapping && make)
 (cd auxprogs/checkTargetSortedness && make)
 (cd auxprogs/bam2hints && make)
 (cd auxprogs/bam2wig && make)
