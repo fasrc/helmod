@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/3.12.1-fasrc01 python/2.7.14-fasrc02
-%define rundependencies python/2.7.14-fasrc02
+%define builddependencies cmake/3.12.1-fasrc01 ffmpeg/4.0.2-fasrc01 python/3.6.3-fasrc02 VTK/7.1.1-fasrc01 intel-mkl/2017.2.174-fasrc01
+%define rundependencies ffmpeg/4.0.2-fasrc01 python/3.6.3-fasrc02 VTK/7.1.1-fasrc01 intel-mkl/2017.2.174-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -140,12 +140,12 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix}  ..
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix}  -DCMAKE_INCLUDE_PATH=${PYTHON_INCLUDE} -DCMAKE_LIBRARY_PATH=${PYTHON_LIB} ..
 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -269,22 +269,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
+setenv("OPENCV_HOME",              "%{_prefix}")
+setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
+setenv("OPENCV_LIB",               "%{_prefix}/lib")
+setenv("OPENCV_PATH",              "%{_prefix}/bin")
 
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python3.6/site-packages")
 EOF
 
 #------------------- App data file
