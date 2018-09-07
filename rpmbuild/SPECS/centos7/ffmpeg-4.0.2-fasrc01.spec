@@ -37,8 +37,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.bz2
-Source: %{name}-%{version}.tar.bz2
+URL: http://ffmpeg.org/releases/ffmpeg-4.0.2.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies xvidcore/1.3.3-fasrc01 yasm/1.3.0-fasrc01 opus/1.0.3-fasrc01 fdk-aac/0.1.3-fasrc01 lame/3.99.5-fasrc01 nasm/2.13.03-fasrc01 x264/20180705-fasrc01 libvpx/v1.3.0-fasrc01 opencore-amr/0.1.3-fasrc01 libass/0.11.2-fasrc01 fribidi/0.19.1-fasrc01 enca/1.19-fasrc01 libogg/1.3.2-fasrc01 libtheora/1.1.1-fasrc01 libvorbis/1.3.4-fasrc01
+%define builddependencies xvidcore/1.3.3-fasrc01 yasm/1.3.0-fasrc01 opus/1.0.3-fasrc01 fdk-aac/0.1.3-fasrc01 lame/3.99.5-fasrc01 nasm/2.13.03-fasrc01 x264/20180705-fasrc01 libvpx/1.7.0-fasrc01 opencore-amr/0.1.3-fasrc01 libass/0.11.2-fasrc01 fribidi/0.19.1-fasrc01 enca/1.19-fasrc01 libogg/1.3.2-fasrc01 libtheora/1.1.1-fasrc01 libvorbis/1.3.4-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
