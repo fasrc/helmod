@@ -4,4 +4,4 @@ if [ -z "$FASRCSW_PROD" ]; then
 	echo "*** ERROR *** FASRCSW_PROD is not defined" >&2
 	exit 1
 fi
-"$FASRCSW_PROD"/bin/createSystemCacheFile.sh --spiderCacheDir "$FASRCSW_PROD"/moduledata/cacheDir --updateSystemFn "$FASRCSW_PROD"/moduledata/system.txt
+${LMOD_PREFIX}/lmod/libexec/update_lmod_system_cache_files -d ${FASRCSW_PROD}/moduledata/cacheDir -t ${FASRCSW_PROD}/moduledata/timestamp.txt ${MODULEPATH_ROOT}

@@ -3,7 +3,8 @@ set -e
 
 fasrcsw-env-check
 
-for p in "$@"; do
+for r in "$@"; do
+    p="${r}_${FASRCSW_OS}"
     for comp in $FASRCSW_COMPS; do
         IFS=/ read -r comp_name comp_versionrelease <<< "$comp"
         IFS=- read -r comp_version comp_release     <<< "$comp_versionrelease"
