@@ -153,7 +153,7 @@ cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNL
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -187,6 +187,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/build
+rsync -av --progress ./ %{buildroot}/%{_prefix}/build/
 
 
 #(this should not need to be changed)
@@ -283,10 +285,23 @@ setenv("LAMMPS_INCLUDE",    "%{_prefix}/include")
 setenv("LAMMPS_LIB",        "%{_prefix}/lib")
 
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/bin")
+prepend_path("PATH",               "%{_prefix}/build/kim_build-prefix/bin")
+prepend_path("PATH",               "%{_prefix}/build/latte_build-prefix/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/include")
+prepend_path("CPATH",              "%{_prefix}/build/kim_build-prefix/include")
 prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/include")
+prepend_path("FPATH",              "%{_prefix}/build/kim_build-prefix/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/kim_build-prefix/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/latte_build-prefix/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/build/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/build/kim_build-prefix/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/build/latte_build-prefix/lib64")
 EOF
 
 #------------------- App data file
