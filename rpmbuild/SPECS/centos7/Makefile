@@ -26,9 +26,9 @@ query:
 	fasrcsw-rpm -qa | grep "^$$NAME-$$VERSION-$$RELEASE" || true
 
 sync:
-	sudo rsync -av {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SOURCES/
-	sudo rsync -av {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/RPMS/
-	sudo rsync -av {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SRPMS/
+	sudo rsync -auv {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SOURCES/
+	sudo rsync -auv {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/RPMS/
+	sudo rsync -auv {"$$FASRCSW_DEV","$$FASRCSW_PROD"}/rpmbuild/SRPMS/
 
 post: sync
 	cd "$$FASRCSW_DEV"
