@@ -179,6 +179,10 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
+#Need to run this to pick up all the KIM Models
+export KIM_API_MODELS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/models
+export KIM_API_MODEL_DRIVERS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/model_drivers
+%{buildroot}/%{_prefix}/bin/kim-api-v1-collections-management install environment OpenKIM
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -268,6 +272,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
+setenv("KIM_API_MODELS_DIR"         "%{_prefix}/lib/kim-api-v1/models")
+setenv("KIM_API_MODEL_DRIVERS_DIR"  "%{_prefix}/lib/kim-api-v1/model_drivers")
 setenv("KIM_HOME",       "%{_prefix}")
 setenv("KIM_PATH",       "%{_prefix}/bin")
 setenv("KIM_LIB",        "%{_prefix}/lib")
