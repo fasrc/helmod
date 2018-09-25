@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The KIM API is an Application Programming Interface for atomistic simulations.
+%define summary_static NWChem: Open Source High-Performance Computational Chemistry
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://s3.openkim.org/kim-api/kim-api-v1.9.7.txz
-Source: %{name}-%{version}.txz
+URL: https://github.com/nwchemgit/nwchem/archive/6.8.1-release.tar.gz
+Source: %{name}-%{version}-release.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies intel-mkl/2017.2.174-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,9 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The KIM API is an Application Programming Interface for atomistic simulations. The API provides a standard for exchanging information between atomistic simulation codes (molecular dynamics, molecular statics, lattice dynamics, Monte Carlo, etc.) and interatomic models (potentials or force fields).
-
-Setup for the Intel compiler.
+NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,9 +110,9 @@ Setup for the Intel compiler.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.txz
-cd %{name}-%{version}
+rm -rf %{name}-%{version}-release
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-release.tar.*
+cd %{name}-%{version}-release
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -139,14 +137,23 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src
 
+export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/
+export USE_MPI=y
+export NWCHEM_TARGET=LINUX64  
+export USE_PYTHONCONFIG=y  
+export PYTHONVERSION=2.7
+export ARMCI_NETWORK=OPENIB
+export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
+export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
+export PYTHONHOME=/usr
 
-./configure --prefix=%{_prefix} --compiler-suite=INTEL
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make nwchem_config NWCHEM_MODULES="all python"
+make %{?_smp_mflags}
 
 
 
@@ -176,15 +183,29 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
 
-#Need to run this to pick up all the KIM Models
-export KIM_API_MODELS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/models
-export KIM_API_MODEL_DRIVERS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/model_drivers
-%{buildroot}/%{_prefix}/lib/kim-api-v1/bin/kim-api-v1-collections-management install environment OpenKIM
+cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/data %{buildroot}/%{_prefix}
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/basis/libraries %{buildroot}/%{_prefix}/data
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
+
+# Create default config file for people to point to.
+cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
+nwchem_basis_library /%{_prefix}/data/libraries/
+nwchem_nwpw_library /%{_prefix}/data/libraryps/
+ffield amber
+amber_1 /%{_prefix}/data/amber_s/
+amber_2 /%{_prefix}/data/amber_q/
+amber_3 /%{_prefix}/data/amber_x/
+amber_4 /%{_prefix}/data/amber_u/
+spce    /%{_prefix}/data/solvents/spce.rst
+charmm_s /%{_prefix}/data/charmm_s/
+charmm_x /%{_prefix}/data/charmm_x/
+EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -274,21 +295,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("KIM_API_MODELS_DIR",         "%{_prefix}/lib/kim-api-v1/models")
-setenv("KIM_API_MODEL_DRIVERS_DIR",  "%{_prefix}/lib/kim-api-v1/model_drivers")
-setenv("KIM_HOME",       "%{_prefix}")
-setenv("KIM_PATH",       "%{_prefix}/bin")
-setenv("KIM_LIB",        "%{_prefix}/lib")
-setenv("KIM_INCLUDE",    "%{_prefix}/include")
+setenv("NWCHEM_HOME",       "%{_prefix}")
+setenv("NWCHEM_DATA",       "%{_prefix}/data")
 
-prepend_path("PATH",               "%{_prefix}/lib/kim-api-v1/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib/kim-api-v1/include")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/lib/kim-api-v1/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file

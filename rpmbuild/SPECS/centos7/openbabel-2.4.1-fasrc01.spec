@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The KIM API is an Application Programming Interface for atomistic simulations.
+%define summary_static Open Babel: The Open Source Chemistry Toolbox
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://s3.openkim.org/kim-api/kim-api-v1.9.7.txz
-Source: %{name}-%{version}.txz
+URL: https://sourceforge.net/projects/openbabel/files/
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies cmake/3.12.1-fasrc01 libxml2/2.7.8-fasrc02 eigen/3.3.4-fasrc03 zlib/1.2.8-fasrc09
+%define rundependencies libxml2/2.7.8-fasrc02 eigen/3.3.4-fasrc01 zlib/1.2.8-fasrc09
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -82,7 +82,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags %{nil}
 %define apppublication %{nil}
 
 
@@ -94,9 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The KIM API is an Application Programming Interface for atomistic simulations. The API provides a standard for exchanging information between atomistic simulation codes (molecular dynamics, molecular statics, lattice dynamics, Monte Carlo, etc.) and interatomic models (potentials or force fields).
 
-Setup for the Intel compiler.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -113,7 +111,7 @@ Setup for the Intel compiler.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.txz
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -142,11 +140,14 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} --compiler-suite=INTEL
+test -d build && rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_INCLUDE_PATH=$EIGEN_INCLUDE -DCMAKE_INSTALL_PREFIX=%{_prefix} -DPYTHON_BINDINGS=ON ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 
 
@@ -176,15 +177,11 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
-#Need to run this to pick up all the KIM Models
-export KIM_API_MODELS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/models
-export KIM_API_MODEL_DRIVERS_DIR=%{buildroot}/%{_prefix}/lib/kim-api-v1/model_drivers
-%{buildroot}/%{_prefix}/lib/kim-api-v1/bin/kim-api-v1-collections-management install environment OpenKIM
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -274,21 +271,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("KIM_API_MODELS_DIR",         "%{_prefix}/lib/kim-api-v1/models")
-setenv("KIM_API_MODEL_DRIVERS_DIR",  "%{_prefix}/lib/kim-api-v1/model_drivers")
-setenv("KIM_HOME",       "%{_prefix}")
-setenv("KIM_PATH",       "%{_prefix}/bin")
-setenv("KIM_LIB",        "%{_prefix}/lib")
-setenv("KIM_INCLUDE",    "%{_prefix}/include")
+setenv("OPENBABEL_HOME",       "%{_prefix}")
+setenv("OPENBABEL_PATH",       "%{_prefix}/bin")
+setenv("OPENBABEL_LIB",        "%{_prefix}/lib64")
+setenv("OPENBABEL_INCLUDE",    "%{_prefix}/include")
 
-prepend_path("PATH",               "%{_prefix}/lib/kim-api-v1/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib/kim-api-v1/include")
 prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/lib/kim-api-v1/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.7/site-packages")
 EOF
 
 #------------------- App data file
