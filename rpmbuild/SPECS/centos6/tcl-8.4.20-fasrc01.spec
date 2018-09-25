@@ -190,6 +190,8 @@ echo %{buildroot} | grep -q %{name}%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
+(cd %{buildroot}/%{_prefix}/bin && ln -s tclsh8.6 tclsh)
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
