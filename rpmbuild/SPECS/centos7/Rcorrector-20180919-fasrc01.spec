@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis. 
+%define summary_static Rcorrector(RNA-seq error CORRECTOR) is a kmer-based error correction method for RNA-seq data. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://homer.salk.edu/homer/configureHomer.pl
-# Source: %{name}-%{version}.tar.gz
+URL: https://github.com/mourisl/Rcorrector.git
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,11 +73,12 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ghostscript/9.16-fasrc01 perl/5.10.1-fasrc05 ucsc/20150820-fasrc01 weblogo/2.8.2-fasrc01
+%define builddependencies jellyfish/2.2.5-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
+%define buildcomments Built from commit 1e9c7f34255d5ad0cbb539187f3fc5073a2e7207
 %define requestor %{nil}
 %define requestref %{nil}
+
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +95,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis.  It is a collection of command line programs for unix-style operating systems written in Perl and C++. HOMER was primarily written as a de novo motif discovery algorithm and is well suited for finding 8-20 bp motifs in large scale genomics data.  HOMER contains many useful tools for analyzing ChIP-Seq, GRO-Seq, RNA-Seq, DNase-Seq, Hi-C and numerous other types of functional genomics sequencing data sets.
+Rcorrector(RNA-seq error CORRECTOR) is a kmer-based error correction method for RNA-seq data.
+
+Rcorrector can also be applied to other type of sequencing data where the read coverage is non-uniform, such as single-cell sequencing.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,8 +114,9 @@ HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -124,24 +128,23 @@ mkdir %{name}-%{version}
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-wget http://homer.salk.edu/homer/configureHomer.pl
-
-# Installs to the current directory
-perl configureHomer.pl -install
-
-# Replace current directory references with prefix
-echo "%{_prefix}" > .ls
-
-sed -i -e 's?^use lib .*?use lib "%{_prefix}/bin";?' \
-       -e 's?^my $homeDir.*?my $homeDir = "%{_prefix}";?' bin/*.pl
-
-cd cpp
-sed -i -e 's?^const char* HomerConfig::homeDirectory?const char* HomerConfig::homeDirectory = "%{_prefix}";?' SeqTag.cpp
-make clean
 make
+chmod +x run_rcorrector.pl
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -171,8 +174,8 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp run_rcorrector.pl rcorrector %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -252,17 +255,12 @@ whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
+    load(i)
 end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HOMER_HOME",                "%{_prefix}")
+setenv("RCORRECTOR_HOME",           "%{_prefix}") 
 prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 

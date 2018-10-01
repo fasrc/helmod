@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis. 
+%define summary_static Ultrafast consensus module for raw de novo genome assembly of long uncorrected reads.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://homer.salk.edu/homer/configureHomer.pl
-# Source: %{name}-%{version}.tar.gz
+URL: https://github.com/isovic/racon/releases/download/1.3.1/racon-v1.3.1.tar.gz
+Source: %{name}-v%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ghostscript/9.16-fasrc01 perl/5.10.1-fasrc05 ucsc/20150820-fasrc01 weblogo/2.8.2-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies cmake/3.12.1-fasrc01
+%define rundependencies %{nil}
+%define buildcomments %{nil}
+%define requestor Pierre-Jean G. Malé <pjg.male@gmail.com>
+%define requestref RCRT:128240
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis.  It is a collection of command line programs for unix-style operating systems written in Perl and C++. HOMER was primarily written as a de novo motif discovery algorithm and is well suited for finding 8-20 bp motifs in large scale genomics data.  HOMER contains many useful tools for analyzing ChIP-Seq, GRO-Seq, RNA-Seq, DNase-Seq, Hi-C and numerous other types of functional genomics sequencing data sets.
+Ultrafast consensus module for raw de novo genome assembly of long uncorrected reads.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,10 @@ HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for 
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
-
+rm -rf %{name}-v%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-v%{version}.tar.*
+cd %{name}-v%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -124,24 +125,25 @@ mkdir %{name}-%{version}
 %include fasrcsw_module_loads.rpmmacros
 
 
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-v%{version}
 
-wget http://homer.salk.edu/homer/configureHomer.pl
+(rm -rf build; mkdir build)
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 
-# Installs to the current directory
-perl configureHomer.pl -install
 
-# Replace current directory references with prefix
-echo "%{_prefix}" > .ls
-
-sed -i -e 's?^use lib .*?use lib "%{_prefix}/bin";?' \
-       -e 's?^my $homeDir.*?my $homeDir = "%{_prefix}";?' bin/*.pl
-
-cd cpp
-sed -i -e 's?^const char* HomerConfig::homeDirectory?const char* HomerConfig::homeDirectory = "%{_prefix}";?' SeqTag.cpp
-make clean
-make
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -169,10 +171,10 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-v%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-cp -r * %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -262,8 +264,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HOMER_HOME",                "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("RACON_HOME",               "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
 EOF
 
 #------------------- App data file

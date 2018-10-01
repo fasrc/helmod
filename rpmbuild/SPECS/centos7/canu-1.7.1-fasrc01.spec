@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis. 
+%define summary_static A single molecule sequence assembler for genomes large and small. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://homer.salk.edu/homer/configureHomer.pl
-# Source: %{name}-%{version}.tar.gz
+URL: https://github.com/marbl/canu/releases/download/v1.7.1/canu-1.7.1.Linux-amd64.tar.xz
+Source: %{name}-%{version}.Linux-amd64.tar.xz
 
 #
 # there should be no need to change the following
@@ -73,11 +73,11 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ghostscript/9.16-fasrc01 perl/5.10.1-fasrc05 ucsc/20150820-fasrc01 weblogo/2.8.2-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7
-%define requestor %{nil}
-%define requestref %{nil}
+%define builddependencies %{nil}
+%define rundependencies perl/5.26.1-fasrc01 jdk/1.8.0_45-fasrc01
+%define buildcomments %{nil}
+%define requestor Pierre-Jean Male <pjg.male@gmail.com>
+%define requestref RCRT:128240
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
@@ -94,7 +94,12 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis.  It is a collection of command line programs for unix-style operating systems written in Perl and C++. HOMER was primarily written as a de novo motif discovery algorithm and is well suited for finding 8-20 bp motifs in large scale genomics data.  HOMER contains many useful tools for analyzing ChIP-Seq, GRO-Seq, RNA-Seq, DNase-Seq, Hi-C and numerous other types of functional genomics sequencing data sets.
+Canu is a fork of the Celera Assembler, designed for high-noise single-molecule sequencing (such as the PacBio RS II/Sequel or Oxford Nanopore MinION).
+Canu is a hierarchical assembly pipeline which runs in four steps:
+1. Detect overlaps in high-noise sequences using MHAP
+2. Generate corrected sequence consensus
+3. Trim corrected sequences
+4. Assemble trimmed corrected sequences
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,8 +116,9 @@ HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.Linux-amd64.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -120,28 +126,6 @@ mkdir %{name}-%{version}
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-wget http://homer.salk.edu/homer/configureHomer.pl
-
-# Installs to the current directory
-perl configureHomer.pl -install
-
-# Replace current directory references with prefix
-echo "%{_prefix}" > .ls
-
-sed -i -e 's?^use lib .*?use lib "%{_prefix}/bin";?' \
-       -e 's?^my $homeDir.*?my $homeDir = "%{_prefix}";?' bin/*.pl
-
-cd cpp
-sed -i -e 's?^const char* HomerConfig::homeDirectory?const char* HomerConfig::homeDirectory = "%{_prefix}";?' SeqTag.cpp
-make clean
-make
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -169,7 +153,7 @@ make
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/Linux-amd64
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 cp -r * %{buildroot}/%{_prefix}
@@ -262,7 +246,7 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HOMER_HOME",                "%{_prefix}")
+setenv("CANU_HOME",                 "%{_prefix}")
 prepend_path("PATH",                "%{_prefix}/bin")
 EOF
 

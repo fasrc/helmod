@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis. 
+%define summary_static Supernova is a software package for de novo assembly from Chromium Linked-Reads that are made from a single whole-genome library from an individual DNA source.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://homer.salk.edu/homer/configureHomer.pl
-# Source: %{name}-%{version}.tar.gz
+URL: https://support.10xgenomics.com/de-novo-assembly/software/downloads/latest
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ghostscript/9.16-fasrc01 perl/5.10.1-fasrc05 ucsc/20150820-fasrc01 weblogo/2.8.2-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments Built for CentOS 7
 %define requestor %{nil}
@@ -94,7 +94,15 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for Motif Discovery and next-gen sequencing analysis.  It is a collection of command line programs for unix-style operating systems written in Perl and C++. HOMER was primarily written as a de novo motif discovery algorithm and is well suited for finding 8-20 bp motifs in large scale genomics data.  HOMER contains many useful tools for analyzing ChIP-Seq, GRO-Seq, RNA-Seq, DNase-Seq, Hi-C and numerous other types of functional genomics sequencing data sets.
+Supernova is a software package for de novo assembly from Chromium Linked-Reads that are made from a single whole-genome library from an individual DNA source. A key feature of Supernova is that it creates diploid assemblies, thus separately representing maternal and paternal chromosomes over very long distances. Almost all other methods instead merge homologous chromosomes into single incorrect 'consensus' sequences. Supernova is the only practical method for creating diploid assemblies of large genomes.
+
+The Supernova software package includes two processing pipelines and one for post-processing:
+
+supernova mkfastq wraps Illumina's bcl2fastq to correctly demultiplex Chromium-prepared sequencing samples and to convert barcode and read data to FASTQ files.
+
+supernova run takes FASTQ files containing barcoded reads from supernova mkfastq and builds a graph-based assembly. The approach is to first build an assembly using read kmers (K = 48), then resolve this assembly using read pairs (to K = 200), then use barcodes to effectively resolve this assembly to K ≈ 100,000. The final step pulls apart homologous chromosomes into phase blocks, which are often several megabases in length.
+
+supernova mkoutput takes Supernova's graph-based assemblies and produces several styles of FASTA suitable for downstream processing and analysis.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,8 +119,9 @@ HOMER (Hypergeometric Optimization of Motif EnRichment) is a suite of tools for 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -124,24 +133,7 @@ mkdir %{name}-%{version}
 %include fasrcsw_module_loads.rpmmacros
 
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-wget http://homer.salk.edu/homer/configureHomer.pl
-
-# Installs to the current directory
-perl configureHomer.pl -install
-
-# Replace current directory references with prefix
-echo "%{_prefix}" > .ls
-
-sed -i -e 's?^use lib .*?use lib "%{_prefix}/bin";?' \
-       -e 's?^my $homeDir.*?my $homeDir = "%{_prefix}";?' bin/*.pl
-
-cd cpp
-sed -i -e 's?^const char* HomerConfig::homeDirectory?const char* HomerConfig::homeDirectory = "%{_prefix}";?' SeqTag.cpp
-make clean
-make
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -262,8 +254,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HOMER_HOME",                "%{_prefix}")
-prepend_path("PATH",                "%{_prefix}/bin")
+setenv("SUPERNOVA_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
