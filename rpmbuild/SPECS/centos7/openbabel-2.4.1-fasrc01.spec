@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies cmake/3.12.1-fasrc01 libxml2/2.7.8-fasrc02 eigen/3.3.4-fasrc03 zlib/1.2.8-fasrc09
-%define rundependencies libxml2/2.7.8-fasrc02 eigen/3.3.4-fasrc01 zlib/1.2.8-fasrc09
+%define rundependencies libxml2/2.7.8-fasrc02 eigen/3.3.4-fasrc03 zlib/1.2.8-fasrc09
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
