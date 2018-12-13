@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS, XSPEC and XSTAR
+%define summary_static OpenBLAS version 0.2.20
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/release/heasoft-6.25src.tar.gz
-Source: %{name}-%{version}src.tar.gz
+URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -72,10 +72,9 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for CentOS 7, using HASWELL target architecture and with OPENMP activated. 
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -86,7 +85,6 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -94,8 +92,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS, XSPEC and XSTAR.
-
+OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,7 +109,7 @@ HEASOFT is a software suite consisting of the union of FTOOLS/FV, XIMAGE, XRONOS
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}src.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -138,15 +135,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# For Core / default, use gfortran
+test -z "%{comp_name}" && FC=gfortran
 
-./configure --prefix=%{_prefix}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-
+make TARGET=generic
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -174,27 +168,25 @@ make
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
 # Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-
-make install
+make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
 
 # Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
+#sudo rm "%{_prefix}"
+
+#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
+#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
+#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
+#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
+
+#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
+#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -282,106 +274,16 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("HEASOFT_HOME",       "%{_prefix}")
-setenv("XANBIN",                   "%{_prefix}/x86_64-pc-linux-gnu-libc2.17")
-setenv("LHEAPERL",                 "/usr/bin/perl")
-setenv("TCLRL_LIBDIR",             "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib")
-setenv("POW_LIBRARY",              "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/pow")
-setenv("PGPLOT_DIR",               "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib")
-setenv("PGPLOT_RGB",               "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/rgb.txt")
-setenv("PGPLOT_FONT",              "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/grfont.dat")
-setenv("FTOOLS",                   "%{_prefix}/x86_64-pc-linux-gnu-libc2.17")
-setenv("HEADAS",                   "%{_prefix}/x86_64-pc-linux-gnu-libc2.17")
-setenv("PFILES",                   "/scratch;%{_prefix}/x86_64-pc-linux-gnu-libc2.17/syspfiles")
-setenv("LHEASOFT",                 "%{_prefix}/x86_64-pc-linux-gnu-libc2.17")
-setenv("LHEA_HELP",                "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/help")
-setenv("LHEA_DATA",                "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/refdata")
-setenv("XRDEFAULTS",               "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/xrdefaults")
-setenv("XANADU",                   "%{_prefix}")
-prepend_path("PERL5LIB",           "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/perl")
-prepend_path("PERLLIB",            "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/perl")
-prepend_path("PATH",               "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/attitude/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/heasptools/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/heatools/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/heagen/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/demo/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/suzaku/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/swift/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/Xspec/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/integral/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/maxi/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/nicer/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/nustar/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/hitomi/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/ftools/x86_64-pc-linux-gnu-libc2.17/bin")
-prepend_path("PATH",               "%{_prefix}/heasim/x86_64-pc-linux-gnu-libc2.17/bin")
+setenv("OPENBLAS_HOME",            "%{_prefix}")
+setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
+setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/attitude/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/heagen/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/suzaku/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/swift/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/Xspec/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/integral/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/maxi/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/nustar/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/hitomi/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("CPATH",              "%{_prefix}/ftools/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/attitude/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/heagen/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/suzaku/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/swift/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/Xspec/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/integral/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/maxi/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/nustar/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/hitomi/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("FPATH",              "%{_prefix}/ftools/x86_64-pc-linux-gnu-libc2.17/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/attitude/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/heagen/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/demo/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/suzaku/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/swift/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/Xspec/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/maxi/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/nicer/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/nustar/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/hitomi/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/ftools/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/attitude/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/heagen/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/demo/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/suzaku/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/swift/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/Xspec/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/maxi/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/nicer/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/nustar/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/hitomi/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/ftools/x86_64-pc-linux-gnu-libc2.17/lib")
-prepend_path("MANPATH",            "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/share/man")
-prepend_path("MANPATH",            "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/share/man")
-prepend_path("MANPATH",            "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/man")
-prepend_path("MANPATH",            "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/man")
-prepend_path("MANPATH",            "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/heacore/x86_64-pc-linux-gnu-libc2.17/lib/pkgconfig")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/x86_64-pc-linux-gnu-libc2.17/lib/pkgconfig")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/tcltk/x86_64-pc-linux-gnu-libc2.17/lib/pkgconfig")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
@@ -405,6 +307,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
