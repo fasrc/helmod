@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies OpenBLAS/0.2.20-fasrc03
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
