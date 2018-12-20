@@ -38,6 +38,8 @@ Summary: %{summary_static}
 # applicable
 #
 URL: http://heasarc.gsfc.nasa.gov/FTP/software/lheasoft/release/heasoft-6.25src.tar.gz
+#XSPEC Patch: https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/issues/Xspatch_121001b.tar.gz
+#Patcher: https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/issues/patch_install_4.10.tcl
 Source: %{name}-%{version}src.tar.gz
 
 #
@@ -140,6 +142,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/BUILD_DIR
 
+cd ../Xspec/src/
+cp "$FASRCSW_DEV"/rpmbuild/SOURCES/Xspatch_121001b.tar.gz .
+tclsh patch_install_4.10.tcl -no_build
+
+cd ../../BUILD_DIR
 
 ./configure --prefix=%{_prefix}
 
