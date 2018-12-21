@@ -173,7 +173,7 @@ mkdir -p %{buildroot}%{_prefix}/perl/man
 export PERL5LIB=%{buildroot}/%{_prefix}/lib:%{buildroot}/%{_prefix}/lib/site_perl:%{buildroot}/%{_prefix}/lib/%{version}:%{buildroot}/%{_prefix}/lib/perl5:$PERL5LIB
 
 mkdir -p %{buildroot}/%{_prefix}
-for m in Module-Build-0.4224 Test-Most-0.35 Parse-RecDescent-1.967015 URI-1.73 Inline-0.80 Data-Stag-0.14 File-ShareDir-Install-0.11 IO-String-1.08 Bit-Vector-7.4 DBI-1.640 DBD-SQLite-1.56 IO-All-0.87 Inline-C-0.78 Perl-Unsafe-Signals-0.03 Want-0.29 forks-0.36 libwww-perl-6.33; do
+for m in Exporter-Tiny-1.002001 forks-0.36 Module-Build-0.4224 Test-Most-0.35 Parse-RecDescent-1.967015 URI-1.73 Inline-0.80 Data-Stag-0.14 File-ShareDir-Install-0.11 IO-String-1.08 Bit-Vector-7.4 DBI-1.640 DBD-SQLite-1.56 IO-All-0.87 Inline-C-0.78 Perl-Unsafe-Signals-0.03 Want-0.29 forks-0.36 libwww-perl-6.33 List-MoreUtils-0.428 Sys-SigAction-0.23 Acme-Damn-0.08; do
   cd %{_topdir}/BUILD
   tar xvf %{_topdir}/SOURCES/$m.tar.*
 
@@ -300,6 +300,9 @@ end
 setenv("MAKER_HOME",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("PERL5LIB",           "%{_prefix}/perl/lib")
+prepend_path("PERL5LIB",           "%{_prefix}/lib64/perl5")
+prepend_path("PERL5LIB",           "%{_prefix}/lib/perl5")
+prepend_path("PERL5LIB",           "%{_prefix}/lib/site_perl/5.26.1")
 prepend_path("MANPATH",            "%{_prefix}/perl/man")
 EOF
 

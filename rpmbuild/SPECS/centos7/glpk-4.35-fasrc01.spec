@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The ViennaRNA Package consists of a C code library and several stand-alone programs for the prediction and comparison of RNA secondary structures.
+%define summary_static The GLPK (GNU Linear Programming Kit) package is intended for solving large-scale linear programming (LP), mixed integer programming (MIP), and other related problems. It is a set of routines written in ANSI C and organized in the form of a callable library
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.tbi.univie.ac.at/RNA/download/sourcecode/2_2_x/ViennaRNA-2.2.7.tar.gz
+URL:http://ftp.gnu.org/gnu/glpk/glpk-4.35.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies perl/5.26.1-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,19 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-RNA secondary structure prediction through energy minimization is the most used function in the package. We provide three kinds of dynamic programming algorithms for structure prediction: the minimum free energy algorithm of (Zuker & Stiegler 1981) which yields a single optimal structure, the partition function algorithm of (McCaskill 1990) which calculates base pair probabilities in the thermodynamic ensemble, and the suboptimal folding algorithm of (Wuchty et.al 1999) which generates all suboptimal structures within a given energy range of the optimal energy. For secondary structure comparison, the package contains several measures of distance (dissimilarities) using either string alignment or tree-editing (Shapiro & Zhang 1990). Finally, we provide an algorithm to design sequences with a predefined structure (inverse folding). 
+The GLPK (GNU Linear Programming Kit) package is intended for solving large-scale linear programming (LP), mixed integer programming (MIP), and other related problems. It is a set of routines written in ANSI C and organized in the form of a callable library.
+
+GLPK supports the GNU MathProg modeling language, which is a subset of the AMPL language.
+
+The GLPK package includes the following main components:
+
+primal and dual simplex methods
+primal-dual interior-point method
+branch-and-cut method
+translator for GNU MathProg
+application program interface (API)
+stand-alone LP/MIP solver
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -281,21 +293,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("VIENNARNA_HOME",           "%{_prefix}")
-setenv("VIENNARNA_INCLUDE",        "%{_prefix}/include")
-setenv("VIENNARNA_LIB",            "%{_prefix}/lib64")
+setenv("GLPK_HOME",                "%{_prefix}")
+setenv("GLPK_INCLUDE",             "%{_prefix}/include")
+setenv("GLPK_LIB",                 "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/share/ViennaRNA/bin")
-prepend_path("PATH",               "%{_prefix}/share/perl5")
-prepend_path("PATH",               "%{_prefix}/lib/python2.7/site-packages")
 prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
+prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.7/site-packages")
-prepend_path("PERL5LIB",           "%{_prefix}/lib64/perl5")
 EOF
 
 #------------------- App data file
