@@ -139,7 +139,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
+./autogen.sh
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
