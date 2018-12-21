@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF5 is a data model, library, and file format for storing and managing data.
+%define summary_static A free software environment for statistical computing and graphics
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://cran.r-project.org/src/base/R-3/R-3.5.1.tar.gz
+Source: R-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,14 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
-
 #
 # Macros for setting app data 
 # The first set can probably be left as is
@@ -76,19 +68,31 @@ HDF5 is a data model, library, and file format for storing and managing data. It
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.2.8-fasrc08 szip/2.1-fasrc03
+%define builddependencies readline/6.3-fasrc03 jdk/10.0.1-fasrc01 curl/7.45.0-fasrc02 zlib/1.2.8-fasrc08 bzip2/1.0.6-fasrc02 xz/5.2.2-fasrc02 pcre/8.41-fasrc01 libtiff/4.0.9-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Compiler/MPI specific build
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
 %define apppublication %{nil}
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
+R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
+
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -97,7 +101,6 @@ HDF5 is a data model, library, and file format for storing and managing data. It
 
 
 #
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -105,9 +108,9 @@ HDF5 is a data model, library, and file format for storing and managing data. It
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf R-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
+cd R-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -121,7 +124,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
-# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -129,35 +131,31 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 
-export CONFIGOPTS="--enable-fortran --enable-shared --enable-static"
+CC=mpicc
+CXX=mpicxx
+FC=mpifort
+f77=mpifort
 
-test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel"
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpifort F77=mpifort
+CC="$CC -I$READLINE_INCLUDE -I$CURL_INCLUDE -I$BZIP2_INCLUDE -I$XZ_INCLUDE -I$PCRE_INCLUDE -L$READLINE_LIB -L$BZIP2_LIB -L$XZ_LIB -L$PCRE_LIB -L$CURL_LIB"
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-     --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
-     --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
-	
+export BLAS=""
+if [[ "%{comp_name}" == "intel" ]]; then
+    export CFLAGS="-O3 -ipo -qopenmp -fPIC $CFLAGS"
+    export LDFLAGS="-qopenmp $LDFLAGS"
+    export CXXFLAGS="-O3 -ipo -qopenmp -fPIC $CXXFLAGS"
+    ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas="-lmkl_rt -liomp5 -lpthread" --with-lapack
+else 
+    ./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-libtiff --with-blas --with-lapack
+fi
+
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make -j %{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 
@@ -170,7 +168,6 @@ make -j %{?_smp_mflags}
 
 
 #
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -187,10 +184,12 @@ make -j %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
+#export R_HOME=%{buildroot}/%{_prefix}
+#%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
 
 #(this should not need to be changed)
@@ -237,7 +236,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -278,28 +276,26 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
-
----- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",                "%{_prefix}/bin")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
-prepend_path("CPATH",               "%{_prefix}/include")
-prepend_path("FPATH",               "%{_prefix}/include")
-prepend_path("MANPATH",             "%{_prefix}/share/man")
-prepend_path("INFOPATH",            "%{_prefix}/share/info")
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
+prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -316,6 +312,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

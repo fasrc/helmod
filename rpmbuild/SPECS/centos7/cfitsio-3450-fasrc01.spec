@@ -245,6 +245,7 @@ prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 prepend_path("CPATH",               "%{_prefix}/include")
 prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib/pkgconfig")
 EOF
 
 
