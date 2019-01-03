@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static cytoscape version 2.7.0
+%define summary_static cytoscape version 3.7.0
 Summary: %{summary_static}
 
 #
@@ -63,7 +63,7 @@ Prefix: %{_prefix}
 %description
 an open source bioinformatics software platform for visualizing molecular interaction networks and 
 biological pathways and integrating these networks with annotations, gene expression profiles and 
-other state data. This module has been built by Plamen G. Krastev.
+other state data.
 
 #
 # Macros for setting app data 
@@ -111,9 +111,9 @@ other state data. This module has been built by Plamen G. Krastev.
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
+rm -rf %{name}-unix-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd %{name}-unix-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -138,7 +138,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-unix-%{version}
 
 
 
@@ -190,11 +190,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-unix-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 #make install DESTDIR=%{buildroot}
-rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+rsync -av %{_topdir}/BUILD/%{name}-unix-%{version}/ %{buildroot}/%{_prefix}/
 
 
 #(this should not need to be changed)
@@ -286,8 +286,6 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("CYTOSCAPE_HOME",           "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
