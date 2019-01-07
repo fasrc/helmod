@@ -139,7 +139,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_69_0
 %define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
 %define c_version %( test "$TYPE" == "Core" && echo "4.8.5" || echo "%{comp_version}" )
 
-./bootstrap.sh --prefix=%{_prefix} --with-toolset=%{toolset_name} --with-libraries=all
+./bootstrap.sh --prefix=%{_prefix} --with-toolset=%{toolset_name} --with-libraries=thread
 
 test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
 # the cc toolset makes use of CC, CFLAGS, etc.
