@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using HASWELL target architecture and with OPENMP activated. 
+%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -140,7 +140,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 # For Core / default, use gfortran
 test -z "%{comp_name}" && FC=gfortran
 
-make TARGET=generic
+make TARGET=GENERIC
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
