@@ -286,7 +286,7 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("CGAL_HOME",                "%{_prefix}")
 setenv("CGAL_LIB",		   "%{_prefix}/lib64")
-setenv("CGAL_INCLUDE,		   "%{_prefix}/include")
+setenv("CGAL_INCLUDE",		   "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
