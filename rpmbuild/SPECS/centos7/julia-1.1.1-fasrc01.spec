@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NWChem: Open Source High-Performance Computational Chemistry
+%define summary_static a high-level, high-performance dynamic programming language for technical computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/nwchemgit/nwchem/archive/6.8.1-release.tar.gz
-Source: %{name}-%{version}-release.tar.gz
+URL: https://github.com/JuliaLang/julia/releases/download/v1.1.1/julia-1.1.1-full.tar.gz
+Source: %{name}-%{version}-full.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies intel-mkl/2017.2.174-fasrc01 
-%define rundependencies %{builddependencies}
+%define builddependencies cmake/3.12.1-fasrc01 gmp/6.1.2-fasrc01 pcre2/10.31-fasrc01  mpfr/3.1.5-fasrc01 intel-mkl/2017.2.174-fasrc01
+%define rundependencies gmp/6.1.2-fasrc01 pcre2/10.31-fasrc01  mpfr/3.1.5-fasrc01 intel-mkl/2017.2.174-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
+Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ NWChem is actively developed by a consortium of developers and maintained by the
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}-release
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-release.tar.*
-cd %{name}-%{version}-release
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-full.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,22 +137,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/
-export USE_MPI=y
-export NWCHEM_TARGET=LINUX64  
-export USE_PYTHONCONFIG=y  
-export PYTHONVERSION=2.7
-export ARMCI_NETWORK=OPENIB
-export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
-export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
-export PYTHONHOME=/usr
-
+cat <<EOF > Make.user
+USEICC = 0
+USEIFC = 0
+USE_INTEL_MKL = 1
+USE_INTEL_MKL_FFT = 1
+USE_INTEL_LIBM = 0
+USE_SYSTEM_GMP = 1
+USE_SYSTEM_MPFR = 1
+USE_SYSTEM_PCRE = 1
+MARCH=nocona
+JULIA_CPU_TARGET=nocona
+prefix=%{_prefix}
+EOF
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make nwchem_config NWCHEM_MODULES="all python"
 make %{?_smp_mflags}
 
 
@@ -183,29 +185,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-mkdir -p %{buildroot}/%{_prefix}/bin
+make install DESTDIR=%{buildroot}
 
-cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/data %{buildroot}/%{_prefix}
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/basis/libraries %{buildroot}/%{_prefix}/data
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
-
-# Create default config file for people to point to.
-cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
-nwchem_basis_library /%{_prefix}/data/libraries/
-nwchem_nwpw_library /%{_prefix}/data/libraryps/
-ffield amber
-amber_1  %{_prefix}/data/amber_s/
-amber_2  %{_prefix}/data/amber_q/
-amber_3  %{_prefix}/data/amber_x/
-amber_4  %{_prefix}/data/amber_u/
-spce     %{_prefix}/data/solvents/spce.rst
-charmm_s %{_prefix}/data/charmm_s/
-charmm_x %{_prefix}/data/charmm_x/
-EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -295,10 +279,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NWCHEM_HOME",       "%{_prefix}")
-setenv("NWCHEM_DATA",       "%{_prefix}/data")
+setenv("JULIA_HOME",       "%{_prefix}")
+setenv("JULIA_PATH",       "%{_prefix}/bin")
+setenv("JULIA_INCLUDE",    "%{_prefix}/include")
+setenv("JULIA_LIB",        "%{_prefix}/lib")
 
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/share/julia/stdlib/v1.0/Pkg/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+
 EOF
 
 #------------------- App data file

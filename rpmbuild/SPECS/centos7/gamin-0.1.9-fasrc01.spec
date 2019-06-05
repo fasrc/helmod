@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NWChem: Open Source High-Performance Computational Chemistry
+%define summary_static Gamin is a file and directory monitoring system defined to be a subset of the FAM (File Alteration Monitor) system.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/nwchemgit/nwchem/archive/6.8.1-release.tar.gz
-Source: %{name}-%{version}-release.tar.gz
+URL: https://people.gnome.org/~veillard/gamin/sources/gamin-0.1.9.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies intel-mkl/2017.2.174-fasrc01 
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for R tiff support
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
+Gamin is a file and directory monitoring system defined to be a subset of the FAM (File Alteration Monitor) system.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ NWChem is actively developed by a consortium of developers and maintained by the
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}-release
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-release.tar.*
-cd %{name}-%{version}-release
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,23 +137,27 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/
-export USE_MPI=y
-export NWCHEM_TARGET=LINUX64  
-export USE_PYTHONCONFIG=y  
-export PYTHONVERSION=2.7
-export ARMCI_NETWORK=OPENIB
-export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
-export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
-export PYTHONHOME=/usr
 
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make nwchem_config NWCHEM_MODULES="all python"
-make %{?_smp_mflags}
+make 
 
 
 
@@ -183,29 +187,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-mkdir -p %{buildroot}/%{_prefix}/bin
+make install DESTDIR=%{buildroot}
 
-cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/data %{buildroot}/%{_prefix}
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/basis/libraries %{buildroot}/%{_prefix}/data
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
-
-# Create default config file for people to point to.
-cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
-nwchem_basis_library /%{_prefix}/data/libraries/
-nwchem_nwpw_library /%{_prefix}/data/libraryps/
-ffield amber
-amber_1  %{_prefix}/data/amber_s/
-amber_2  %{_prefix}/data/amber_q/
-amber_3  %{_prefix}/data/amber_x/
-amber_4  %{_prefix}/data/amber_u/
-spce     %{_prefix}/data/solvents/spce.rst
-charmm_s %{_prefix}/data/charmm_s/
-charmm_x %{_prefix}/data/charmm_x/
-EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -295,10 +281,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NWCHEM_HOME",       "%{_prefix}")
-setenv("NWCHEM_DATA",       "%{_prefix}/data")
-
+setenv("LIBTIFF_HOME",             "%{_prefix}")
+setenv("LIBTIFF_LIB",              "%{_prefix}/lib64")
+setenv("LIBTIFF_INCLUDE",          "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/doc/tiff-3.9.7/html/man")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file

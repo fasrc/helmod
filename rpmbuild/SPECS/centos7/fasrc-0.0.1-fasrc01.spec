@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NWChem: Open Source High-Performance Computational Chemistry
+%define summary_static a collection of tools for use on the Odyssey cluster
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/nwchemgit/nwchem/archive/6.8.1-release.tar.gz
-Source: %{name}-%{version}-release.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,7 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies intel-mkl/2017.2.174-fasrc01 
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -91,29 +90,21 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
+This is a collection of tools for use on the Odyssey cluster, written by members of the FAS Research Computing and Informatics and Scientific Applications groups.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}-release
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-release.tar.*
-cd %{name}-%{version}-release
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(do nothing)
 
 
 
@@ -121,39 +112,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src
-
-export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/
-export USE_MPI=y
-export NWCHEM_TARGET=LINUX64  
-export USE_PYTHONCONFIG=y  
-export PYTHONVERSION=2.7
-export ARMCI_NETWORK=OPENIB
-export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
-export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
-export PYTHONHOME=/usr
-
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make nwchem_config NWCHEM_MODULES="all python"
-make %{?_smp_mflags}
+#(do nothing)
 
 
 
@@ -161,61 +131,24 @@ make %{?_smp_mflags}
 
 %install
 
+#
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
+#
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+#(do nothing)
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-mkdir -p %{buildroot}/%{_prefix}/bin
-
-cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/data %{buildroot}/%{_prefix}
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/basis/libraries %{buildroot}/%{_prefix}/data
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
-
-# Create default config file for people to point to.
-cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
-nwchem_basis_library /%{_prefix}/data/libraries/
-nwchem_nwpw_library /%{_prefix}/data/libraryps/
-ffield amber
-amber_1  %{_prefix}/data/amber_s/
-amber_2  %{_prefix}/data/amber_q/
-amber_3  %{_prefix}/data/amber_x/
-amber_4  %{_prefix}/data/amber_u/
-spce     %{_prefix}/data/solvents/spce.rst
-charmm_s %{_prefix}/data/charmm_s/
-charmm_x %{_prefix}/data/charmm_x/
-EOF
-
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -251,15 +184,9 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
+# - uncomment any applicable prepend_path things
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
-#
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -270,12 +197,13 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
+# FIXME (but the above is enough for a "trial" build)
+
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -294,11 +222,9 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("NWCHEM_HOME",       "%{_prefix}")
-setenv("NWCHEM_DATA",       "%{_prefix}/data")
 
-prepend_path("PATH",               "%{_prefix}/bin")
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH",                "/n/sw/rc/bin")
 EOF
 
 #------------------- App data file
@@ -322,6 +248,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NWChem: Open Source High-Performance Computational Chemistry
+%define summary_static Geant4 is a toolkit for the simulation of the passage of particles through matter.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/nwchemgit/nwchem/archive/6.8.1-release.tar.gz
-Source: %{name}-%{version}-release.tar.gz
+URL: http://geant4.cern.ch/support/download.shtml
+Source: %{name}%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies intel-mkl/2017.2.174-fasrc01 
-%define rundependencies %{builddependencies}
+%define builddependencies cmake/3.12.1-fasrc01
+%define rundependencies %{nil}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
+Geant4 is a toolkit for the simulation of the passage of particles through matter. Its areas of application include high energy, nuclear and accelerator physics, as well as studies in medical and space science.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +110,9 @@ NWChem is actively developed by a consortium of developers and maintained by the
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}-release
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-release.tar.*
-cd %{name}-%{version}-release
+rm -rf %{name}%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}%{version}.tar.*
+cd %{name}%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -137,23 +137,11 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}
 
-export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/
-export USE_MPI=y
-export NWCHEM_TARGET=LINUX64  
-export USE_PYTHONCONFIG=y  
-export PYTHONVERSION=2.7
-export ARMCI_NETWORK=OPENIB
-export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
-export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
-export PYTHONHOME=/usr
-
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make nwchem_config NWCHEM_MODULES="all python"
-make %{?_smp_mflags}
+mkdir build; cd build
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DGEANT4_INSTALL_DATA=ON ..
+make -j 4
 
 
 
@@ -183,29 +171,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-mkdir -p %{buildroot}/%{_prefix}/bin
+make install DESTDIR=%{buildroot}
 
-cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/data %{buildroot}/%{_prefix}
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/basis/libraries %{buildroot}/%{_prefix}/data
-cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-release/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
-
-# Create default config file for people to point to.
-cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
-nwchem_basis_library /%{_prefix}/data/libraries/
-nwchem_nwpw_library /%{_prefix}/data/libraryps/
-ffield amber
-amber_1  %{_prefix}/data/amber_s/
-amber_2  %{_prefix}/data/amber_q/
-amber_3  %{_prefix}/data/amber_x/
-amber_4  %{_prefix}/data/amber_u/
-spce     %{_prefix}/data/solvents/spce.rst
-charmm_s %{_prefix}/data/charmm_s/
-charmm_x %{_prefix}/data/charmm_x/
-EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -295,10 +265,12 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NWCHEM_HOME",       "%{_prefix}")
-setenv("NWCHEM_DATA",       "%{_prefix}/data")
-
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("GEANT_HOME",                "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
 EOF
 
 #------------------- App data file
