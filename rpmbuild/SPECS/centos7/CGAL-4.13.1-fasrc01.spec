@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.20
+%define summary_static The Computational Geometry Algorithms Library
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
+URL: https://github.com/CGAL/cgal/archive/releases/CGAL-4.13.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -72,9 +72,10 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
+
+%define builddependencies cmake/3.12.1-fasrc01 boost/1.63.0-fasrc02
+%define rundependencies boost/1.63.0-fasrc02
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,6 +86,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -92,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
+The goal of the CGAL Open Source Project is to provide easy access to efficient and reliable geometric algorithms in the form of a C++ library. CGAL is used in various areas needing geometric computation, such as: computer graphics, scientific visualization, computer aided design and modeling, geographic information systems, molecular biology, medical imaging, robotics and motion planning, mesh generation, numerical methods.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -137,10 +139,29 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# For Core / default, use gfortran
-test -z "%{comp_name}" && FC=gfortran
+mkdir build; cd build
 
-make TARGET=GENERIC
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$GMP_INCLUDE;$MPFR_INCLUDE;$BOOST_INCLUDE" -DCMAKE_LIBRARY_PATH:STRING="$GMP_LIB;$MPFR_LIB;$BOOST_LIB" ..
+
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,24 +189,11 @@ make TARGET=GENERIC
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -276,14 +284,14 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENBLAS_HOME",            "%{_prefix}")
-setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
-setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("CGAL_HOME",                "%{_prefix}")
+setenv("CGAL_LIB",		   "%{_prefix}/lib64")
+setenv("CGAL_INCLUDE",		   "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
@@ -307,7 +315,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.20
+%define summary_static a high-level, high-performance dynamic programming language for technical computing
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/JuliaLang/julia/releases/download/v1.1.1/julia-1.1.1-full.tar.gz
+Source: %{name}-%{version}-full.tar.gz
 
 #
 # there should be no need to change the following
@@ -72,9 +72,10 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
+
+%define builddependencies cmake/3.12.1-fasrc01 gmp/6.1.2-fasrc01 pcre2/10.31-fasrc01  mpfr/3.1.5-fasrc01 intel-mkl/2017.2.174-fasrc01
+%define rundependencies gmp/6.1.2-fasrc01 pcre2/10.31-fasrc01  mpfr/3.1.5-fasrc01 intel-mkl/2017.2.174-fasrc01
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,6 +86,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -92,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
+Julia is a high-level, high-performance dynamic programming language for technical computing, with syntax that is familiar to users of other technical computing environments. It provides a sophisticated compiler, distributed parallel execution, numerical accuracy, and an extensive mathematical function library. The library, largely written in Julia itself, also integrates mature, best-of-breed C and Fortran libraries for linear algebra, random number generation, signal processing, and string processing. In addition, the Julia developer community is contributing a number of external packages through Julia¿s built-in package manager at a rapid pace. IJulia, a collaboration between the IPython and Julia communities, provides a powerful browser-based graphical notebook interface to Julia.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -109,7 +111,7 @@ OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-full.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -137,10 +139,24 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# For Core / default, use gfortran
-test -z "%{comp_name}" && FC=gfortran
+cat <<EOF > Make.user
+USEICC = 0
+USEIFC = 0
+USE_INTEL_MKL = 1
+USE_INTEL_MKL_FFT = 1
+USE_INTEL_LIBM = 0
+USE_SYSTEM_GMP = 1
+USE_SYSTEM_MPFR = 1
+USE_SYSTEM_PCRE = 1
+MARCH=nocona
+JULIA_CPU_TARGET=nocona
+prefix=%{_prefix}
+EOF
 
-make TARGET=GENERIC
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,24 +184,11 @@ make TARGET=GENERIC
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -276,14 +279,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENBLAS_HOME",            "%{_prefix}")
-setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
-setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
+setenv("JULIA_HOME",       "%{_prefix}")
+setenv("JULIA_PATH",       "%{_prefix}/bin")
+setenv("JULIA_INCLUDE",    "%{_prefix}/include")
+setenv("JULIA_LIB",        "%{_prefix}/lib")
+
 prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("PATH",               "%{_prefix}/share/julia/stdlib/v1.0/Pkg/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+
 EOF
 
 #------------------- App data file
@@ -307,7 +315,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

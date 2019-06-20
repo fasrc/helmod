@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.20
+%define summary_static Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -72,9 +71,10 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
+
+%define builddependencies cmake/3.5.2-fasrc01 %{rundependencies}
+%define rundependencies  boost/1.63.0-fasrc01 SuiteSparse/4.2.1-fasrc02 gmp/6.1.2-fasrc01  mpfr/3.1.5-fasrc01
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -89,10 +89,9 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
+Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,6 +109,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+mv eigen-eigen-5a0156e40feb %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -132,15 +132,19 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# For Core / default, use gfortran
-test -z "%{comp_name}" && FC=gfortran
+test -d build || mkdir build
+cd build
 
-make TARGET=GENERIC
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_BUILD_TYPE=Release  -DBoost_INCLUDE_DIR=$BOOST_INCLUDE -DCHOLMOD_INCLUDES=$SUITESPARSE_HOME/CHOLMOD/Include -DCHOLMOD_LIBRARIES=$SUITESPARSE_HOME/CHOLMOD/Lib/libcholmod.a -DCHOLMOD_LIBRARY=$SUITESPARSE_HOME/CHOLMOD/Lib/libcholmod.a  -DUMFPACK_INCLUDES=$SUITESPARSE_HOME/UMFPACK/Include -DUMFPACK_LIBRARIES=$SUITESPARSE_HOME/UMFPACK/Lib/libumfpack.a -DSPQR_INCLUDES=$SUITESPARSE_HOME/SPQR/Include -DSPQR_LIBRARIES=$SUITESPARSE_HOME/SPQR/Lib/libspqr.a -DMPFR_INCLUDES=$MPFR_INCLUDE -DMPFR_LIBRARIES=$MPFR_LIB/lib/mpfr.so  -DMPFR_INCLUDES=$MPFR_INCLUDE -DMPFR_LIBRARIES=$MPFR_LIB/lib  ..
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,24 +172,12 @@ make TARGET=GENERIC
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+cd build
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -256,7 +248,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -276,14 +267,13 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENBLAS_HOME",            "%{_prefix}")
-setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
-setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("EIGEN_HOME",               "%{_prefix}")
+setenv("EIGEN_INCLUDE",            "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("CPATH",              "%{_prefix}/include/eigen3")
+prepend_path("FPATH",              "%{_prefix}/include/eigen3")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/share/pkgconfig")
 EOF
 
 #------------------- App data file

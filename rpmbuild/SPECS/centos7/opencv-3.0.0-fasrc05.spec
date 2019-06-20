@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -11,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
+# enter the release; start with fasrc01 (or some other convention for your
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
+# and MPI apps, it will include the name/version/release of the apps used to
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -26,19 +26,19 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
+# rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.20
+%define summary_static OpenCV (Open Source Computer Vision Library) is an open source computer vision and machine learning software library.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
+# enter the url from where you got the source; change the archive suffix if
 # applicable
 #
-URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -54,9 +54,8 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
 #
-# Macros for setting app data 
+# Macros for setting app data
 # The first set can probably be left as is
 # the nil construct should be used for empty values
 #
@@ -72,27 +71,27 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
-%define requestor %{nil}
-%define requestref %{nil}
+
+%define builddependencies cmake/3.5.2-fasrc01  %{rundependencies}
+%define rundependencies ffmpeg/2.7.2-fasrc01 python/2.7.14-fasrc02 bzip2/1.0.6-fasrc01  zlib/1.2.8-fasrc07 libpng/1.6.25-fasrc01
+%define buildcomments Build with binding for python 2.7.14 
+%define requestor Greg Green <gregorymgreen@gmail.com>
+%define requestref RCRT:127603
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags %{nil}
 %define apppublication %{nil}
 
 
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# enter a description, often a paragraph; unless you prefix lines with spaces,
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
+The library has more than 2500 optimized algorithms, which includes a comprehensive set of both classic and state-of-the-art computer vision and machine learning algorithms. These algorithms can be used to detect and recognize faces, identify objects, classify human actions in videos, track camera movements, track moving objects, extract 3D models of objects, produce 3D point clouds from stereo cameras, stitch images together to produce a high resolution image of an entire scene, find similar images from an image database, remove red eyes from images taken using flash, follow eye movements, recognize scenery and establish markers to overlay it with augmented reality, etc.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -102,17 +101,19 @@ OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
 #
 # FIXME
 #
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# unpack the sources here.  The default below is for standard, GNU-toolchain
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
+rm -rf %{name}
+git clone https://github.com/opencv/opencv.git
+cd %{name}
+git checkout c12243cf4fccf5df7b0270a32883986b373dca7b
 chmod -Rf a+rX,u+w,g-w,o-w .
-
+mkdir -p 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b
+wget https://github.com/opencv/opencv_3rdparty/raw/ippicv/master_20141027/ippicv/ippicv_linux_20141027.tgz -O 3rdparty/ippicv/downloads/linux-8b449a536a2157bcad08a2b9f266828b/ippicv_linux_20141027.tgz
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -122,26 +123,21 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+      -DCMAKE_INCLUDE_PATH:STRING="$FFMPEG_INCLUDE:$PYTHON_HOME/include:$BZIP2_INCLUDE:$ZLIB_INCLUDE:$LIBPNG_INCLUDE" \
+      -DCMAKE_LIBRARY_PATH:STRING="$FFMPEG_LIB:$PYTHON_HOME/lib:$BZIP2_LIB:$ZLIB_LIB:$LIBPNG_LIB"  \
+      -DCMAKE_VERBOSE_MAKEFILE=ON -DWITH_1394=OFF -DENABLE_AVX=ON -DENABLE_AVX2=ON \
+      -DPYTHON2_LIBRARY=$PYTHON_HOME/lib/libpython2.7.so -DPYTHON2_PACKAGES_PATH=$PYTHON_HOME/lib/python2.7/site-packages \
+      -DWITH_CUDA=OFF \
+       ..
 
-# For Core / default, use gfortran
-test -z "%{comp_name}" && FC=gfortran
-
-make TARGET=GENERIC
-
+export LD_LIBRARY_PATH=$PYTHON_HOME/lib:$LD_LIBRARY_PATH
+# add %%{?_smp_mflags} (with only one percent sign) to build in parallel
+make %{?_smp_mflags}
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -154,12 +150,12 @@ make TARGET=GENERIC
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
+# make install here.  The default below is for standard GNU-toolchain style
 # things -- hopefully it'll just work as-is.
 #
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
+# Note that DESTDIR != %{prefix} -- this is not the final installation.
+# Rpmbuild does a temporary installation in the %{buildroot} and then
+# constructs an rpm out of those files.  See the following hack if your app
 # does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
@@ -168,24 +164,11 @@ make TARGET=GENERIC
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}/build
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
-
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -199,16 +182,16 @@ done
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-	
+
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo 
+	echo
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-	
+
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -224,25 +207,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-	
+
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-# 
+#
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
+# This is the part that builds the modulefile.  However, stop now and run
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
+# - do any other customizing of the module, e.g. load dependencies -- make sure
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything 
+# - in the help message, link to website docs rather than write anything
 #   lengthy here
 #
 # references on writing modules:
@@ -256,7 +239,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -265,7 +247,7 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
+for i in string.gmatch("%{rundependencies}","%%S+") do
     if mode()=="load" then
         a = string.match(i,"^[^/]+")
         if not isloaded(a) then
@@ -276,15 +258,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENBLAS_HOME",            "%{_prefix}")
-setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
-setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
+setenv("OPENCV_HOME",              "%{_prefix}")
+setenv("OPENCV_INCLUDE",           "%{_prefix}/include")
+setenv("OPENCV_LIB",               "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/share/OpenCV/3rdparty/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -309,7 +295,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -325,9 +310,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some 
-# components may need creating, but no single rpm should own them, since parts 
-# are shared; only do this if it looks like an app-specific prefix is indeed 
+# everything in fasrcsw is installed in an app hierarchy in which some
+# components may need creating, but no single rpm should own them, since parts
+# are shared; only do this if it looks like an app-specific prefix is indeed
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -335,9 +320,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to 
-# be relocatable, hence why this is not a proper %%file; as with the app itself, 
-# modulefiles are in an app hierarchy in which some components may need 
+# symlink to the modulefile installed along with the app; we want all rpms to
+# be relocatable, hence why this is not a proper %%file; as with the app itself,
+# modulefiles are in an app hierarchy in which some components may need
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -347,9 +332,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir 
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
-# orphans will be left over after the last package in the app family 
+# undo the module file symlink done in the %%post; do not rmdir
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
+# orphans will be left over after the last package in the app family
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -357,9 +342,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
-# left over after the last package in the app family is removed); also put a 
-# little protection so this does not cause problems if a non-default prefix 
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be
+# left over after the last package in the app family is removed); also put a
+# little protection so this does not cause problems if a non-default prefix
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -368,7 +353,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't 
+# wipe out the buildroot, but put some protection to make sure it isn't
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'

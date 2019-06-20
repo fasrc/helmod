@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static OpenBLAS version 0.2.20
+%define summary_static Collection of utilities for primitive manipulation of graphic images
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz
+URL: http://netpbm.sourceforge.net/getting_netpbm.php
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -72,9 +72,10 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies %{nil}
+
+%define builddependencies jpeg/9c-fasrc01 libtiff/4.0.9-fasrc01 zlib/1.2.8-fasrc09
 %define rundependencies %{builddependencies}
-%define buildcomments Built for CentOS 7, using GENERIC target architecture. 
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -85,6 +86,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -92,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -107,6 +109,13 @@ OpenBLAS is an optimized BLAS library based on GotoBLAS2 1.13 BSD version.
 #
 
 umask 022
+# getting the source code as well.
+cd "$FASRCSW_DEV"/rpmbuild/SOURCES/
+rm -rf %{name}-%{version} %{name}-%{version}.tar.*
+svn checkout http://svn.code.sf.net/p/netpbm/code/stable %{name}-%{version}
+tar zcf %{name}-%{version}.tar.gz %{name}-%{version}
+rm -rf %{name}-%{version} 
+
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
@@ -136,11 +145,32 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cp config.mk.in config.mk 
 
-# For Core / default, use gfortran
-test -z "%{comp_name}" && FC=gfortran
+cat >> config.mk <<EOF
+DEFAULT_TARGET = nonmerge
+NETPBMLIBTYPE=unixshared
+NETPBMLIBSUFFIX=so
+STATICLIB_TOO=y
+CFLAGS = -O3 -ffast-math  -pedantic -fno-common -Wall -Wno-uninitialized -Wmissing-declarations -Wimplicit -Wwrite-strings -Wmissing-prototypes -Wundef
+CFLAGS_MERGE = -Wno-missing-declarations -Wno-missing-prototypes
+LDRELOC = ld --reloc
+LINKER_CAN_DO_EXPLICIT_LIBRARY=Y
+LINKERISCOMPILER = Y
+CFLAGS_SHLIB += -fPIC
+TIFFHDR_DIR = $LIBTIFF_INCLUDE
+TIFFLIB = $LIBTIFF_LIB/libtiff.so
+JPEGHDR_DIR = $JPEG_INCLUDE
+JPEGLIB = $JPEG_LIB/libjpeg.so
+ZHDR_DIR = $ZLIB_INCLUDE
+ZLIB = $ZLIB_LIB/libz.so
+X11LIB = libX11.so
+NETPBM_DOCURL = http://netpbm.sourceforge.net/doc/
+EOF
 
-make TARGET=GENERIC
+packagefolder="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}_build
+rm -fr $packagefolder
+make && make package pkgdir=$packagefolder
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -168,24 +198,31 @@ make TARGET=GENERIC
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+packagefolder="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}_build
 
-make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
+## unfortunately it does not like for the installation folder to be redefined
+installfolder=%{_prefix}
+sudo mkdir -p "$(dirname %{_prefix})"
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+./installnetpbm <<EOF
+$packagefolder
+$installfolder
+$installfolder/bin
+$installfolder/lib
+N
+$installfolder/lib
+$installfolder/lib
+$installfolder/include
+$installfolder/man
+N
+$installfolder/lib/pkgconfig
+EOF
 
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-#sudo rm "%{_prefix}"
-
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include
-#mkdir "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-#cp cblas.h  f77blas.h  lapacke_config.h  lapacke.h  lapacke_mangling.h  lapacke_utils.h  openblas_config.h "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/
-#cp libopenblas.a  libopenblas_opteronp-r0.2.14.a  libopenblas_opteronp-r0.2.14.so  libopenblas.so  libopenblas.so.0 "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib
-
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/include/ %{buildroot}/%{_prefix}
-#cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/lib/ %{buildroot}/%{_prefix}
+sudo rm "%{_prefix}"
 
 
 #(this should not need to be changed)
@@ -276,14 +313,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("OPENBLAS_HOME",            "%{_prefix}")
-setenv("OPENBLAS_INCLUDE",         "%{_prefix}/include")
-setenv("OPENBLAS_LIB",             "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+setenv("NETPBM_HOME",      "%{_prefix}")
+setenv("NETPBM_INCLUDE",   "%{_prefix}/include")
+setenv("NETPBM_LIB",       "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("MANPATH",             "%{_prefix}/man")
+prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -307,7 +346,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------

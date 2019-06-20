@@ -149,6 +149,7 @@ cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ../.
 #percent sign) to build in parallel
 make %{?_smp_mflags}
 
+cp ../Scripts/* bin/.
 
 
 #------------------- %%install (~ make install + create modulefile) -----------

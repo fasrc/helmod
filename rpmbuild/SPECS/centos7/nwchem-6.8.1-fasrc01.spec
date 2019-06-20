@@ -198,13 +198,13 @@ cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
 nwchem_basis_library /%{_prefix}/data/libraries/
 nwchem_nwpw_library /%{_prefix}/data/libraryps/
 ffield amber
-amber_1 /%{_prefix}/data/amber_s/
-amber_2 /%{_prefix}/data/amber_q/
-amber_3 /%{_prefix}/data/amber_x/
-amber_4 /%{_prefix}/data/amber_u/
-spce    /%{_prefix}/data/solvents/spce.rst
-charmm_s /%{_prefix}/data/charmm_s/
-charmm_x /%{_prefix}/data/charmm_x/
+amber_1  %{_prefix}/data/amber_s/
+amber_2  %{_prefix}/data/amber_q/
+amber_3  %{_prefix}/data/amber_x/
+amber_4  %{_prefix}/data/amber_u/
+spce     %{_prefix}/data/solvents/spce.rst
+charmm_s %{_prefix}/data/charmm_s/
+charmm_x %{_prefix}/data/charmm_x/
 EOF
 
 #(this should not need to be changed)
