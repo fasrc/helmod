@@ -158,7 +158,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
         --enable-mpi-fortran=all \
 	--enable-mpi-cxx \
       --with-slurm \
-      --with-verbs \
       --with-ucx   \
       --with-pmi   \
       --with-pmix
