@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz
+URL: https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.6.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -154,20 +154,20 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-        --enable-static \
-        --enable-mpi-fortran=all \
+	--enable-mpi-thread-multiple \
+    --enable-static \
+    --enable-mpi-fortran=all \
 	--enable-mpi-cxx \
-      --with-slurm \
-      --without-verbs \
-      --with-ucx   \
-      --with-pmi   \
-      --with-pmix \
-      --enable-mca-no-build=btl-uct \
-      --with-libevent=/usr
+	--with-hwloc \
+	--with-slurm \
+    --with-pmi \
+    --with-pmix
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 

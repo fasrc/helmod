@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static Boost provides free peer-reviewed portable C++ source libraries.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_71_0.tar.gz
+Source: %{name}_1_71_0.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,10 +56,15 @@ Prefix: %{_prefix}
 
 
 #
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+Boost is a set of libraries for the C++ programming language that provide support for tasks and structures such as linear algebra, pseudorandom number generation, multithreading, image processing, regular expressions, and unit testing. It contains over eighty individual libraries.
+
+#
 # Macros for setting app data 
 # The first set can probably be left as is
-# the nil construct should be used for empty values
-#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -73,28 +78,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define rundependencies  %{nil} 
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
 %define apppublication %{nil}
 
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +103,9 @@ The Open MPI Project is an open source Message Passing Interface implementation 
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{name}_1_71_0
+tar xvzf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}_1_71_0.tar.*
+cd %{name}_1_71_0
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -134,40 +127,23 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
+
+# Build based on instructions from this page
+# https://svn.boost.org/trac/boost/ticket/1811
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_71_0
 
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-        --enable-static \
-        --enable-mpi-fortran=all \
-	--enable-mpi-cxx \
-      --with-slurm \
-      --without-verbs \
-      --with-ucx   \
-      --with-pmi   \
-      --with-pmix \
-      --enable-mca-no-build=btl-uct \
-      --with-libevent=/usr
+%define toolset_name %( test "%{comp_name}" == "intel" && echo "intel-linux" || echo "gcc")
+%define c_version %( test "$TYPE" == "Core" && echo "4.8.5" || echo "%{comp_version}" )
 
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+./bootstrap.sh --prefix=%{_prefix} --with-toolset=%{toolset_name} --with-libraries=all
+printf "using mpi ;\n" >> project-config.jam
+
+test "%{comp_name}" == "intel" && sed -i 's/^if ! intel-linux.*/if ! ( intel in [ feature.values <toolset> ] \&\& linux in [ feature.values <toolset-intel:platform> ] )/'  project-config.jam
+# the cc toolset makes use of CC, CFLAGS, etc.
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -195,10 +171,14 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}_1_71_0
+echo %{buildroot} | grep -q %{name}_1_71_0 && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#./b2 install toolset=%{toolset_name}-%{c_version} --prefix=%{buildroot}/%{_prefix} 
+
+# I get an error about std::complex if the intel includes are used
+test "%{toolset_name}" == "intel-linux" && unset CPATH
+./b2 install toolset=%{toolset_name} --prefix=%{buildroot}/%{_prefix} 
 
 
 #(this should not need to be changed)
@@ -269,7 +249,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -287,33 +266,26 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/include/boost/spirit/include")
+prepend_path("CPATH",              "%{_prefix}/include/boost/spirit/repository/include")
+prepend_path("CPATH",              "%{_prefix}/include/boost/fusion/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
-
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+prepend_path("FPATH",              "%{_prefix}/include/boost/spirit/include")
+prepend_path("FPATH",              "%{_prefix}/include/boost/spirit/repository/include")
+prepend_path("FPATH",              "%{_prefix}/include/boost/fusion/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -330,6 +302,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
