@@ -37,8 +37,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
