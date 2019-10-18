@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static LAMMPS Molecular Dynamics Simulator 
+%define summary_static Intel Math Kernel Library version 2019.5.281
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/lammps/lammps/archive/stable_7Aug2019.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,8 +73,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cmake/3.12.1-fasrc01 fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 gsl/2.4-fasrc01
-%define rundependencies fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2019.5.281-fasrc01 gsl/2.4-fasrc01
+%define builddependencies %{nil}
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -94,9 +94,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-LAMMPS is a classical molecular dynamics code with a focus on materials modeling. It's an acronym for Large-scale Atomic/Molecular Massively Parallel Simulator.
-
-This build includes everything but USER-QUIP and GPU.
+Intel Math Kernel Library (Intel MKL) is a library of optimized math routines for science, engineering,
+and financial applications. Core math functions include BLAS, LAPACK, ScaLAPACK, sparse solvers, fast Fourier transforms, and vector math
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,12 +109,12 @@ This build includes everything but USER-QUIP and GPU.
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}-%{version}
+#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+#cd %{name}-%{version}
+#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -138,29 +137,13 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-sudo ln -s "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version} "%{_prefix}"
-
-cd %{_prefix}
-
-cd src
-make lib-qmmm args="-m mpi"
-cd ..
-
-rm -rf build
-mkdir build
-cd build
-
-cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_KIM=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DDOWNLOAD_MSCG=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/COUPLE/include -DQEMOD_LIBRARY=${QE_HOME}/Modules -DQEFFT_LIBRARY=${QE_HOME}/FFTXlib -DQELA_LIBRARY=${QE_HOME}/LAXlib -DPW_LIBRARY=${QE_HOME}/PW -DCLIB_LIBRARY=${QE_HOME}/clib -DIOTK_LIBRARY=${QE_HOME}/iotk -DTBB_LIBRARY=${TBB_LIB} -DTBB_INCLUDE_DIR=${TBB_INCLUDE} -DTBB_MALLOC_LIBRARY=${TBB_LIB} -DKOKKOS_ENABLE_OPENMP=yes -DPKG_GPU=no -DPKG_USER-QUIP=no ../cmake 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+#make
 
 
 
@@ -190,15 +173,11 @@ make %{?_smp_mflags}
 #
 
 umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
-cd %{_prefix}/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-rsync -av --progress %{_prefix}/build/ %{buildroot}/%{_prefix}/build/
+#make install DESTDIR=%{buildroot}
 
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -288,29 +267,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LAMMPS_HOME",       "%{_prefix}")
-setenv("LAMMPS_PATH",       "%{_prefix}/bin")
-setenv("LAMMPS_INCLUDE",    "%{_prefix}/include")
-setenv("LAMMPS_LIB",        "%{_prefix}/lib")
-
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("PATH",               "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/bin")
-prepend_path("PATH",               "%{_prefix}/build/kim_build-prefix/bin")
-prepend_path("PATH",               "%{_prefix}/build/latte_build-prefix/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("CPATH",              "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/include")
-prepend_path("CPATH",              "%{_prefix}/build/kim_build-prefix/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/build/kim_build-prefix/lib/kim-api-v1/include")
-prepend_path("FPATH",              "%{_prefix}/build/kim_build-prefix/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/kim_build-prefix/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/build/latte_build-prefix/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/build/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/build/kim_build-prefix/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/build/latte_build-prefix/lib64")
+setenv("INTEL_LICENSE_FILE",        "/n/sw/intel-cluster-studio-2019/license.lic")
+setenv("MKLROOT",                   "/n/sw/intel-cluster-studio-2019/mkl")
+setenv("MKL_HOME",                  "/n/sw/intel-cluster-studio-2019/mkl")
+setenv("MKL_LIB",		    "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("PATH",                "/n/sw/intel-cluster-studio-2019/mkl/bin")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/intel64/lp64")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/fftw")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/intel64/lp64")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/fftw")
 EOF
 
 #------------------- App data file
