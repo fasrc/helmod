@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies cmake/3.12.1-fasrc01 fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 gsl/2.4-fasrc01
-%define rundependencies fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2019.5.281-fasrc01 gsl/2.4-fasrc01
+%define rundependencies fftw/3.3.7-fasrc01 ffmpeg/2.7.2-fasrc01 netcdf/4.5.0-fasrc01 qe/6.3-fasrc01 VTK/7.1.1-fasrc01 tbb/20180411oss-fasrc01 intel-mkl/2017.2.174-fasrc01 gsl/2.4-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -156,7 +156,7 @@ rm -rf build
 mkdir build
 cd build
 
-cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_KIM=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DDOWNLOAD_MSCG=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/COUPLE/include -DQEMOD_LIBRARY=${QE_HOME}/Modules -DQEFFT_LIBRARY=${QE_HOME}/FFTXlib -DQELA_LIBRARY=${QE_HOME}/LAXlib -DPW_LIBRARY=${QE_HOME}/PW -DCLIB_LIBRARY=${QE_HOME}/clib -DIOTK_LIBRARY=${QE_HOME}/iotk -DTBB_LIBRARY=${TBB_LIB} -DTBB_INCLUDE_DIR=${TBB_INCLUDE} -DTBB_MALLOC_LIBRARY=${TBB_LIB} -DKOKKOS_ENABLE_OPENMP=yes -DPKG_GPU=no -DPKG_USER-QUIP=no ../cmake 
+cmake -C ../cmake/presets/all_on.cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DDOWNLOAD_LATTE=ON -DDOWNLOAD_KIM=ON -DDOWNLOAD_VORO=ON -DDOWNLOAD_EIGEN3=ON -DDOWNLOAD_MSCG=ON -DNETCDF_LIBRARY=${NETCDF_LIB} -DNETCDF_INCLUDE_DIR=${NETCDF_INCLUDE} -DQE_INCLUDE_DIR=${QE_HOME}/include -DQECOUPLE_LIBRARY=${QE_HOME}/COUPLE/include -DQEMOD_LIBRARY=${QE_HOME}/Modules -DQEFFT_LIBRARY=${QE_HOME}/FFTXlib -DQELA_LIBRARY=${QE_HOME}/LAXlib -DPW_LIBRARY=${QE_HOME}/PW -DCLIB_LIBRARY=${QE_HOME}/clib -DIOTK_LIBRARY=${QE_HOME}/iotk -DTBB_LIBRARY=${TBB_LIB} -DTBB_INCLUDE_DIR=${TBB_INCLUDE} -DTBB_MALLOC_LIBRARY=${TBB_LIB} -DKOKKOS_ENABLE_OPENMP=yes -DPKG_GPU=no -DPKG_USER-QUIP=no -DPKG_USER-ADIOS=no ../cmake 
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
