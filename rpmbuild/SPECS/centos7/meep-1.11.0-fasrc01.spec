@@ -164,8 +164,7 @@ export LIBS="-L${LIBCTL_LIB}"
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
-
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
