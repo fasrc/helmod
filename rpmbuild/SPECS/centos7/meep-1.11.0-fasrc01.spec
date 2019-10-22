@@ -139,6 +139,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+export CFLAGS="-I${LIBCTL_INCLUDE} -L${LIBCTL_LIB}"
+export CXXFLAGS="-I${LIBCTL_INCLUDE} -L${LIBCTL_LIB}"
+export LIBS="-L${LIBCTL_LIB}"
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -155,7 +158,8 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--infodir=%{_prefix}/share/info \
         --with-mpi \
         --with-openmp \
-        --with-hdf5=$HDF5_INCLUDE
+        --with-hdf5=$HDF5_INCLUDE \
+        --without-libctl
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
