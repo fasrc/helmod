@@ -154,11 +154,11 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
         --with-mpi \
-        --with-libctl=${LIB_HOME}/share/libctl
+        --with-libctl=${LIBCTL_HOME}/share/libctl
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 #------------------- %%install (~ make install + create modulefile) -----------

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static MEEP: A flexible free-software package for electromagnetic simulations by the FDTD method
+%define summary_static Fastest Fourier Transform in the West
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/NanoComp/meep/releases/download/v1.11.0/meep-1.11.0.tar.gz
+URL: http://www.fftw.org/fftw-3.3.8.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpb/1.7.0-fasrc01 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Meep is a free and open-source software package for electromagnetics simulation via the finite-difference time-domain (FDTD) method spanning a broad range of applications.
+FFTW is a C subroutine library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data (as well as of even/odd data, i.e. the discrete cosine/sine transforms or DCT/DST).
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -153,15 +153,16 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-        --with-mpi \
-        --with-openmp \
-        --with-hdf5=$HDF5_INCLUDE \
-        --with-libctl=${LIBCTL_HOME}/share/libctl \
-	--without-python
+	--enable-openmp \
+    --enable-shared \
+    --enable-threads
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+export CFLAGS="-fPIC"
+export LDFLAGS="-fPIC"
+make -j8
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -284,15 +285,17 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MEEP_HOME",       "%{_prefix}")
-setenv("MEEP_INCLUDE",    "%{_prefix}/include")
-setenv("MEEP_LIB",        "%{_prefix}/lib64")
-
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("FFTW_HOME",                 "%{_prefix}")
+setenv("FFTW_INCLUDE",              "%{_prefix}/include")
+setenv("FFTW_LIB",                  "%{_prefix}/lib64")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/lib64/pkgconfig")
+prepend_path("INFOPATH",            "%{_prefix}/share/info")
+prepend_path("MANPATH",             "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file
