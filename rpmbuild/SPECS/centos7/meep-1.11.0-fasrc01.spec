@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpb/1.7.0-fasrc01 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01
+%define builddependencies mpb/1.7.0-fasrc02 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -156,8 +156,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
         --with-mpi \
         --with-openmp \
         --with-hdf5=$HDF5_INCLUDE \
-        --with-libctl=${LIBCTL_HOME}/share/libctl \
-	--without-python
+        --with-libctl=${LIBCTL_HOME}/share/libctl
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -285,14 +284,20 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("MEEP_HOME",       "%{_prefix}")
+setenv("MEEP_PATH",       "%{_prefix}/bin")
 setenv("MEEP_INCLUDE",    "%{_prefix}/include")
 setenv("MEEP_LIB",        "%{_prefix}/lib64")
 
+prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.7/site-packages")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 #------------------- App data file
