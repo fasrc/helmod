@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpb/1.7.0-fasrc02 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01
+%define builddependencies mpb/1.7.0-fasrc02 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01 hdf5/1.10.5-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -155,7 +155,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--infodir=%{_prefix}/share/info \
         --with-mpi \
         --with-openmp \
-        --with-hdf5=$HDF5_INCLUDE \
         --with-libctl=${LIBCTL_HOME}/share/libctl
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
