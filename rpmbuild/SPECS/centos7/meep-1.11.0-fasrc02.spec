@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static MEEP: A flexible free-software package for electromagnetic simulations by the FDTD method
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
+URL: https://github.com/NanoComp/meep/releases/download/v1.11.0/meep-1.11.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies mpb/1.7.0-fasrc03 harminv/1.4.1-fasrc01 libctl/4.3.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,9 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+Meep is a free and open-source software package for electromagnetics simulation via the finite-difference time-domain (FDTD) method spanning a broad range of applications.
+
+Build with MPB with out MPI but with MPI libs.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,26 +141,27 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} --enable-shared
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+        --with-mpi \
+        --with-openmp \
+        --with-libctl=${LIBCTL_HOME}/share/libctl
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -281,16 +284,21 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
+setenv("MEEP_HOME",       "%{_prefix}")
+setenv("MEEP_PATH",       "%{_prefix}/bin")
+setenv("MEEP_INCLUDE",    "%{_prefix}/include")
+setenv("MEEP_LIB",        "%{_prefix}/lib64")
+
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib64/python2.7/site-packages")
+prepend_path("PYTHONPATH",         "%{_prefix}/lib/python2.7/site-packages")
 EOF
 
 #------------------- App data file

@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
+URL: https://github.com/NanoComp/libctl/releases/download/v4.3.0/libctl-4.3.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #

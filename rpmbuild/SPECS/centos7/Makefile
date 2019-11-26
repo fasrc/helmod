@@ -43,6 +43,8 @@ uninstall:
 publish:
 	PATH=/opt/builds/bin:$$PATH load-build "$${FASRCSW_DEV}/appdata/$$NAME-$$VERSION-$$RELEASE.$$TYPE.dat"
 	PATH=/opt/builds/bin:$$PATH update-module-load $$FASRCSW_PROD/modulefiles
+	sudo cp "$${FASRCSW_DEV}/appdata/$$NAME-$$VERSION-$$RELEASE.$$TYPE.dat" "$${FASRCSW_PROD}/appdata"
+	sudo /usr/bin/loadBuild --flavor helmod "/n/sw/helmod/appdata/$$NAME-$$VERSION-$$RELEASE.$$TYPE.dat" 
 
 alias:
 	helmod-alias $$ALIAS

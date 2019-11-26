@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static Intel Math Kernel Library version 2019.5.281
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+Intel Math Kernel Library (Intel MKL) is a library of optimized math routines for science, engineering,
+and financial applications. Core math functions include BLAS, LAPACK, ScaLAPACK, sparse solvers, fast Fourier transforms, and vector math
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,12 +109,12 @@ libctl is a free Guile-based library implementing flexible control files for sci
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}-%{version}
+#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+#cd %{name}-%{version}
+#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -136,28 +137,13 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} --enable-shared
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+#make
 
 
 
@@ -187,10 +173,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -281,16 +267,19 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("INTEL_LICENSE_FILE",        "/n/sw/intel-cluster-studio-2019/license.lic")
+setenv("MKLROOT",                   "/n/sw/intel-cluster-studio-2019/mkl")
+setenv("MKL_HOME",                  "/n/sw/intel-cluster-studio-2019/mkl")
+setenv("MKL_LIB",		    "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("PATH",                "/n/sw/intel-cluster-studio-2019/mkl/bin")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("LIBRARY_PATH",        "/n/sw/intel-cluster-studio-2019/mkl/lib/intel64")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/intel64/lp64")
+prepend_path("CPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/fftw")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/intel64/lp64")
+prepend_path("FPATH",               "/n/sw/intel-cluster-studio-2019/mkl/include/fftw")
 EOF
 
 #------------------- App data file

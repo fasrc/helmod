@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static Spliced Transcripts Alignment to a Reference
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
+URL: https://github.com/alexdobin/STAR/archive/2.7.0e.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,16 +73,16 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for CentOS 7. Using STARlong target for > 300b reads
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Applications; aci-ref-app-tag:Bioinformatics 
 %define apppublication %{nil}
 
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+STAR Spliced Transcripts Alignment to a Reference.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,7 +140,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} --enable-shared
+#./configure --prefix=%{_prefix} \
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -157,7 +157,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+cd source
+make STAR
+make STARlong
 
 
 
@@ -187,10 +189,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/source
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+cp STAR STARlong %{buildroot}/%{_prefix}/bin
 
 
 #(this should not need to be changed)
@@ -281,16 +283,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
+setenv("STAR_HOME",                "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
 EOF
 
 #------------------- App data file

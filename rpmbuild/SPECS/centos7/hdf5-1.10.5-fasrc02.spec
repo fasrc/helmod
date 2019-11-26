@@ -136,7 +136,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static --enable-parallel"
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
 test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
@@ -145,6 +144,7 @@ test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
         --enable-fortran --enable-shared --enable-static \
         --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
         --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
+
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static The MIT Photonic-Bands (MPB) package is a free program for computing the band structures (dispersion relations) and electromagnetic modes of periodic dielectric structures, on both serial and parallel computers.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
+URL: http://...FIXME...
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies libctl/4.0.1-fasrc01 fftw/3.3.8-fasrc01 hdf5/1.10.5-fasrc01 intel-mkl/2019.5.281-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+Built without MPI support but with MPI libs.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,7 +140,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} --enable-shared
+./configure --prefix=%{_prefix} --with-openmp --enable-shared --with-libctl=${LIBCTL_HOME}/share/libctl
 #	--program-prefix= \
 #	--exec-prefix=%{_prefix} \
 #	--bindir=%{_prefix}/bin \
@@ -281,10 +281,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
+setenv("MPB_HOME",                 "%{_prefix}")
+setenv("MPB_INCLUDE",              "%{_prefix}/include")
+setenv("MPB_LIB",                  "%{_prefix}/lib")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")

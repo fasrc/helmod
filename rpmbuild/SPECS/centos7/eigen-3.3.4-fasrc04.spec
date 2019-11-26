@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
+Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -73,10 +72,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
+%define builddependencies cmake/3.5.2-fasrc01 %{rundependencies}
+%define rundependencies  boost/1.57.0-fasrc01 SuiteSparse/4.2.1-fasrc02 gmp/6.1.2-fasrc01  mpfr/3.1.5-fasrc01
+%define buildcomments Built with an older boost for use with EEMS (https://github.com/dipetkov/eems)
+%define requestor Adam Freedman
 %define requestref %{nil}
 
 # apptags
@@ -86,15 +85,13 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,6 +109,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+mv eigen-eigen-5a0156e40feb %{name}-%{version}
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -134,30 +132,18 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+test -d build || mkdir build
+cd build
 
-./configure --prefix=%{_prefix} --enable-shared
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_BUILD_TYPE=Release  -DBoost_INCLUDE_DIR=$BOOST_INCLUDE -DCHOLMOD_INCLUDES=$SUITESPARSE_HOME/CHOLMOD/Include -DCHOLMOD_LIBRARIES=$SUITESPARSE_HOME/CHOLMOD/Lib/libcholmod.a -DCHOLMOD_LIBRARY=$SUITESPARSE_HOME/CHOLMOD/Lib/libcholmod.a  -DUMFPACK_INCLUDES=$SUITESPARSE_HOME/UMFPACK/Include -DUMFPACK_LIBRARIES=$SUITESPARSE_HOME/UMFPACK/Lib/libumfpack.a -DSPQR_INCLUDES=$SUITESPARSE_HOME/SPQR/Include -DSPQR_LIBRARIES=$SUITESPARSE_HOME/SPQR/Lib/libspqr.a -DMPFR_INCLUDES=$MPFR_INCLUDE -DMPFR_LIBRARIES=$MPFR_LIB/lib/mpfr.so  -DMPFR_INCLUDES=$MPFR_INCLUDE -DMPFR_LIBRARIES=$MPFR_LIB/lib  ..
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -190,6 +176,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
+cd build
 make install DESTDIR=%{buildroot}
 
 
@@ -261,7 +248,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -281,16 +267,13 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("EIGEN_HOME",               "%{_prefix}")
+setenv("EIGEN_INCLUDE",            "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("CPATH",              "%{_prefix}/include/eigen3")
+prepend_path("FPATH",              "%{_prefix}/include/eigen3")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/share/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -314,6 +297,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

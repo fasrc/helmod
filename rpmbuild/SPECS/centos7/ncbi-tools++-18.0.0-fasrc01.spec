@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static NCBI C++ toolkit 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/CURRENT/ncbi_cxx--18_0_0.tar.gz
+Source: ncbi_cxx--18_0_0.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,10 +73,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
+%define requestor Adam Freedman <adamfreedman@fas.harvard.edu>
 %define requestref %{nil}
 
 # apptags
@@ -86,6 +86,7 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
+%define srcname ncbi_cxx--18_0_0
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
@@ -94,7 +95,25 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+NCBI C++ Toolkit provides free, portable, public domain libraries with no restrictions use - on Unix, MS Windows, and Mac OS platforms:
+Networking and Interprocess Communication (IPC) library
+MultiThreading Library
+CGI and Fast-CGI Library
+HTML Generation Library
+SQL Database Access Library
+C++ wrapper library for BerkeleyDB
+C++ IOSTREAM Adaptor/Wrapper Library
+GZIP and BZ2 C++ Wrapper Library with IOSTREAM adaptors
+ASN.1 and XML Serialization Library with C++ Code Generator Tool (datatool)
+Date and Time Library
+File System Function Library
+Command-Line Argument, Configuration and Environment Processing Library
+Sequence Alignment Algorithms Library
+BLAST Engine Library
+Biological Sequences Retrieval and Processing Library
+Portable FLTK and OpenGL based GUI and graphic libraries
+XmlWrapp (XML parsing and handling, XSLT, XPath)
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -110,9 +129,9 @@ libctl is a free Guile-based library implementing flexible control files for sci
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
+rm -rf %{srcname}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{srcname}.tar.*
+cd %{srcname}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -132,32 +151,47 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{srcname}
 
 
-./configure --prefix=%{_prefix} --enable-shared
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
+./configure --prefix=%{_prefix} --without-debug --with-bincopy --without-opengl --without-wxwidgets --without-gui
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+
+cat <<EOF | patch Makefile
+39,42c39,42
+< 	-\$(RMDIR) \$(pincludedir)
+< 	\$(INSTALL) -d \$(bindir) \$(libdir) \$(pincludedir)
+< 	\$(INSTALL) \$(lbindir)/* \$(bindir)
+< 	\$(INSTALL) -m 644 \$(llibdir)/*.* \$(libdir)
+---
+> 	-\$(RMDIR) \$(DESTDIR)\$(pincludedir)
+> 	\$(INSTALL) -d \$(DESTDIR)\$(bindir) \$(DESTDIR)\$(libdir) \$(DESTDIR)\$(pincludedir)
+> 	\$(INSTALL) \$(lbindir)/* \$(DESTDIR)\$(bindir)
+> 	\$(INSTALL) -m 644 \$(llibdir)/*.* \$(DESTDIR)\$(libdir)
+44c44
+< 	    cp -pPR \$(llibdir)/ncbi \$(libdir)/; \\
+---
+> 	    cp -pPR \$(llibdir)/ncbi \$(DESTDIR)\$(libdir)/; \\
+46,47c46,47
+< 	-rm -f \$(libdir)/lib*-static.a
+< 	cd \$(libdir)  && \\
+---
+> 	-rm -f \$(DESTDIR)\$(libdir)/lib*-static.a
+> 	cd \$(DESTDIR)\$(libdir)  && \\
+49,51c49,51
+< 	cd \$(includedir0) && find * -name CVS -prune -o -print |\\
+<             cpio -pd \$(pincludedir)
+< 	\$(INSTALL) -m 644 \$(incdir)/* \$(pincludedir)
+---
+> 	cd \$(includedir0) && find * -name CVS -prune -o -print |\\
+>             cpio -pd \$(DESTDIR)\$(pincludedir)
+> 	\$(INSTALL) -m 644 \$(incdir)/* \$(DESTDIR)\$(pincludedir)
+EOF
+
+make -j 4
 
 
 
@@ -187,7 +221,7 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{srcname}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -281,16 +315,13 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("NCBITOOLS_HOME",            "%{_prefix}")
+setenv("NCBITOOLS_LIB",             "%{_prefix}/lib")
+setenv("NCBITOOLS_INCLUDE",         "%{_prefix}/include")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
 EOF
 
 #------------------- App data file

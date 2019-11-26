@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+%define summary_static Long Ranger is a set of analysis pipelines that processes Chromium sequencing output to align reads and call and phase SNPs, indels, and structural variants.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/stevengj/libctl/releases/download/v4.0.1/libctl-4.0.1.tar.gz
+URL: http://cf.10xgenomics.com/releases/genome/longranger-2.1.6.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies guile/2.2.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,19 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-libctl is a free Guile-based library implementing flexible control files for scientific simulations.
+Long Ranger is a set of analysis pipelines that processes Chromium sequencing output to align reads and call and phase SNPs, indels, and structural variants. There are five main pipelines, each triggered by a longranger command:
+
+longranger mkfastq wraps Illumina's bcl2fastq to correctly demultiplex Chromium-prepared sequencing samples and to convert barcode and read data to FASTQ files.
+
+longranger wgs takes demultiplexed FASTQ files from a whole genome sample and performs alignment, de-duplication and filtering, and uses the Chromium molecular barcodes to call and phase SNPs, indels, and structural variants.
+
+longranger targeted takes demultiplexed FASTQ files from a targeted sample, such as an exome, and performs alignment, de-duplication and filtering, and uses the Chromium molecular barcodes to call and phase SNPs, indels, and structural variants. Reads are aliged to the whole genome, but statistics are reported only on the pulled-down regions in the supplied target BED file.
+
+longranger basic takes FASTQ files from longranger mkfastq and performs basic barcode processing including error correction, barcode white-listing, and attaching barcodes to reads.
+
+longranger align performs the steps in the basic pipeline plus aligns reads and infers input molecules.
+
+These pipelines combine Chromium-specific algorithms with widely used components such as BWA, Freebayes, and GATK. Output is delivered in standard BAM, VCF, and BEDPE formats that are augmented with long range information.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -125,39 +137,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} --enable-shared
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 
@@ -190,8 +169,22 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+cp -r * %{buildroot}/%{_prefix}
 
+cat <<EOF > %{buildroot}/%{_prefix}/martian-cs/2.3.2/jobmanagers/slurm.template
+#!/usr/bin/env bash
+#SBATCH -J __MRO_JOB_NAME__
+#SBATCH --export=ALL
+#SBATCH -N 1
+#SBATCH --n=__MRO_THREADS__
+#SBATCH --mem=__MRO_MEM_GB__G
+#SBATCH -o __MRO_STDOUT__
+#SBATCH -e __MRO_STDERR__
+#SBATCH -p serial_requeue
+#SBATCH -t 1-0:00
+
+__MRO_CMD__
+EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -281,16 +274,8 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("LIBCTL_HOME",              "%{_prefix}")
-setenv("LIBCTL_PATH",		   "%{_prefix}/bin")
-setenv("LIBCTL_INCLUDE",           "%{_prefix}/include")
-setenv("LIBCTL_LIB",               "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
+setenv("LONGRANGER_HOME",            "%{_prefix}")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
