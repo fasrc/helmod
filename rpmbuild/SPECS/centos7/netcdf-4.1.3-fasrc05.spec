@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies hdf5/1.8.21-fasrc12
+%define builddependencies hdf5/1.8.12-fasrc12
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
