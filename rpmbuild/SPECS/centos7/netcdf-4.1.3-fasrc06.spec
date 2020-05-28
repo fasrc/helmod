@@ -152,6 +152,7 @@ sed -i -e 's/\[szip\]/\[sz\]/' configure.ac
 autoreconf -i
 ./configure --prefix=%{_prefix} \
     --enable-netcdf-4 \
+    --enable-static \
     --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
