@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies geant/4.10.06.p01-fasrc02 root/6.14.00-fasrc01 cmake/3.17.3-fasrc01
-%define rundependencies geant/4.10.06.p01-fasrc01 root/6.14.00-fasrc01
+%define rundependencies geant/4.10.06.p01-fasrc02 root/6.14.00-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
