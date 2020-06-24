@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 
 
 %define builddependencies cmake/3.16.1-fasrc01 xercesc/3.2.2-fasrc01
-%define rundependencies %{nil}
+%define rundependencies xercesc/3.2.2-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
