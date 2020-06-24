@@ -149,7 +149,10 @@ cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 #percent sign) to build in parallel
 make %{?_smp_mflags}
 
-
+cd ../cluster_tools/jobsplitter
+make
+cd ../filemerger
+make
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -182,6 +185,8 @@ echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 
+cp ../cluster_tools/jobsplitter/gjs %{buildroot}/%{_prefix}/bin
+cp ../cluster_tools/filemerger/gjm %{buildroot}/%{_prefix}/bin
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
