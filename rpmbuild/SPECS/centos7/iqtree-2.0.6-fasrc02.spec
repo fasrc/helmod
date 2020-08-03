@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/Cibiv/IQ-TREE/archive/v2.0.5.tar.gz
+URL: https://github.com/Cibiv/IQ-TREE/archive/v2.0.6.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies  cmake/3.17.3-fasrc01 eigen/3.3.7-fasrc01
+%define builddependencies  cmake/3.17.3-fasrc01  eigen/3.3.7-fasrc01
 %define rundependencies %{nil}
 %define buildcomments OMP-MPI version
 %define requestor %{nil}
