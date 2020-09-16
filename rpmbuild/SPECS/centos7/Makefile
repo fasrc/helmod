@@ -33,7 +33,7 @@ sync:
 post: sync
 	cd "$$FASRCSW_DEV"
 	git add --all .
-	git commit -v .
+	git commit -m "added new software".
 	git pull
 	git push
 

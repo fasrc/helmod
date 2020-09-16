@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static HDF5 is a data model, library, and file format for storing and managing data.
+%define summary_static Armadillo version 9.850.1
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.hdfgroup.org/downloads/hdf5/source-code
-Source: %{name}-%{version}.tar.gz
+URL: http://sourceforge.net/projects/arma/files/armadillo-9.900.1.tar.xz
+Source: %{name}-%{version}.tar.xz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -71,18 +72,16 @@ Prefix: %{_prefix}
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-
-
-%define builddependencies zlib/1.2.11-fasrc02 szip/2.1.1-fasrc01
-%define rundependencies %{builddependencies}
-%define buildcomments Core module for CentOS 7
+%define builddependencies cmake/3.12.1-fasrc01 OpenBLAS/0.3.7-fasrc02
+%define rundependencies OpenBLAS/0.3.7-fasrc02
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags %{nil}
 %define apppublication %{nil}
 
 
@@ -90,8 +89,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
+Armadillo is a high quality C++ linear algebra library, aiming towards a good balance between speed and ease of use; the syntax (API) is deliberately similar to Matlab.
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -132,36 +133,31 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 ##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+export includepath="$OPENBLAS_INCLUDE"
+export libpath="$OPENBLAS_LIB"
 
-export CONFIGOPTS="--enable-fortran --enable-shared --enable-static "
-test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
-command -v mpiifort && export CC=mpiicc CXX=mpiicpc FC=mpiifort
+#./configure --prefix=%{_prefix} \
+#        --program-prefix= \
+#        --exec-prefix=%{_prefix} \
+#        --bindir=%{_prefix}/bin \
+#        --sbindir=%{_prefix}/sbin \
+#        --sysconfdir=%{_prefix}/etc \
+#        --datadir=%{_prefix}/share \
+#        --includedir=%{_prefix}/include \
+#        --libdir=%{_prefix}/lib64 \
+#        --libexecdir=%{_prefix}/libexec \
+#        --localstatedir=%{_prefix}/var \
+#        --sharedstatedir=%{_prefix}/var/lib \
+#        --mandir=%{_prefix}/share/man \
+#        --infodir=%{_prefix}/share/info
 
-./configure --prefix=%{_prefix} \
-        --enable-fortran --enable-shared --enable-static \
-        --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
-        --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info \
-#        --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
-#	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
-	
+test %{comp_name} == intel && includepath="$MKL_HOME/include;$includepath" libpath="$MKL_HOME/lib/intel64;$libpath"
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INCLUDE_PATH:STRING="$includepath" -DCMAKE_LIBRARY_PATH:STRING="$libpath" .
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
@@ -268,6 +264,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -278,8 +275,7 @@ whatis("Description: %{summary_static}")
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
     if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
+        if not isloaded(i) then
             load(i)
         end
     end
@@ -287,16 +283,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
+setenv("ARMADILLO_HOME",           "%{_prefix}")
+setenv("ARMADILLO_INCLUDE",        "%{_prefix}/include")
+setenv("ARMADILLO_LIB",            "%{_prefix}/lib")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
-
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
