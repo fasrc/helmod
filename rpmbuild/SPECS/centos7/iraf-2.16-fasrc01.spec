@@ -226,12 +226,12 @@ whatis("Description: %{summary_static}")
 --end
 
 -- environment changes (uncomment what is relevant)
-setenv("IRAF_HOME",                        "/n/sw/centos7/iraf-2.16")
-prepend_path("PATH",                       "/n/sw/centos7/iraf-2.16/iraf/bin")
-prepend_path("LD_LIBRARY_PATH",            "/n/sw/centos7/iraf-2.16/iraf/lib")
-prepend_path("LIBRARY_PATH",               "/n/sw/centos7/iraf-2.16/iraf/lib")
-prepend_path("CPATH",                      "/n/sw/centos7/iraf-2.16/iraf/include")
-prepend_path("FPATH",                      "/n/sw/centos7/iraf-2.16/iraf/include")
+setenv("IRAF_HOME",                        "/n/sw/centos7/iraf-2.16-fasrc01")
+prepend_path("PATH",                       "/n/sw/centos7/iraf-2.16-fasrc01/iraf/bin")
+prepend_path("LD_LIBRARY_PATH",            "/n/sw/centos7/iraf-2.16-fasrc01/iraf/lib")
+prepend_path("LIBRARY_PATH",               "/n/sw/centos7/iraf-2.16-fasrc01/iraf/lib")
+prepend_path("CPATH",                      "/n/sw/centos7/iraf-2.16-fasrc01/iraf/include")
+prepend_path("FPATH",                      "/n/sw/centos7/iraf-2.16-fasrc01/iraf/include")
 EOF
 
 #------------------- App data file
