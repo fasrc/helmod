@@ -83,7 +83,7 @@ Program proj  is a standard Unix filter function which converts geographic longi
 
 
 
-%define builddependencies SQLite/3.20.1
+%define builddependencies SQLite/3.20.1 libtiff/4.0.9-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}

@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Geospatial Data Abstraction Library
+%define summary_static SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/OSGeo/gdal/releases/download/v3.2.2/gdal-3.2.2.tar.gz
+URL: https://www.sqlite.org/2021/sqlite-autoconf-3350300.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies hdf/4.2.12-fasrc01 hdf5/1.10.6-fasrc01 libtiff/4.0.9-fasrc01 libxml2/2.7.8-fasrc02 proj/8.0.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added libtiff and libxml2 to prevent system conflicts
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Gdal is a translator library for raster and vector geospatial data formats that is released under an X/MIT style Open Source license by the Open Source Geospatial Foundation. As a library, it presents a single raster abstract data model and vector abstract data model to the calling application for all supported formats. It also comes with a variety of useful commandline utilities for data translation and processing. 
+SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,13 +139,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-test -z "$CC" && export CC=gcc
-test -z "$CXX" && export CXX=g++
 
-CC="$CC -I$LIBXML2_INCLUDE -L$LIBXML2_LIB"
-CXX="$CXX -I$LIBXML2_INCLUDE -L$LIBXML2_LIB"
-
-./configure --prefix=%{_prefix} \
+CFLAGS="-DSQLITE_ENABLE_COLUMN_METADATA=1" ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -158,17 +153,11 @@ CXX="$CXX -I$LIBXML2_INCLUDE -L$LIBXML2_LIB"
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --with-hdf4="$HDF4_HOME" \
-	--with-hdf5="$HDF5_HOME" \
-    --with-libtiff="$LIBTIFF_HOME"  \
-    --with-xml2=yes \
-    --with-proj="$PROJ_HOME"
+	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
-
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -291,14 +280,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("GDAL_HOME",                "%{_prefix}")
-setenv("GDAL_INCLUDE",             "%{_prefix}/include")
-setenv("GDAL_LIB",                 "%{_prefix}/lib64")
+setenv("SQLITE_HOME",              "%{_prefix}")
+setenv("SQLITE_LIB",               "%{_prefix}/lib64")
+setenv("SQLITE_INCLUDE",           "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
