@@ -81,9 +81,7 @@ Program proj  is a standard Unix filter function which converts geographic longi
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-
-
-%define builddependencies SQLite/3.20.1 libtiff/4.0.9-fasrc01
+%define builddependencies sqlite/3.35.3-fasrc01 libtiff/4.0.9-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
