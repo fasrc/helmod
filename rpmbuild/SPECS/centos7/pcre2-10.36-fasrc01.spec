@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a free software environment for statistical computing and graphics
+%define summary_static The PCRE package contains Perl Compatible Regular Expression libraries.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://cran.r-project.org/src/base/R-4/R-4.0.5.tar.gz
-Source: R-%{version}.tar.gz
+URL: https://ftp.pcre.org/pub/pcre/%{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -72,28 +73,28 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies readline/8.1-fasrc01 jdk/16-fasrc01 curl/7.76.0-fasrc01 zlib/1.2.11-fasrc01 bzip2/1.0.8-fasrc01 pcre/8.44-fasrc01 libtiff/4.2.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Compiler-specific build; earlier versions don't work with Intel
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+%define apptags %{nil} 
 %define apppublication %{nil}
+
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-R is a language and environment for statistical computing and graphics. It is a GNU project which is similar to the S language and environment which was developed at Bell Laboratories (formerly AT&T, now Lucent Technologies) by John Chambers and colleagues. R can be considered as a different implementation of S. There are some important differences, but much code written for S runs unaltered under R.
-R provides a wide variety of statistical (linear and nonlinear modelling, classical statistical tests, time-series analysis, classification, clustering, ...) and graphical techniques, and is highly extensible.
-
-
+The PCRE package contains Perl Compatible Regular Expression libraries. These are useful for implementing regular expression pattern matching using the same syntax and semantics as Perl 5.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -101,6 +102,7 @@ R provides a wide variety of statistical (linear and nonlinear modelling, classi
 
 
 #
+# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
@@ -108,9 +110,9 @@ R provides a wide variety of statistical (linear and nonlinear modelling, classi
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf R-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/R-%{version}.tar.*
-cd R-%{version}
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
 
@@ -124,6 +126,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #
+# FIXME
 #
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
@@ -134,17 +137,15 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-test -z $CC && export CC=gcc
 
-CC="$CC -I$CURL_INCLUDE -I$BZIP2_INCLUDE -I$PCRE_INCLUDE -I$READLINE_INCLUDE -L$BZIP2_LIB -L$PCRE_LIB -L$CURL_LIB -L$READLINE_LIB"
-
-./configure --prefix=%{_prefix} --enable-R-shlib --with-tcltk --with-blas --with-lapack --with-libtiff
+./configure --prefix=%{_prefix}  --enable-jit  --enable-unicode
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -156,6 +157,7 @@ make %{?_smp_mflags}
 
 
 #
+# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -172,12 +174,10 @@ make %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/R-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
-#export R_HOME=%{buildroot}/%{_prefix}
-#%{buildroot}/%{_prefix}/bin/R CMD javareconf
 
 
 #(this should not need to be changed)
@@ -224,6 +224,7 @@ done
 %endif
 
 # 
+# FIXME (but the above is enough for a "trial" build)
 #
 # This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
@@ -247,6 +248,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -264,19 +266,19 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
--- environment changes (uncomment what is relevant)
-prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
+
+---- environment changes (uncomment what is relevant)
+setenv("PCRE2_HOME",               "%{_prefix}")
+setenv("PCRE2_LIB",                "%{_prefix}/lib")
+setenv("PCRE2_INCLUDE",            "%{_prefix}/include")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/library/Matrix/include")
-prepend_path("FPATH",              "%{_prefix}/lib64/R/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64/R/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64/R/lib")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -300,7 +302,6 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
-
 
 
 #------------------- %%files (there should be no need to change this ) --------
