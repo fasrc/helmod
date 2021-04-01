@@ -78,7 +78,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R_core/%{version}-%{release_short} netcdf/4.3.2-fasrc03 hdf5/1.10.1-fasrc03 gsl/1.16-fasrc02 nlopt/2.4.2-fasrc01 libxml2/2.7.8-fasrc02
+%define builddependencies R_core/%{version}-%{release_short} netcdf/4.7.3-fasrc01 hdf5/1.10.6-fasrc01 gsl/2.6-fasrc01 nlopt/2.6.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
