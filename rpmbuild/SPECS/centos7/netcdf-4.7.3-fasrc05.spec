@@ -1,8 +1,5 @@
-
-
-
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -14,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your
+# enter the release; start with fasrc01 (or some other convention for your 
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
-# and MPI apps, it will include the name/version/release of the apps used to
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -29,19 +26,19 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
-# rpm gets created, so this stores it separately for later re-use); do not
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a bunch of R packages from CRAN
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if
+# enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...
-#Source: %{name}-%{version}.tar.gz
+URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.7.3.tar.gz
+Source: %{name}-c-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -56,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -75,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R_core/%{version}-%{release_short} netcdf/4.7.3-fasrc01 hdf5/1.10.6-fasrc04 gsl/2.6-fasrc01 nlopt/2.6.2-fasrc01
+%define builddependencies hdf5/1.10.6-fasrc04
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -84,19 +82,19 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Interpreter
+%define apptags %{nil} 
 %define apppublication %{nil}
 
 
+
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces,
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-This is the set of most popular packages added on to R that originate from CRAN.
-It's meant to be paired with an R_core module.
-
-
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -104,214 +102,19 @@ It's meant to be paired with an R_core module.
 
 
 #
-# unpack the sources here.  The default below is for standard, GNU-toolchain
+# FIXME
+#
+# unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-mkdir %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-c-%{version}.tar.*
+mv %{name}-c-%{version} %{name}-%{version}
 cd %{name}-%{version}
-
-
-#--- name all the packages to install
-
-cat > package_list <<EOF
-stringi
-ADGofTest
-RCurl
-AnDE
-Rcpp
-RcppArmadillo
-RcppEigen
-Rmpi
-BB
-Brobdingnag
-CpGassoc
-DBI
-FNN
-Formula
-GSA
-GWAF
-GenABEL
-GenABEL.data
-Hmisc
-MCMCpack
-MatchIt
-MetaSKAT
-R.methodsS3
-R2WinBUGS
-RColorBrewer
-RJSONIO
-RSQLite
-RSQLite.extfuns
-RSiena
-Rcmdr
-Rserve
-Rstan
-SKAT
-SnowballC
-SparseM
-TTR
-XML
-abind
-akima
-amap
-aod
-ape
-aplpack
-arm
-base64
-bdsmatrix
-beanplot
-bitops
-caTools
-car
-chron
-coda
-colorspace
-corpcor
-coxme
-cubature
-data.table
-deSolve
-devtools
-dichromat
-digest
-discretization
-doParallel
-doRNG
-doSNOW
-dynamicTreeCut
-e1071
-effects
-evaluate
-fBasics
-fastICA
-fastcluster
-fields
-flashClust
-foreach
-forecast
-formatR
-formula.tools
-functional
-gamm4
-gdata
-geepack
-ggplot2
-glmnet
-gplots
-gridExtra
-grplasso
-gsubfn
-gtable
-gtools
-hwriter
-igraph
-inline
-intervals
-iterators
-itertools
-kernlab
-knitr
-labeling
-lasso2
-latticeExtra
-lda
-leaps
-lhs
-lme4
-lmtest
-locfit
-maps
-maptools
-markdown
-matrixStats
-matrixcalc
-mclust
-memoise
-meta
-mi
-minqa
-mlbench
-mlegp
-modeltools
-msm
-multcomp
-multicore
-munsell
-mvtnorm
-nleqslv
-nor1mix
-numDeriv
-operator.tools
-optmatch
-pROC
-penalized
-penalizedSVM
-phangorn
-pkgmaker
-plotrix
-plyr
-proto
-pspline
-psych
-quadprog
-quantmod
-quantreg
-rJava
-randomForest
-raster
-registry
-relimp
-reshape
-reshape2
-rgl
-rngtools
-robustbase
-rootSolve
-rstan
-sandwich
-sas7bdat
-scales
-scatterplot3d
-sem
-slam
-snow
-sp
-spam
-sqldf
-stabledist
-statmod
-stringr
-strucchange
-subplex
-svmpath
-texreg
-tgp
-timeDate
-timeSeries
-tm
-tree
-truncnorm
-tseries
-vcd
-vegan
-xtable
-xts
-zoo
-RWekajars
-RWeka
-XLConnect
-xlsx
-xlsxjars
-ncdf4
-ncdf
-hdf5
-gsl
-EOF
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -324,16 +127,40 @@ EOF
 
 
 #
+# FIXME
 #
-# configure and make the software here.  The default below is for standard
+# configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
-#
+# 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here,
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-#(n/a -- build and install done in the same step below)
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make %{?_smp_mflags}
 
 
 
@@ -346,13 +173,14 @@ EOF
 
 
 #
+# FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style
+# make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
 #
-# Note that DESTDIR != %{prefix} -- this is not the final installation.
-# Rpmbuild does a temporary installation in the %{buildroot} and then
-# constructs an rpm out of those files.  See the following hack if your app
+# Note that DESTDIR != %{prefix} -- this is not the final installation.  
+# Rpmbuild does a temporary installation in the %{buildroot} and then 
+# constructs an rpm out of those files.  See the following hack if your app 
 # does not support this:
 #
 # https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
@@ -361,48 +189,11 @@ EOF
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#
-# This app insists* on writing directly to the prefix.  Acquiesce, and hack a
-# symlink, IN THE PRODUCTION DESTINATION (yuck), back to our where we want it
-# to install in our build environment, and then remove the symlink.  Note that
-# this will only work for the first build of this NAME/VERSION/RELEASE/TYPE
-# combination.
-#
-# * Well, with R here, maybe there's a way; I just don't know it.
-#
-
-# Standard stuff.
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-
-# Make the symlink.
-sudo mkdir -p "$(dirname %{_prefix})"
-test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
-
-##can't use a symlink -- R canonicalizes it and includes the buildroot in the files
-#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
-sudo install -o "$USER" -m 700 -d "%{_prefix}"
-
-# Do the java configuration so that XLConnect, et al will work
-sudo -E R CMD javareconf
-
-export RMPI_TYPE=MPICH2
-test "%{mpi_name}" == "openmpi" && RMPI_TYPE=OPENMPI
-
-echo 'install.packages(scan("package_list", what="", sep="\n"), lib="%{_prefix}", repos="http://cran.us.r-project.org")' | R --vanilla
-echo "source('http://bioconductor.org/biocLite.R')
-biocLite()" | R_LIBS_USER="%{_prefix}" R --vanilla
-
-#NOTE: some may fail
-rm -rf %{buildroot}/%{_prefix}
-mkdir -p %{buildroot}/%{_prefix}
-cp -r "%{_prefix}"/* %{buildroot}/%{_prefix}
-
-##can't use a symlink -- R canonicalizes it and includes the buildroot in the files
-# Clean up the symlink.  (The parent dir may be left over, oh well.)
-sudo rm -rf "%{_prefix}"
+make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -416,16 +207,16 @@ done
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-
+	
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo
+	echo 
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-
+	
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -441,25 +232,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-
+	
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-#
+# 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run
+# This is the part that builds the modulefile.  However, stop now and run 
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure
+# - do any other customizing of the module, e.g. load dependencies -- make sure 
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything
+# - in the help message, link to website docs rather than write anything 
 #   lengthy here
 #
 # references on writing modules:
@@ -473,6 +264,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -490,8 +282,18 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
--- environment changes (uncomment what is relevant)
-append_path("R_LIBS_USER",         "%{_prefix}")
+
+---- environment changes (uncomment what is relevant)
+setenv("NETCDF_HOME",              "%{_prefix}")
+setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_LIB",               "%{_prefix}/lib64")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -517,7 +319,6 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -533,9 +334,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some
-# components may need creating, but no single rpm should own them, since parts
-# are shared; only do this if it looks like an app-specific prefix is indeed
+# everything in fasrcsw is installed in an app hierarchy in which some 
+# components may need creating, but no single rpm should own them, since parts 
+# are shared; only do this if it looks like an app-specific prefix is indeed 
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -543,9 +344,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to
-# be relocatable, hence why this is not a proper %%file; as with the app itself,
-# modulefiles are in an app hierarchy in which some components may need
+# symlink to the modulefile installed along with the app; we want all rpms to 
+# be relocatable, hence why this is not a proper %%file; as with the app itself, 
+# modulefiles are in an app hierarchy in which some components may need 
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -555,9 +356,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
-# orphans will be left over after the last package in the app family
+# undo the module file symlink done in the %%post; do not rmdir 
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
+# orphans will be left over after the last package in the app family 
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -565,9 +366,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be
-# left over after the last package in the app family is removed); also put a
-# little protection so this does not cause problems if a non-default prefix
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
+# left over after the last package in the app family is removed); also put a 
+# little protection so this does not cause problems if a non-default prefix 
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -576,7 +377,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't
+# wipe out the buildroot, but put some protection to make sure it isn't 
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
