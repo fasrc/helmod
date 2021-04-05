@@ -75,7 +75,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies R_core/%{version}-%{release_short} netcdf/4.7.3-fasrc01 hdf5/1.10.6-fasrc04 gsl/2.6-fasrc01 nlopt/2.6.2-fasrc01
+%define builddependencies R_core/%{version}-%{release_short} netcdf/4.7.3-fasrc05 hdf5/1.10.6-fasrc04 gsl/2.6-fasrc01 nlopt/2.6.2-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -392,8 +392,8 @@ export RMPI_TYPE=MPICH2
 test "%{mpi_name}" == "openmpi" && RMPI_TYPE=OPENMPI
 
 echo 'install.packages(scan("package_list", what="", sep="\n"), lib="%{_prefix}", repos="http://cran.us.r-project.org")' | R --vanilla
-echo "source('http://bioconductor.org/biocLite.R')
-biocLite()" | R_LIBS_USER="%{_prefix}" R --vanilla
+cho "library(BiocManager)
+BiocManager::install()" | R_LIBS_USER="%{_prefix}" R --vanilla
 
 #NOTE: some may fail
 rm -rf %{buildroot}/%{_prefix}
