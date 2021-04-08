@@ -267,18 +267,18 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MKLROOT",                   "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl")
-setenv("MKL_HOME",                  "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl")
-setenv("MKL_LIB",		    "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/lib/intel64")
-prepend_path("PATH",                "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/bin")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/lib/intel64")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/lib/intel64")
-prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include")
-prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include/intel64/lp64")
-prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include/fftw")
-prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include")
-prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include/intel64/lp64")
-prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/mkl/include/fftw")
+setenv("MKLROOT",                   "/n/sw/intel-one-api-2021/mkl/2021.2.0/")
+setenv("MKL_HOME",                  "/n/sw/intel-one-api-2021/mkl/2021.2.0/")
+setenv("MKL_LIB",		    "/n/sw/intel-one-api-2021/mkl/2021.2.0/lib/intel64")
+prepend_path("PATH",                "/n/sw/intel-one-api-2021/mkl/2021.2.0/bin")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-one-api-2021/mkl/2021.2.0/lib/intel64")
+prepend_path("LIBRARY_PATH",        "/n/sw/intel-one-api-2021/mkl/2021.2.0/lib/intel64")
+prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include")
+prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include/intel64/lp64")
+prepend_path("CPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include/fftw")
+prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include")
+prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include/intel64/lp64")
+prepend_path("FPATH",               "/n/sw/intel-one-api-2021/mkl/2021.2.0/include/fftw")
 EOF
 
 #------------------- App data file
