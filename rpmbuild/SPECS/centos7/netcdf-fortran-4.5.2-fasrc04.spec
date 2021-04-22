@@ -144,6 +144,9 @@ export F77=mpif77
 export CC=mpicc
 export CXX=mpicxx
 
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
+command -v mpiifort && export CC=mpiicc CXX=mpiicpc FC=mpiifort F77=mpiifort
+
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \

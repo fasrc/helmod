@@ -1,0 +1,16 @@
+INFO:busco.run_BUSCO	***** Start a BUSCO v4.1.4 analysis, current time: 10/13/2020 15:39:08 *****
+DEBUG:busco.ConfigManager	Getting config file
+ERROR:busco.run_BUSCO	Please specify a BUSCO config file using either (i) an environment variable by entering 'export BUSCO_CONFIG_FILE=/path/to/config.ini' or (ii) using the command line flag --config /path/to/config.ini
+DEBUG:busco.run_BUSCO	Please specify a BUSCO config file using either (i) an environment variable by entering 'export BUSCO_CONFIG_FILE=/path/to/config.ini' or (ii) using the command line flag --config /path/to/config.ini
+Traceback (most recent call last):
+  File "/n/helmod/apps/centos7/Core/busco/4.1.4-fasrc01/lib/python3.7/site-packages/busco/run_BUSCO.py", line 179, in run_BUSCO
+    config_manager = BuscoConfigManager(params)
+  File "/n/helmod/apps/centos7/Core/busco/4.1.4-fasrc01/lib/python3.7/site-packages/busco/ConfigManager.py", line 18, in __init__
+    self.get_config_file()
+  File "/n/helmod/apps/centos7/Core/busco/4.1.4-fasrc01/lib/python3.7/site-packages/busco/BuscoLogger.py", line 55, in wrapped_func
+    self.retval = func(*args, **kwargs)
+  File "/n/helmod/apps/centos7/Core/busco/4.1.4-fasrc01/lib/python3.7/site-packages/busco/ConfigManager.py", line 38, in get_config_file
+    raise SystemExit("Please specify a BUSCO config file using either "
+SystemExit: Please specify a BUSCO config file using either (i) an environment variable by entering 'export BUSCO_CONFIG_FILE=/path/to/config.ini' or (ii) using the command line flag --config /path/to/config.ini
+ERROR:busco.run_BUSCO	BUSCO analysis failed !
+ERROR:busco.run_BUSCO	Check the logs, read the user guide, and check the BUSCO issue board on https://gitlab.com/ezlab/busco/issues
