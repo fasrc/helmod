@@ -242,9 +242,6 @@ whatis("Description: %{summary_static}")
 
 -- copied from /n/sw/fasrcsw/modulefiles/Core/matlab/R2016b-fasrc01.lua and corrected
 
--- relying on set_alias is a bad idea -- aliases are not exported to 
--- sub-shells; should wrap it in a separate script like we used to do
-set_alias("matlab", "matlab -singleCompThread")
 setenv("MATLAB_HOME",                      "/n/sw/matlab-R2009a")
 prepend_path("PATH",                       "/n/sw/matlab-R2009a/bin")
 prepend_path("LD_LIBRARY_PATH",            "/n/sw/matlab-R2009a/bin/glnxa64/")

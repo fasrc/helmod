@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://www.hdfgroup.org/downloads/hdf5/source-code
+URL: https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.7/src/hdf5-1.10.7.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,9 +73,9 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies zlib/1.2.11-fasrc02 szip/2.1.1-fasrc01
+%define builddependencies zlib/1.2.11-fasrc01 szip/2.1.1-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments Core module for CentOS 7
+%define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -139,7 +139,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static "
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90`Qwq
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
 
 ./configure --prefix=%{_prefix} \
         --enable-fortran --enable-shared --enable-static \
