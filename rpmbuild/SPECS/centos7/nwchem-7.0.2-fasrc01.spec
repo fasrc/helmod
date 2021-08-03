@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static NWChem: Open Source High-Performance Computational Chemistry
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.8.0.tar.gz
-Source: %{name}-c-%{version}.tar.gz
+URL: https://github.com/nwchemgit/nwchem/releases/tag/v7.0.2-release
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies hdf5/1.10.7-fasrc02
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -94,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. 
+NWChem is actively developed by a consortium of developers and maintained by the Environmental Molecular Sciences Laboratory (EMSL), a US DOE Office of Science User Facility located at the Pacific Northwest National Laboratory (PNNL) in Washington State 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,8 +111,7 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-c-%{version}.tar.*
-mv %{name}-c-%{version} %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -138,29 +137,23 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #module load NAME/VERSION-RELEASE
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src
 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
+export NWCHEM_TOP="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/
+export USE_MPI=y
+export NWCHEM_TARGET=LINUX64  
+export USE_PYTHONCONFIG=y  
+export PYTHONVERSION=2.7
+export ARMCI_NETWORK=OPENIB
+export BLASOPT="-L${MKL_HOME}/lib/intel64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm"
+export SCALAPACK="-L${MKL_HOME}/lib/intel64 -lmkl_scalapack_ilp64 -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lmkl_blacs_intelmpi_ilp64 -lpthread -lm"
+export LAPACK_LIB="-L${MKL_HOME}/lib/intel64/ -lmkl_blas95_lp64 -lmkl_lapack95_lp64 -Wl,--start-group ${MKL_HOME}/lib/intel64/libmkl_intel_lp64.a ${MKL_HOME}/lib/intel64/libmkl_sequential.a ${MKL_HOME}/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread"
+export PYTHONHOME=/usr
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --enable-netcdf-4 \
-    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
+make nwchem_config NWCHEM_MODULES='all python'
 make %{?_smp_mflags}
 
 
@@ -194,8 +187,26 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
 
+cp "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin/LINUX64/nwchem %{buildroot}/%{_prefix}/bin
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/data %{buildroot}/%{_prefix}
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/basis/libraries %{buildroot}/%{_prefix}/data
+cp -r "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/src/nwpw/libraryps %{buildroot}/%{_prefix}/data
+
+# Create default config file for people to point to.
+cat > %{buildroot}/%{_prefix}/data/default.nwchemrc << EOF
+nwchem_basis_library /%{_prefix}/data/libraries/
+nwchem_nwpw_library /%{_prefix}/data/libraryps/
+ffield amber
+amber_1  %{_prefix}/data/amber_s/
+amber_2  %{_prefix}/data/amber_q/
+amber_3  %{_prefix}/data/amber_x/
+amber_4  %{_prefix}/data/amber_u/
+spce     %{_prefix}/data/solvents/spce.rst
+charmm_s %{_prefix}/data/charmm_s/
+charmm_x %{_prefix}/data/charmm_x/
+EOF
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -285,16 +296,10 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NETCDF_HOME",              "%{_prefix}")
-setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_LIB",               "%{_prefix}/lib64")
+setenv("NWCHEM_HOME",       "%{_prefix}")
+setenv("NWCHEM_DATA",       "%{_prefix}/data")
+
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
