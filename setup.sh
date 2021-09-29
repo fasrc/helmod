@@ -10,7 +10,7 @@ test -z "$FASRCSW_OS" && export FASRCSW_OS=centos7
 #export FASRCSW_COMPS="gcc/9.3.0-fasrc01"
 #export FASRCSW_COMPS="intel/17.0.4-fasrc01"
 export FASRCSW_COMPS="intel/21.2.0-fasrc01"
-export FASRCSW_MPIS="openmpi/4.1.0-fasrc01"
+export FASRCSW_MPIS="openmpi/4.1.1-fasrc01"
 #export FASRCSW_MPIS="openmpi/4.0.2-fasrc01 mvapich2/2.3.3-fasrc01"
 
 #the build host
