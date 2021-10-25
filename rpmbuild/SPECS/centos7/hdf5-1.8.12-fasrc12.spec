@@ -76,7 +76,8 @@ HDF5 is a data model, library, and file format for storing and managing data. It
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-
+%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
+%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 %define builddependencies zlib/1.2.8-fasrc07 szip/2.1-fasrc02
 %define rundependencies %{builddependencies}
