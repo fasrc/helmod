@@ -1,7 +1,7 @@
 #--- basic config -- adjust as needed
 
 #the location of production fasrcsw clone
-test -z "$FASRCSW_PROD" && export FASRCSW_PROD=/n/helmod
+test -z "$FASRCSW_PROD" && export FASRCSW_PROD=/n/sw/helmod-rocky8
 test -z "$FASRCSW_OS" && export FASRCSW_OS=rocky8
 
 #default compilers and mpi stacks
@@ -15,7 +15,7 @@ test -z "$FASRCSW_OS" && export FASRCSW_OS=rocky8
 #the build host
 export FASRCSW_BUILD_HOST_01=builds01
 if [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST_01" ] && [ "$(hostname -s)" != "$FASRCSW_BUILD_HOST_02" ]; then 
-	echo "WARNING: the current host is not the canonical build host, use builds or builds02." >&2
+	echo "WARNING: the current host is not the canonical build host for Rocky 8, use builds01." >&2
 fi
 
 #rpm packager credits
