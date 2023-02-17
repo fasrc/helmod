@@ -14,12 +14,6 @@
     FASRCSW_DEV
 %endif
 
-%define fasrcsw_os %{getenv:FASRCSW_OS}
-%if "%{fasrcsw_os}" == ""
-    %{error:FASRCSW_OS environment variable is not set}
-    FASRCSW_OS
-%endif
-
 #(needed for module function to work)
 %define _buildshell /bin/bash
 
@@ -40,27 +34,27 @@
 %if %{defined comp_name} && %{defined comp_version} && %{defined comp_release}
     %if %{defined mpi_name} && %{defined mpi_version} && %{defined mpi_release}
         %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
-            %define  release_full      %{release_short}_%{fasrcsw_os}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
             %define  hierarchy         CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}/%{cuda_name}/%{cuda_version}-%{cuda_release}
         %else
-            %define  release_full      %{release_short}_%{fasrcsw_os}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{mpi_name}_%{mpi_version}_%{mpi_release}
             %define  hierarchy         MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{mpi_name}/%{mpi_version}-%{mpi_release}
         %endif
     %else
         %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
-            %define  release_full      %{release_short}_%{fasrcsw_os}_%{comp_name}_%{comp_version}_%{comp_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}_%{cuda_name}_%{cuda_version}_%{cuda_release}
             %define  hierarchy         CUDA/%{comp_name}/%{comp_version}-%{comp_release}/%{cuda_name}/%{cuda_version}-%{cuda_release}
         %else 
-            %define  release_full      %{release_short}_%{fasrcsw_os}_%{comp_name}_%{comp_version}_%{comp_release}
+            %define  release_full      %{release_short}_%{comp_name}_%{comp_version}_%{comp_release}
             %define  hierarchy         Comp/%{comp_name}/%{comp_version}-%{comp_release}
         %endif 
     %endif
 %else
     %if %{defined cuda_name} && %{defined cuda_version} && %{defined cuda_release}
-        %define  release_full      %{release_short}_%{fasrcsw_os}_%{cuda_name}_%{cuda_version}_%{cuda_release}
+        %define  release_full      %{release_short}_%{cuda_name}_%{cuda_version}_%{cuda_release}
         %define  hierarchy         CUDA/%{cuda_name}/%{cuda_version}-%{cuda_release}
     %else 
-        %define  release_full      %{release_short}_%{fasrcsw_os}
+        %define  release_full      %{release_short}
         %define  hierarchy         Core
     %endif
 %endif
@@ -68,9 +62,9 @@
 
 #---
 
-%define apps_base        %{fasrcsw_root}/apps/%{fasrcsw_os}/%{hierarchy}
+%define apps_base        %{fasrcsw_root}/apps/%{hierarchy}
 
-%define modulefiles_base %{fasrcsw_root}/modulefiles/%{fasrcsw_os}/%{hierarchy}
+%define modulefiles_base %{fasrcsw_root}/modulefiles/%{hierarchy}
 %define modulefile_dir   %{modulefiles_base}/%{name}
 %define modulefile       %{modulefile_dir}/%{version}-%{release_short}.lua
 

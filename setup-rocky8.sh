@@ -2,7 +2,7 @@
 
 #the location of production fasrcsw clone
 test -z "$FASRCSW_PROD" && export FASRCSW_PROD=/n/sw/helmod-rocky8
-test -z "$FASRCSW_OS" && export FASRCSW_OS=rocky8
+test -z "$LMOD_PREFIX" && export LMOD_PREFIX=${FASRCSW_PROD}/apps/lmod
 
 #default compilers and mpi stacks
 #update these as versions increase.
