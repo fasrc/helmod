@@ -279,8 +279,8 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("MATLAB_HOME",                "/n/helmod/apps/centos7/Core/matlab/R2022b-fasrc01")
-prepend_path("PATH",                 "/n/helmod/apps/centos7/Core/matlab/R2022b-fasrc01/bin")
+setenv("MATLAB_HOME",                "/n/sw/helmod/apps/centos7/Core/matlab/R2022b-fasrc01")
+prepend_path("PATH",                 "/n/sw/helmod/apps/centos7/Core/matlab/R2022b-fasrc01/bin")
 setenv("MLM_LICENSE_FILE",           "27000@rclic1")
 setenv("ZIENA_LICENSE_NETWORK_ADDR", "10.242.113.134:8349")
 EOF
