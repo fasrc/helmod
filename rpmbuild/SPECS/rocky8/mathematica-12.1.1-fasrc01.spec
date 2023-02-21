@@ -215,7 +215,7 @@ end
 
 
 -- environment changes (uncomment what is relevant)
-prepend_path("PATH", "/n/sw/helmod/apps/centos7/Core/mathematica/Mathematica_%{version}")
+prepend_path("PATH", "/n/sw/helmod/apps/centos7/Core/mathematica/Mathematica_%{version}/Executables")
 EOF
 
 #------------------- App data file
