@@ -240,7 +240,7 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-# Fix for conda init issues. See: https://github.com/conda/conda/issues/11067
+---- Fix for conda init issues. See: https://github.com/conda/conda/issues/11067
 local root = pathJoin("/n/sw/Mambaforge-22.11.1-4")
 execute{cmd="source '"..pathJoin(root, "/etc/profile.d/conda."..myShellType()).."'", modeA={"load"}}
 
