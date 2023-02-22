@@ -248,7 +248,7 @@ execute{cmd="source '"..pathJoin(root, "/etc/profile.d/conda."..myShellType())..
 setenv("PYTHON_HOME",               "/n/sw/Mambaforge-22.11.1-4/")
 setenv("PYTHON_INCLUDE",            "/n/sw/Mambaforge-22.11.1-4/include")
 setenv("PYTHON_LIB",                "/n/sw/Mambaforge-22.11.1-4/lib")
-setenv("PIP_NO_CACHE_DIR"           "off")
+setenv("PIP_NO_CACHE_DIR",           "off")
 prepend_path("PATH",                "/n/sw/Mambaforge-22.11.1-4/bin")
 EOF
 
