@@ -279,10 +279,6 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("R_HOME",       "%{_prefix}")
-setenv("R_LIB",        "%{_prefix}/lib64")
-setenv("R_INCLUDE",    "%{_prefix}/lib64/R/include")
-
 prepend_path("PATH",               "%{_prefix}/lib64/R/bin")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/lib64/R/include")
