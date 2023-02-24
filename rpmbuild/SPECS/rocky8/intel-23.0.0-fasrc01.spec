@@ -255,10 +255,11 @@ setenv("TBB_HOME",                  "/n/sw/intel-oneapi-2023/tbb/2023.0.0")
 
 ---- The Intel compiler is a wrapper around GCC. This puts the latest gcc in the path
 prepend_path("PATH",                "/n/sw/helmod-rocky8/apps/Core/gcc/12.2.0-fasrc01/bin")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/helmod-rocky8/apps/Core/gcc/12.2.0-fasrc01/lib64")
+prepend_path("LIBRARY_PATH",        "/n/sw/helmod-rocky8/apps/Core/gcc/12.2.0-fasrc01/lib64")
 
 prepend_path("PATH",                "/n/sw/intel-oneapi-2023/compiler/2023.0.0/linux/bin")
 prepend_path("PATH",                "/n/sw/intel-oneapi-2023/compiler/2023.0.0/linux/bin/intel64")
-
 prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-oneapi-2023/compiler/2023.0.0/linux/lib")
 prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-oneapi-2023/compiler/2023.0.0/linux/compiler/lib/intel64")
 prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-oneapi-2023/mkl/2023.0.0/lib/intel64")
