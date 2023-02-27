@@ -207,28 +207,6 @@ prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/cuda//lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/cuda//lib64")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/cuda//extras/CUPTI/lib64")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/cuda//extras/CUPTI/lib64")
-
-#local mroot = os.getenv("MODULEPATH_ROOT")
-#local cudadir = pathJoin(mroot, "CUDA")
-#local cudapath = pathJoin("%{name}","%{version}-%{release_short}")
-#local mdir = pathJoin(cudadir,cudapath)
-#local comppath = ''
-#prepend_path("MODULEPATH",mdir)
-#if os.getenv("FASRCSW_COMP_NAME") ~= nil then
-#    comppath = pathJoin(os.getenv("FASRCSW_COMP_NAME"),os.getenv("FASRCSW_COMP_VERSION") .. '-' .. os.getenv("FASRCSW_COMP_RELEASE"))
-#    mdir = pathJoin(cudadir, comppath, cudapath)
-#    prepend_path("MODULEPATH",mdir)
-#end
-#if os.getenv("FASRCSW_MPI_NAME") ~= nil then
-#    mpipath = pathJoin(os.getenv("FASRCSW_MPI_NAME"),os.getenv("FASRCSW_MPI_VERSION") .. '-' .. os.getenv("FASRCSW_MPI_RELEASE"))
-#    mdir = pathJoin(cudadir, comppath, mpipath, cudapath)
-#    prepend_path("MODULEPATH",mdir)
-#end
-#setenv("FASRCSW_CUDA_NAME"   , "%{name}")
-#setenv("FASRCSW_CUDA_VERSION", "%{version}")
-#setenv("FASRCSW_CUDA_RELEASE", "%{release_short}")
-#family("CUDA")
-
 EOF
 
 #------------------- App data file
