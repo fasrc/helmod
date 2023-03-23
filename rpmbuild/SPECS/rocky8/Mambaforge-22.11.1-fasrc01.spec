@@ -243,13 +243,14 @@ end
 ---- Fix for conda init issues. See: https://github.com/conda/conda/issues/11067
 local root = pathJoin("/n/sw/Mambaforge-22.11.1-4")
 execute{cmd="source '"..pathJoin(root, "/etc/profile.d/conda."..myShellType()).."'", modeA={"load"}}
+execute{cmd="source '"..pathJoin(root, "/etc/profile.d/mamba."..myShellType()).."'", modeA={"load"}}
 
 ---- environment changes (uncomment what is relevant)
 setenv("PYTHON_HOME",               "/n/sw/Mambaforge-22.11.1-4/")
 setenv("PYTHON_INCLUDE",            "/n/sw/Mambaforge-22.11.1-4/include")
 setenv("PYTHON_LIB",                "/n/sw/Mambaforge-22.11.1-4/lib")
 setenv("PIP_NO_CACHE_DIR",           "off")
-setenv("MAMBA_DISABLE_LOCKFILE",     "TRUE")
+setenv("MAMBA_DISABLE_LOCKFILE",     "1")
 prepend_path("PATH",                "/n/sw/Mambaforge-22.11.1-4/bin")
 EOF
 
