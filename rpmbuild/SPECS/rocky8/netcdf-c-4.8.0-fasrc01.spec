@@ -156,7 +156,8 @@ test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
     --enable-netcdf-4 \
-    --with-temp-large=/scratch
+    --with-temp-large=/scratch \
+    --disable-parallel4
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
