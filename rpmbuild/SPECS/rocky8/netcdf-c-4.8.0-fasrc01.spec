@@ -161,7 +161,7 @@ test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make #%{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 
