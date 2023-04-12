@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static The NCO toolkit manipulates and analyzes data stored in netCDF-accessible formats, including DAP, HDF4, and HDF5 
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/nco/nco/archive/5.1.5.tar.gz
+URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.9.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -54,15 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-The NCO toolkit manipulates and analyzes data stored in netCDF-accessible formats, including DAP, HDF4, and HDF5. It exploits the geophysical expressivity of many CF (Climate & Forecast) metadata conventions, the flexible description of physical dimensions translated by UDUnits, the network transparency of OPeNDAP, the storage features (e.g., compression, chunking, groups) of HDF (the Hierarchical Data Format), and many powerful mathematical and statistical algorithms of GSL (the GNU Scientific Library).
 
 #
 # Macros for setting app data 
@@ -82,8 +73,7 @@ The NCO toolkit manipulates and analyzes data stored in netCDF-accessible format
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies netcdf-c/4.8.1-fasrc01
+%define builddependencies hdf5/1.14.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -92,9 +82,19 @@ The NCO toolkit manipulates and analyzes data stored in netCDF-accessible format
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:I/O
+%define apptags %{nil} 
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -139,7 +139,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export CPATH=/usr/include/udunits2:$CPATH
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
+
+export CPPFLAGS=-I${HDF5_INCLUDE}
+export LDFLAGS=-L${HDF5_LIB}
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -154,11 +157,13 @@ export CPATH=/usr/include/udunits2:$CPATH
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+	--infodir=%{_prefix}/share/info \
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make #%{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 
@@ -262,6 +267,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -281,16 +287,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NCO_HOME",                 "%{_prefix}")
-setenv("NCO_INCLUDE",              "%{_prefix}/include")
-setenv("NCO_LIB",                  "%{_prefix}/lib64")
+setenv("NETCDF_HOME",              "%{_prefix}")
+setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_LIB",               "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("INFOPATH",           "%{_prefix}/share/info")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -298,7 +304,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
