@@ -159,8 +159,7 @@ export LDFLAGS=-L${HDF5_LIB}
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
     --enable-netcdf-4 \
-    --with-temp-large=/scratch \
-    --disable-parallel4
+    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
