@@ -141,9 +141,6 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
 
-export CPPFLAGS=-I${HDF5_INCLUDE}
-export LDFLAGS=-L${HDF5_LIB}
-
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \

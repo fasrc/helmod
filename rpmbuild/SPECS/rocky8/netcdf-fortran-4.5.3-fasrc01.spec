@@ -144,9 +144,6 @@ export F77=mpif77
 export CC=mpicc
 export CXX=mpicxx
 
-#export CFLAGS=$(nc-config --cflags)
-#export LDFLAGS=$(nc-config --libs --static)
-
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -162,7 +159,6 @@ export CXX=mpicxx
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
     --with-temp-large=/scratch
-    --disabled-shared
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
