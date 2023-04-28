@@ -153,11 +153,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+	--infodir=%{_prefix}/share/info \
+        --enable-R-shlib
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
+make %{?_smp_mflags}
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
