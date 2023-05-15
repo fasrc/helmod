@@ -3,7 +3,7 @@ __cd__ to your personal *HeLmod* clone (on the canonical build host, as you, not
 ``` bash
 git pull
 module purge
-source ./setup.sh
+source ./setup-rocky8.sh
 ```
 
 __download__ the source archive to `"$FASRCSW_DEV"/rpmbuild/SOURCES`

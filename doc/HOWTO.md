@@ -33,7 +33,7 @@ Make sure your clone is up-to-date and your environment is pristine, and setup t
 ``` bash
 git pull
 module purge
-source ./setup.sh
+source ./setup-rocky8.sh
 ```
 
 There will now be two environment variables defined that are used in the instructions below --
