@@ -37,9 +37,8 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: https://nmr.cit.nih.gov/xplor-nih/packages/xplor-nih-3.7.0.1-Linux_x86_64.tar.gz
-#URL database: https://nmr.cit.nih.gov/xplor-nih/packages/xplor-nih-3.7.0.1-db.tar.gz
-#Source: %{name}-%{version}.tar.gz
+#URL: http://...FIXME...
+#Source: %{name}-%{version}*.tar.gz
 
 #
 # there should be no need to change the following
@@ -108,8 +107,13 @@ XPLOR-NIH is a structure determination program which builds on the X-PLOR progra
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
-# Unpack program file first and database second.
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD
+rm -rf %{name}_%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-Linux_x86_64.tar.gz
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -163,8 +167,12 @@ XPLOR-NIH is a structure determination program which builds on the X-PLOR progra
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-mkdir -p %{buildroot}/%{_prefix}
 
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+cp -r * %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -253,9 +261,31 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("XPLOR_NIH_HOME",       "/n/sw/xplor-nih/rocky8/xplor-nih-3.7.0.1")
-
-prepend_path("PATH",                "/n/sw/xplor-nih/rocky8/xplor-nih-3.7.0.1/bin")
+prepend_path("XPLOR_NIH_HOME",     "%{_prefix}")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/core/include")
+prepend_path("CPATH",              "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/docutils/parsers/rst/include")
+prepend_path("CPATH",              "%{_prefix}/python/bin.Linux_x86_64/include")
+prepend_path("FPATH",              "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/core/include")
+prepend_path("FPATH",              "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/docutils/parsers/rst/include")
+prepend_path("FPATH",              "%{_prefix}/python/bin.Linux_x86_64/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/random/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/core/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/codemirror/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/marked/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/text-encoding/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/IPython/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/random/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/numpy/core/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/codemirror/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/marked/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/notebook/static/components/text-encoding/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages/IPython/lib")
+prepend_path("PYTHONPATH",         "%{_prefix}/python/bin.Linux_x86_64/lib/python3.9/site-packages")
 EOF
 
 #------------------- App data file

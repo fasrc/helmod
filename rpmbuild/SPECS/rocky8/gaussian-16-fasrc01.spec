@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -11,11 +11,11 @@ Name: %{getenv:NAME}
 Version: %{getenv:VERSION}
 
 #
-# enter the release; start with fasrc01 (or some other convention for your 
+# enter the release; start with fasrc01 (or some other convention for your
 # organization) and increment in subsequent releases
 #
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp
+# and MPI apps, it will include the name/version/release of the apps used to
 # build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
@@ -26,19 +26,18 @@ Version: %{getenv:VERSION}
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo
+# rpm gets created, so this stores it separately for later re-use); do not
 # surround this string with quotes
 #
-%define summary_static XPLOR-NIH
+%define summary_static Gaussian, a computational chemistry software program
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
+# enter the url from where you got the source; change the archive suffix if
 # applicable
 #
-#URL: https://nmr.cit.nih.gov/xplor-nih/packages/xplor-nih-3.7.0.1-Linux_x86_64.tar.gz
-#URL database: https://nmr.cit.nih.gov/xplor-nih/packages/xplor-nih-3.7.0.1-db.tar.gz
+#URL: http://...FIXME...
 #Source: %{name}-%{version}.tar.gz
 
 #
@@ -55,9 +54,8 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
 #
-# Macros for setting app data 
+# Macros for setting app data
 # The first set can probably be left as is
 # the nil construct should be used for empty values
 #
@@ -76,26 +74,24 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments This build is specifically tuned for older Intel "Nehalem" chips
 %define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags %{nil}
 %define apppublication %{nil}
 
 
-
 #
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# enter a description, often a paragraph; unless you prefix lines with spaces,
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-XPLOR-NIH is a structure determination program which builds on the X-PLOR program, including additional tools developed at the NIH.
+Gaussian, a computational chemistry software program.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -103,13 +99,9 @@ XPLOR-NIH is a structure determination program which builds on the X-PLOR progra
 
 
 #
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
+# unpack the sources here.  The default below is for standard, GNU-toolchain
 # style things -- hopefully it'll just work as-is.
 #
-# Unpack program file first and database second.
-
 
 
 
@@ -122,19 +114,9 @@ XPLOR-NIH is a structure determination program which builds on the X-PLOR progra
 
 
 #
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
+# configure and make the software here.  The default below is for standard
 # GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
+#
 
 
 
@@ -146,47 +128,21 @@ XPLOR-NIH is a structure determination program which builds on the X-PLOR progra
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-mkdir -p %{buildroot}/%{_prefix}
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
 %if %{defined trial}
 	set +x
-	
+
 	echo
 	echo
 	echo "*************** fasrcsw -- STOPPING due to %%define trial yes ******************"
-	echo 
+	echo
 	echo "Look at the tree output below to decide how to finish off the spec file.  (\`Bad"
 	echo "exit status' is expected in this case, it's just a way to stop NOW.)"
 	echo
 	echo
-	
+
 	tree '%{buildroot}/%{_prefix}'
 
 	echo
@@ -202,25 +158,25 @@ done
 	echo "******************************************************************************"
 	echo
 	echo
-	
+
 	#make the build stop
 	false
 
 	set -x
 %endif
 
-# 
+#
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
+# This is the part that builds the modulefile.  However, stop now and run
 # `make trial'.  The output from that will suggest what to add below.
 #
 # - uncomment any applicable prepend_path things (`--' is a comment in lua)
 #
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
+# - do any other customizing of the module, e.g. load dependencies -- make sure
 #   any dependency loading is in sync with the %%build section above!
 #
-# - in the help message, link to website docs rather than write anything 
+# - in the help message, link to website docs rather than write anything
 #   lengthy here
 #
 # references on writing modules:
@@ -229,11 +185,11 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -242,20 +198,21 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
-
----- environment changes (uncomment what is relevant)
-setenv("XPLOR_NIH_HOME",       "/n/sw/xplor-nih/rocky8/xplor-nih-3.7.0.1")
-
-prepend_path("PATH",                "/n/sw/xplor-nih/rocky8/xplor-nih-3.7.0.1/bin")
+-- environment changes (uncomment what is relevant)
+setenv("groot",                      "/n/sw/g16_nehalem")
+setenv("GAUSS_ARCHDIR",              "/n/sw/g16_nehalem/g16/arch")
+setenv("G09BASIS",                   "/n/sw/g16_nehalem/g16/basis")
+setenv("GAUSS_SCRDIR",               "/scratch")
+setenv("GAUSS_EXEDIR",               "/n/sw/g16_nehalem/g16/bsd:/n/sw/g16_nehalem/g16/local:/n/sw/g16_nehalem/g16/extras:/n/sw/g16_nehalem/g16")
+setenv("GAUSS_LEXEDIR",              "/n/sw/g16_nehalem/g16/linda-exe")
+prepend_path("PATH",                  "/n/sw/g16_nehalem/g16/bsd:/n/sw/g16_nehalem/g16/local:/n/sw/g16_nehalem/g16/extras:/n/sw/g16_nehalem/g16")
+prepend_path("PATH",                  "/n/sw/g16_nehalem/nbo6_x64_64/nbo6/bin")
 EOF
 
 #------------------- App data file
@@ -281,6 +238,7 @@ requestref          : %{requestref}
 EOF
 
 
+
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -296,9 +254,9 @@ EOF
 
 %pre
 #
-# everything in fasrcsw is installed in an app hierarchy in which some 
-# components may need creating, but no single rpm should own them, since parts 
-# are shared; only do this if it looks like an app-specific prefix is indeed 
+# everything in fasrcsw is installed in an app hierarchy in which some
+# components may need creating, but no single rpm should own them, since parts
+# are shared; only do this if it looks like an app-specific prefix is indeed
 # being used (that's the fasrcsw default)
 #
 echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
@@ -306,9 +264,9 @@ echo '%{_prefix}' | grep -q '%{name}.%{version}' && mkdir -p '%{_prefix}'
 
 %post
 #
-# symlink to the modulefile installed along with the app; we want all rpms to 
-# be relocatable, hence why this is not a proper %%file; as with the app itself, 
-# modulefiles are in an app hierarchy in which some components may need 
+# symlink to the modulefile installed along with the app; we want all rpms to
+# be relocatable, hence why this is not a proper %%file; as with the app itself,
+# modulefiles are in an app hierarchy in which some components may need
 # creating
 #
 mkdir -p %{modulefile_dir}
@@ -318,9 +276,9 @@ ln -s %{_prefix}/modulefile.lua %{modulefile}
 
 %preun
 #
-# undo the module file symlink done in the %%post; do not rmdir 
-# %%{modulefile_dir}, though, since that is shared by multiple apps (yes, 
-# orphans will be left over after the last package in the app family 
+# undo the module file symlink done in the %%post; do not rmdir
+# %%{modulefile_dir}, though, since that is shared by multiple apps (yes,
+# orphans will be left over after the last package in the app family
 # is removed)
 #
 test -L '%{modulefile}' && rm '%{modulefile}'
@@ -328,9 +286,9 @@ test -L '%{modulefile}' && rm '%{modulefile}'
 
 %postun
 #
-# undo the last component of the mkdir done in the %%pre (yes, orphans will be 
-# left over after the last package in the app family is removed); also put a 
-# little protection so this does not cause problems if a non-default prefix 
+# undo the last component of the mkdir done in the %%pre (yes, orphans will be
+# left over after the last package in the app family is removed); also put a
+# little protection so this does not cause problems if a non-default prefix
 # (e.g. one shared with other packages) is used
 #
 test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdir '%{_prefix}'
@@ -339,7 +297,7 @@ test -d '%{_prefix}' && echo '%{_prefix}' | grep -q '%{name}.%{version}' && rmdi
 
 %clean
 #
-# wipe out the buildroot, but put some protection to make sure it isn't 
+# wipe out the buildroot, but put some protection to make sure it isn't
 # accidentally / or something -- we always have "rpmbuild" in the name
 #
 echo '%{buildroot}' | grep -q 'rpmbuild' && rm -rf '%{buildroot}'
