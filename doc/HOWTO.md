@@ -248,3 +248,7 @@ For completeness, as root, pull them to the production clone:
 cd "$FASRCSW_PROD"
 sudo git pull
 ```
+
+## Publish module in RC docs
+
+Add the newly built module in our [docs page](https://docs.rc.fas.harvard.edu/kb/all-modules/). 

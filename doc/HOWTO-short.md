@@ -52,3 +52,5 @@ __commit/post__ your updates (this adds/commits/pushes/rsyncs *all* local conten
 ``` bash
 make post
 ```
+
+__publish__ new module to [docs page](https://docs.rc.fas.harvard.edu/kb/all-modules/)

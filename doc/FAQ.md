@@ -160,7 +160,8 @@ Since the fasrcsw system is designed to build apps against *all* relevant combin
 
 ### How do I configure the default sets of compiler and MPI implementations used to build apps?
 
-The arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup.sh` define these.
+The arrays `FASRCSW_COMPS` and `FASRCSW_MPIS` in `setup-rocky8.sh` define these -- you can uncomment/comment out what you like to have.
+
 Note that since these are arrays, a simple `echo $FASRCSW_COMPS` is misleading (it only prints the first), and, like all bash arrays, they cannot be exported to subshells.
 
 
