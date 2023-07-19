@@ -1,5 +1,8 @@
+# MODULE_FILE_ONLY
+
+
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,7 +33,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static KNITRO ver. 13.2.0, KNITRO is a solver for nonlinear optimization.
+%define summary_static Mathematica is a computational software program used in many scientific, engineering, mathematical and computing fields, based on symbolic mathematics
 Summary: %{summary_static}
 
 #
@@ -53,7 +56,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -91,10 +93,11 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-KNITRO ver. 13.2.0, KNITRO is a solver for nonlinear optimization.
+Almost any workflow involves computing results, and that's what Mathematica does -- from building a hedge-fund trading website or publishing interactive engineering textbooks, to developing embedded image-recognition algorithms or teaching calculus.
+Mathematica is renowned as the world's ultimate application for computations. But it's much more -- it's the only development platform fully integrating computation into complete workflows, moving you seamlessly from initial ideas all the way to deployed individual or enterprise solutions.
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -102,18 +105,9 @@ KNITRO ver. 13.2.0, KNITRO is a solver for nonlinear optimization.
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
-
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-#rm -rf %{name}-%{version}
-#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-#cd %{name}-%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -126,38 +120,9 @@ KNITRO ver. 13.2.0, KNITRO is a solver for nonlinear optimization.
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
 
 
 
@@ -169,36 +134,6 @@ KNITRO ver. 13.2.0, KNITRO is a solver for nonlinear optimization.
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -261,7 +196,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -280,16 +214,8 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 
----- environment changes (uncomment what is relevant)
-setenv("ZIENA_LICENSE_NETWORK_ADDR", "10.242.113.134:8349")
-setenv("KNDIR",                      "/n/sw/knitro-rocky8-13.2.0-Linux-64")
-prepend_path("CPATH",                "/n/sw/knitro-rocky8-13.2.0-Linux-64/include")
-prepend_path("FPATH",                "/n/sw/knitro-rocky8-13.2.0-Linux-64/include")
-prepend_path("LIBRARY_PATH",         "/n/sw/knitro-rocky8-13.2.0-Linux-64/lib")
-prepend_path("LD_LIBRARY_PATH",      "/n/sw/knitro-rocky8-13.2.0-Linux-64/lib")
-prepend_path("PATH",                 "/n/sw/knitro-rocky8-13.2.0-Linux-64/knitroampl")
-prepend_path("MATLABPATH",           "/n/sw/knitro-rocky8-13.2.0-Linux-64/knitromatlab")
-prepend_path("PYTHONPATH",           "/n/sw/knitro-rocky8-13.2.0-Linux-64/lib/python3.10/site-packages")
+-- environment changes (uncomment what is relevant)
+prepend_path("PATH", "/n/sw/helmod/apps/centos7/Core/mathematica/Mathematica_%{version}/Executables")
 EOF
 
 #------------------- App data file
@@ -315,6 +241,7 @@ requestref          : %{requestref}
 EOF
 
 
+
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
@@ -322,6 +249,8 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+
+
 
 #------------------- scripts (there should be no need to change these) --------
 
