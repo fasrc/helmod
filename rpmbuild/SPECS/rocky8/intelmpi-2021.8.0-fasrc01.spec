@@ -234,6 +234,9 @@ prepend_path("LD_LIBRARY_PATH",    "/n/sw/intel-oneapi-2023/mpi/2021.8.0/lib/rel
 prepend_path("LIBRARY_PATH",       "/n/sw/intel-oneapi-2023/mpi/2021.8.0/lib/release")
 prepend_path("MANPATH",            "/n/sw/intel-oneapi-2023/mpi/2021.8.0/man")
 
+setenv("I_MPI_PMI_LIBRARY", "/usr/lib64/libpmi2.so")
+source_sh("bash", "/n/sw/intel-oneapi-2023/mpi/2021.8.0/env/vars.sh")
+
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
 prepend_path("MODULEPATH", mdir)
