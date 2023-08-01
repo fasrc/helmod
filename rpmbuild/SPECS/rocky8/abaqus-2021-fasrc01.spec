@@ -247,6 +247,7 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("ABAQUS_HOME",       "/n/sw/abaqus-2021")
+setenv("LANG",              "en_US")
 prepend_path("PATH",        "/n/sw/abaqus-2021/Commands")
 prepend_path("PATH",        "/n/sw/abaqus-2021/linux_a64/code/bin")
 prepend_path("PATH",        "/n/sw/abaqus-2021/linux_a64/code/command")
