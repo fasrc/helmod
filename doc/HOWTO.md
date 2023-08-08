@@ -101,7 +101,18 @@ Now edit the spec file:
 $EDITOR "$NAME-$VERSION-$RELEASE".spec
 ```
 
-and find and address all the appearances of `FIXME`.
+Add this line as the first line of your `.spec` (if it's already there, then you
+don't need to do anything)
+
+```
+%define _build_id_links none
+```
+
+If you copied a `.spec` file from a different app, edit:
+- `URL`
+- `description`
+
+Find and address all the appearances of `FIXME`.
 For example, there are sections where `./configure`, `make`, and `make install` called; adjust them if necessary.
 For GNU-toolchain-style software, including amhello, the template code works as-is.
 Just complete everything up to where `modulefile.lua` is created (the part where you need to know what environment variables to change).
