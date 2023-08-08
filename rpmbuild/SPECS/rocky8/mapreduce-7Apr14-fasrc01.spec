@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static an open-source implementation of MapReduce written for distributed-memory parallel machines
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
+URL: https://sjplimp.github.io//tars/mapreduce.tar.gz
+#submit download form, get mrmpi.tar.gz, re-tar to match dirname (mrmpi-7Apr14.tar.gz)
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -54,7 +55,13 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-%define _build_id_links none
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+MapReduce-MPI (MR-MPI) is an open-source implementation of MapReduce written for distributed-memory parallel machines on top of standard MPI message passing.
 
 #
 # Macros for setting app data 
@@ -70,8 +77,6 @@ Prefix: %{_prefix}
 %define builddate %(date)
 %define buildhost %(hostname)
 %define buildhostversion 1
-%define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
-%define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
 %define builddependencies %{nil}
@@ -83,18 +88,9 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Utility
 %define apppublication %{nil}
 
-
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -115,6 +111,28 @@ rm -rf %{name}-%{version}
 tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
+
+cat <<EOF | patch -p1
+diff -rupN a/src/mapreduce.cpp b/src/mapreduce.cpp
+--- a/src/mapreduce.cpp 2014-04-07 20:04:20.000000000 -0400
++++ b/src/mapreduce.cpp 2014-05-19 17:34:06.000000000 -0400
+@@ -2730,6 +2730,7 @@ void MapReduce::findfiles(char *str, int
+   char newstr[MAXLINE];
+ 
+   err = stat(str,&buf);
++  err = lstat(str,&buf);
+   if (err) {
+     char msg[256];
+     sprintf(msg,"Could not query status of file %s in map",str);
+@@ -2753,6 +2754,7 @@ void MapReduce::findfiles(char *str, int
+        findfiles(newstr,recurse,readflag,nfile,maxfile,files);
+     }
+     closedir(dp);
++  } else if (S_ISLNK(buf.st_mode)) {
+   } else {
+     char msg[256];
+     sprintf(msg,"Invalid filename %s in map",str);
+EOF
 
 
 
@@ -140,25 +158,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
+cd src
+make mpicc
 
 
 
@@ -191,7 +192,13 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+
+cd src
+mkdir -p %{buildroot}/%{_prefix}/lib
+mkdir -p %{buildroot}/%{_prefix}/include
+cp -a libmrmpi_mpicc.a %{buildroot}/%{_prefix}/lib/
+ln -s libmrmpi_mpicc.a %{buildroot}/%{_prefix}/lib/libmrmpi.a
+cp -a *.h %{buildroot}/%{_prefix}/include
 
 
 #(this should not need to be changed)
@@ -262,7 +269,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -271,40 +277,25 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
-
----- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+-- environment changes (uncomment what is relevant)
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
+---
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -321,6 +312,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

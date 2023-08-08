@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
+URL: https://www.sqlite.org/2023/sqlite-autoconf-3420000.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -54,7 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -76,7 +75,7 @@ Prefix: %{_prefix}
 
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built for CentOS 7
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -95,7 +94,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-
+SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -141,7 +140,7 @@ umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 
-./configure --prefix=%{_prefix} \
+CFLAGS="-DSQLITE_ENABLE_COLUMN_METADATA=1" ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
 	--bindir=%{_prefix}/bin \
@@ -158,8 +157,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make
-
+make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -282,22 +280,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("SQLITE_HOME",              "%{_prefix}")
+setenv("SQLITE_LIB",               "%{_prefix}/lib64")
+setenv("SQLITE_INCLUDE",           "%{_prefix}/include")
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file

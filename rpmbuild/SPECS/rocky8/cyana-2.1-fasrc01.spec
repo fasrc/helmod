@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static Cyana v2.1
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
-#
-URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://www.cyana.org/wiki/index.php/Tutorials
+Source: %{name}-%{version}-%{release_short}.tar.gz
 
 #
 # there should be no need to change the following
@@ -53,8 +52,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
-%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -74,10 +71,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies mpfr/4.2.0-fasrc01 intel/23.0.0-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
-%define requestor %{nil}
+%define buildcomments Added a patch needed to support /tmp and output on different file systems
+%define requestor Victoria D'Souza <dsouza@mcb.harvard.edu>
 %define requestref %{nil}
 
 # apptags
@@ -92,10 +89,11 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
+CYANA (© by Peter Güntert) is a program for automated structure calculation of biological macromolecules on the basis of conformational constraints from NMR. The combination of automated NOESY cross peak assignment, structure calculation with a fast torsion angle dynamics algorithm, and the ease-of-use of CYANA provide for unprecedented efficiency in NMR protein structure determination.
 
+# This build is completely by hand and specific to the version of Intel compilers and OpenMPI.
+# The source used is in the directory that is built. The base Makefile has been hacked to not ask questions in the "install" and assumes that BINDIR LIBDIR are defined
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,12 +110,7 @@ Prefix: %{_prefix}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
-
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-%{release_short}.tar.gz
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -125,42 +118,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make
-
-
+make config
+make 
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -168,6 +128,7 @@ make
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
 
 
 #
@@ -189,10 +150,15 @@ make
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+export BINDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin
+export LIBDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
+make install
+sudo chgrp -R dsouza_lab "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
+
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
+cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
+chmod -Rf u+rwX,g+rX,o-rwx %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -262,7 +228,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -282,22 +247,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("CYANA_HOME",                 "%{_prefix}")
+setenv("CYANA_LIBS",                 "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}")
 EOF
 
 #------------------- App data file
@@ -323,11 +275,13 @@ requestref          : %{requestref}
 EOF
 
 
+
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
 
-%defattr(-,root,root,-)
+# This software is licensed only to dsouza_lab
+%defattr(-,root,dsouza_lab,-)
 
 %{_prefix}/*
 

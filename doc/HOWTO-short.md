@@ -24,7 +24,7 @@ cd "$FASRCSW_DEV"/rpmbuild/SPECS
 cp -ai template.spec "$NAME-$VERSION-$RELEASE".spec
 ```
 
-__edit__ the spec file and __address__ each `FIXME` up until the modulefile.lua creation (i.e. adjust the `./configure`/`make`/`make install` snippets if necessary)
+__edit__ the spec file, __add__ `%define _build_id_links none` as the first line, and __address__ each `FIXME` up until the modulefile.lua creation (i.e. adjust the `./configure`/`make`/`make install` snippets if necessary)
 
 do a __trial build__:
 
@@ -52,3 +52,5 @@ __commit/post__ your updates (this adds/commits/pushes/rsyncs *all* local conten
 ``` bash
 make post
 ```
+
+__publish__ new module to [docs page](https://docs.rc.fas.harvard.edu/kb/all-modules/)
