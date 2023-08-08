@@ -7,7 +7,7 @@ test -z "$LMOD_PREFIX" && export LMOD_PREFIX=${FASRCSW_PROD}/apps/lmod
 #default compilers and mpi stacks
 #update these as versions increase.
 #this assumes each FASRCSW_MPIS has been built with each FASRCSW_COMPS
-export FASRCSW_COMPS="intel/23.0.0-fasrc01 gcc/12.2.0-fasrc01"
+export FASRCSW_COMPS="gcc/12.2.0-fasrc01"
 export FASRCSW_MPIS="openmpi/4.1.4-fasrc01"
 
 #export FASRCSW_COMPS="intel/23.0.0-fasrc01"
