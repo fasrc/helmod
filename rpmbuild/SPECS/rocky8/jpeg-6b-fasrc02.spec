@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static ...FIXME...
+%define summary_static The JPEG library
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: http://...FIXME...
-Source: %{name}-%{version}.tar.gz
+URL: http://www.ijg.org/files/jpegsr6b.zip
+Source: %{name}sr%{version}.zip
 
 #
 # there should be no need to change the following
@@ -54,7 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -74,16 +73,17 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
-%define requestor %{nil}
-%define requestref %{nil}
+%define requestor Katie Dagon <kdagon@fas.harvard.edu>
+%define requestref RCRT:82208
 
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
 %define apppublication %{nil}
 
 
@@ -95,7 +95,8 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-
+Build notes: %{buildcomments}
+Linux library for the manipulation of files in the JPEG format.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -112,10 +113,10 @@ Prefix: %{_prefix}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}sr%{version}.zip
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-
+dos2unix *
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -140,6 +141,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# Need a fresh config.sub
+wget "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -O config.sub
+
+export CC="icc -fPIC"
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -154,12 +159,12 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--localstatedir=%{_prefix}/var \
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info
+	--infodir=%{_prefix}/share/info \
+    --enable-shared --enable-static
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make
-
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -190,8 +195,15 @@ make
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/include 
+mkdir -p %{buildroot}/%{_prefix}/lib
+mkdir -p %{buildroot}/%{_prefix}/man/man1
+
+cp cjpeg djpeg jpegtran rdjpgcom wrjpgcom %{buildroot}/%{_prefix}/bin
+cp cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1 %{buildroot}/%{_prefix}/man/man1
+cp *.h %{buildroot}/%{_prefix}/include
+./libtool --mode=install /usr/bin/install -c libjpeg.la %{buildroot}/%{_prefix}/lib/libjpeg.la
 
 
 #(this should not need to be changed)
@@ -262,7 +274,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -282,22 +293,15 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
---setenv("TEMPLATE_HOME",       "%{_prefix}")
-
---prepend_path("PATH",                "%{_prefix}/bin")
---prepend_path("CPATH",               "%{_prefix}/include")
---prepend_path("FPATH",               "%{_prefix}/include")
---prepend_path("INFOPATH",            "%{_prefix}/info")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
---prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib64")
---prepend_path("LIBRARY_PATH",        "%{_prefix}/lib64")
---prepend_path("MANPATH",             "%{_prefix}/man")
---prepend_path("PKG_CONFIG_PATH",     "%{_prefix}/pkgconfig")
---prepend_path("PATH",                "%{_prefix}/sbin")
---prepend_path("INFOPATH",            "%{_prefix}/share/info")
---prepend_path("MANPATH",             "%{_prefix}/share/man")
---prepend_path("PYTHONPATH",          "%{_prefix}/site-packages")
+setenv("JPEG_HOME",                   "%{_prefix}")
+setenv("JPEG_INCLUDE",                "%{_prefix}/include")
+setenv("JPEG_LIB",                    "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("MANPATH",             "%{_prefix}/man")
 EOF
 
 #------------------- App data file
@@ -305,6 +309,7 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
+module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
