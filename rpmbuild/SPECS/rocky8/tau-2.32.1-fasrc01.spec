@@ -1,3 +1,10 @@
+%define _build_id_links none
+# The spec involves the hack that allows the app to write directly to the 
+# production location.  The following allows the production location path to be 
+# used in files that the rpm builds.
+%define __arch_install_post %{nil}
+%define _unpackaged_files_terminate_build 0
+#%define _missing_doc_files_terminate_build 0
 #------------------- package info ----------------------------------------------
 #
 #
@@ -30,15 +37,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static SageMath is a free open-source mathematics software system licensed under the GPL. It builds on top of many existing open-source packages: NumPy, SciPy, matplotlib, Sympy, Maxima, GAP, FLINT, R and many more. Access their combined power through a common, Python-based language or directly via interfaces or wrappers.
+%define summary_static TAU Performance System is a portable profiling and tracing toolkit for performance analysis of parallel programs written in Fortran, C, C++, UPC, Java, Python.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-#URL: http://...FIXME...
-#Source: %{name}-%{version}.tar.gz
+URL: https://www.cs.uoregon.edu/research/tau/tau_releases/tau-2.32.1.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -73,7 +80,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies pdtoolkit/3.25.1-fasrc01 jdk/20.0.1-fasrc01 python/3.10.9-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -82,7 +89,7 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Profiling
 %define apppublication %{nil}
 
 
@@ -94,7 +101,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-SageMath is a free open-source mathematics software system licensed under the GPL. It builds on top of many existing open-source packages: NumPy, SciPy, matplotlib, Sympy, Maxima, GAP, FLINT, R and many more. Access their combined power through a common, Python-based language or directly via interfaces or wrappers.
+TAU Performance System is a portable profiling and tracing toolkit for performance analysis of parallel programs written in Fortran, C, C++, UPC, Java, Python.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -108,12 +115,12 @@ SageMath is a free open-source mathematics software system licensed under the GP
 # style things -- hopefully it'll just work as-is.
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-#rm -rf %{name}-%{version}
-#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-#cd %{name}-%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -139,21 +146,20 @@ SageMath is a free open-source mathematics software system licensed under the GP
 #umask 022
 #cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+    
+#./configure -c++=mpicxx                  \
+#            -cc=mpicc                    \
+#            -fortran=mpif90              \
+#            -mpi                         \
+#            -openmp                      \
+#            -ompt=download               \
+#            -bfd=download                \
+#            -unwind=download             \
+#            -mpiinc=${MPI_HOME}/include  \
+#            -mpilib=${MPI_HOME}/lib64    \
+#            -pdt=${PDT_HOME}/..          \
+#            -prefix="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/sw/tau
 
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -186,12 +192,37 @@ SageMath is a free open-source mathematics software system licensed under the GP
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
+# Standard stuff.
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
 
+# Make the symlink.
+sudo mkdir -p "$(dirname %{_prefix})"
+test -L "%{_prefix}" && sudo rm "%{_prefix}" || true
+sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
+
+# Configure
+./configure -c++=mpicxx                  \
+            -cc=mpicc                    \
+            -fortran=mpif90              \
+            -mpi                         \
+            -openmp                      \
+            -python                      \
+            -ompt=download               \
+            -bfd=download                \
+            -unwind=download             \
+            -mpiinc=${MPI_HOME}/include  \
+            -mpilib=${MPI_HOME}/lib64    \
+            -pdt=${PDT_HOME}             \
+            -prefix=%{_prefix}
+
+# Compile and install
+make install
+
+# Clean up the symlink.  (The parent dir may be left over, oh well.)
+sudo rm "%{_prefix}"
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -256,6 +287,16 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
+# +++ Set up TAU_MAKEFILE +++
+if [ "%{comp_name}" == "intel" ]
+then
+    export TAU_MAKE="Makefile.tau-icpc-ompt-v5-mpi-python-pdt-openmp"
+    export TAU_LIBUNWIND=libunwind-1.1-icc
+else
+    export TAU_MAKE="Makefile.tau-ompt-v5-mpi-python-pdt-openmp"
+    export TAU_LIBUNWIND=libunwind-1.1-gcc
+fi
+
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
@@ -279,17 +320,33 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-
 ---- environment changes (uncomment what is relevant)
-setenv("SAGE_LOCAL",               "/n/sw/sage-10.0/local")
-setenv("SAGE_VENV",                "/n/sw/sage-10.0/local/var/lib/sage/venv-python3.11.1")
-prepend_path("PATH",               "/n/sw/sage-10.0")
-prepend_path("CPATH",              "/n/sw/sage-10.0/local/include")
-prepend_path("FPATH",              "/n/sw/sage-10.0/local/include")
-prepend_path("LD_LIBRARY_PATH",    "/n/sw/sage-10.0/local/lib")
-prepend_path("LIBRARY_PATH",       "/n/sw/sage-10.0/local/lib")
-prepend_path("MANPATH",            "/n/sw/sage-10.0/local/share/doc")
-prepend_path("PYTHONPATH",         "/n/sw/sage-10.0/local/var/lib/sage/venv-python3.11.1/lib/python3.11/site-packages")
+setenv("TAU_HOME",                 "%{_prefix}")
+setenv("TAU_MAKEFILE",             "%{_prefix}/x86_64/lib/${TAU_MAKE}")
+prepend_path("PATH",               "%{_prefix}/x86_64/binutils-2.23.2/x86_64-pc-linux-gnu/bin")
+prepend_path("PATH",               "%{_prefix}/x86_64/binutils-2.23.2/bin")
+prepend_path("PATH",               "%{_prefix}/x86_64/bin")
+prepend_path("PATH",               "%{_prefix}/examples/NPB2.3/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64/binutils-2.23.2/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64/include")
+prepend_path("CPATH",              "%{_prefix}/x86_64/libunwind-1.3.1-gcc/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64/binutils-2.23.2/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64/include")
+prepend_path("FPATH",              "%{_prefix}/x86_64/libunwind-1.3.1-gcc/include")
+prepend_path("INFOPATH",           "%{_prefix}/x86_64/binutils-2.23.2/share/info")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/binutils-2.23.2/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/binutils-2.23.2/x86_64-pc-linux-gnu/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/x86_64/libunwind-1.3.1-gcc/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/binutils-2.23.2/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/binutils-2.23.2/x86_64-pc-linux-gnu/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/x86_64/libunwind-1.3.1-gcc/lib")
+prepend_path("MANPATH",            "%{_prefix}/x86_64/binutils-2.23.2/share/man")
+prepend_path("MANPATH",            "%{_prefix}/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/x86_64/libunwind-1.3.1-gcc/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -322,6 +379,8 @@ EOF
 %defattr(-,root,root,-)
 
 %{_prefix}/*
+
+
 
 #------------------- scripts (there should be no need to change these) --------
 
