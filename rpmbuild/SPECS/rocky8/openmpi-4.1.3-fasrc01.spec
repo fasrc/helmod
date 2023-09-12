@@ -1,4 +1,3 @@
-%define _build_id_links none
 #------------------- package info ----------------------------------------------
 #
 #
@@ -38,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz
+URL: https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,7 +73,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ucx/1.14.1-fasrc02
+%define builddependencies ucx/1.14.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -97,7 +96,7 @@ Prefix: %{_prefix}
 %description
 The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
 
-Built against cuda/12.2.0-fasrc01 and ucx/1.14.1-fasrc02
+Built against cuda/11.4.2-fasrc01
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 

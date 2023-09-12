@@ -140,7 +140,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -160,9 +159,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--enable-mpi-cxx \
       --with-slurm \
       --without-verbs \
-      --with-ucx   \
-      --with-pmi   \
-      --with-pmix \
+      --with-pmix=/usr \
       --enable-mca-no-build=btl-uct \
       --with-libevent=/usr
 

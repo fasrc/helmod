@@ -1,45 +1,54 @@
-%define _build_id_links none
+%define __os_install_post %{nil}
+
+
+
 #------------------- package info ----------------------------------------------
+
 #
+# FIXME
 #
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
+# FIXME
+#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
+# FIXME
 #
-# enter the release; start with fasrc01 (or some other convention for your 
-# organization) and increment in subsequent releases
-#
-# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
-# and MPI apps, it will include the name/version/release of the apps used to 
-# build it and will therefore be very long
+# enter the base release; start with fasrc01 and increment in subsequent 
+# releases; the actual "Release" is constructed dynamically and set below
 #
 %define release_short %{getenv:RELEASE}
 
+#
+# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use); do not 
-# surround this string with quotes
+# FIXME
 #
-%define summary_static Full MPI-3.1 standards conformance
+# enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
+# rpm gets created, so this stores it separately for later re-use)
+#
+%define summary_static NVIDIA HPC SDK: A Comprehensive Suite of Compilers, Libraries and Tools for HPC
 Summary: %{summary_static}
 
 #
-# enter the url from where you got the source; change the archive suffix if 
-# applicable
+# FIXME
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz
-Source: %{name}-%{version}.tar.gz
+# enter the url from where you got the source, as a comment; change the archive 
+# suffix if applicable
+#
+#(not applicable)
+#Source: %{name}-%{version}.tar.bz2
 
 #
 # there should be no need to change the following
@@ -54,7 +63,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -74,7 +82,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ucx/1.14.1-fasrc02
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -89,34 +97,28 @@ Prefix: %{_prefix}
 
 
 #
+# FIXME
+#
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+A Comprehensive Suite of Compilers, Libraries and Tools for HPC. The NVIDIA HPC SDK is a comprehensive toolbox for GPU accelerating HPC modeling and simulation applications. It includes the C, C++, and Fortran compilers, libraries, and analysis tools necessary for developing HPC applications on the NVIDIA platform.
 
-Built against cuda/12.2.0-fasrc01 and ucx/1.14.1-fasrc02
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
 #
 # FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#%%setup
+
 
 
 
@@ -124,96 +126,51 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
 # 
 
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#%%configure
+#make
 
 
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib64 \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-        --enable-static \
-        --enable-mpi-fortran=all \
-	--enable-mpi-cxx \
-      --with-slurm \
-      --without-verbs \
-      --with-ucx="$UCX_HOME"   \
-      --with-pmi   \
-      --with-pmix \
-      --enable-mca-no-build=btl-uct \
-      --with-libevent=/usr \
-      --with-cuda=${CUDA_HOME}
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
-#(leave this here)
-%include fasrcsw_module_loads.rpmmacros
-
-
 #
 # FIXME
 #
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#(leave this here)
+%include fasrcsw_module_loads.rpmmacros
+
+#%%makeinstall
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+#rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
 
-
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -230,14 +187,6 @@ done
 
 	echo
 	echo
-	echo "Some suggestions of what to use in the modulefile:"
-	echo
-	echo
-
-	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
-
-	echo
-	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -251,13 +200,9 @@ done
 # 
 # FIXME (but the above is enough for a "trial" build)
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
+# - uncomment any applicable prepend_path things
 #
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -267,13 +212,18 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+export nvhome="/n/sw/nvhpc-2023-237"
+export target="Linux_x86_64"
 
-mkdir -p %{buildroot}/%{_prefix}
+export nvcudadir="$nvhome/$target/%{version}/cuda"
+export nvcompdir="$nvhome/$target/%{version}/compilers"
+export nvmathdir="$nvhome/$target/%{version}/math_libs"
+export nvcommdir="$nvhome/$target/%{version}/comm_libs"
+
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}-%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -293,24 +243,51 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("MPI_HOME",                 "%{_prefix}")
-setenv("MPI_INCLUDE",              "%{_prefix}/include")
-setenv("MPI_LIB",                  "%{_prefix}/lib64")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+setenv("NVHPC",       "$nvhome")
+setenv("NVHPC_ROOT",  "$nvhome/$target/%{version}")
+setenv("NVHPC_HOME",  "$nvhome")
+setenv("CC",          "$nvcompdir/bin/nvc")
+setenv("CXX",         "$nvcompdir/bin/nvc++")
+setenv("FC",          "$nvcompdir/bin/nvfortran")
+setenv("F90",         "$nvcompdir/bin/nvfortran")
+setenv("F77",         "$nvcompdir/bin/nvfortran")
 
-local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
-prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_MPI_NAME"   , "%{name}")
-setenv("FASRCSW_MPI_VERSION", "%{version}")
-setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
-family("MPI")
+prepend_path("PATH",  "$nvcudadir/bin")
+prepend_path("PATH",  "$nvcompdir/bin")
+prepend_path("PATH",  "$nvcommdir/mpi/bin")
+prepend_path("PATH",  "$nvcompdir/extras/qd/bin")
+
+prepend_path("LD_LIBRARY_PATH", "$nvcudadir/lib64")
+prepend_path("LD_LIBRARY_PATH", "$nvcudadir/extras/CUPTI/lib64")
+prepend_path("LD_LIBRARY_PATH", "$nvcompdir/extras/qd/lib")
+prepend_path("LD_LIBRARY_PATH", "$nvcompdir/lib")
+prepend_path("LD_LIBRARY_PATH", "$nvmathdir/lib64")
+prepend_path("LD_LIBRARY_PATH", "$nvcommdir/mpi/lib")
+prepend_path("LD_LIBRARY_PATH", "$nvcommdir/nccl/lib")
+prepend_path("LD_LIBRARY_PATH", "$nvcommdir/nvshmem/lib")
+
+prepend_path("LIBRARY_PATH", "$nvcudadir/lib64")
+prepend_path("LIBRARY_PATH", "$nvcudadir/extras/CUPTI/lib64")
+prepend_path("LIBRARY_PATH", "$nvcompdir/extras/qd/lib")
+prepend_path("LIBRARY_PATH", "$nvcompdir/lib")
+prepend_path("LIBRARY_PATH", "$nvmathdir/lib64")
+prepend_path("LIBRARY_PATH", "$nvcommdir/mpi/lib")
+prepend_path("LIBRARY_PATH", "$nvcommdir/nccl/lib")
+prepend_path("LIBRARY_PATH", "$nvcommdir/nvshmem/lib")
+
+prepend_path("CPATH", "$nvmathdir/include")
+prepend_path("CPATH", "$nvcommdir/mpi/include")
+prepend_path("CPATH", "$nvcommdir/nccl/include")
+prepend_path("CPATH", "$nvcommdir/nvshmem/include")
+prepend_path("CPATH", "$nvcompdir/extras/qd/include/qd")
+
+prepend_path("FPATH", "$nvmathdir/include")
+prepend_path("FPATH", "$nvcommdir/mpi/include")
+prepend_path("FPATH", "$nvcommdir/nccl/include")
+prepend_path("FPATH", "$nvcommdir/nvshmem/include")
+prepend_path("FPATH", "$nvcompdir/extras/qd/include/qd")
+
+prepend_path("MANPATH", "$nvcompdir/man")
 EOF
 
 #------------------- App data file
@@ -334,6 +311,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
