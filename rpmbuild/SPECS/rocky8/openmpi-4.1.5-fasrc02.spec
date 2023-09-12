@@ -164,7 +164,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
       --without-verbs \
       --with-ucx="$UCX_HOME"   \
       --with-pmi   \
-      --with-pmix \
+      --with-pmix=external \
       --enable-mca-no-build=btl-uct \
       --with-libevent=/usr \
       --with-cuda=${CUDA_HOME}
