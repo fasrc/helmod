@@ -161,9 +161,10 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
       --without-verbs \
       --with-ucx   \
       --with-pmi   \
-      --with-pmix \
+      --with-pmix=external \
       --enable-mca-no-build=btl-uct \
-      --with-libevent=/usr
+      --with-libevent=/usr \
+      --without-lustre
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
