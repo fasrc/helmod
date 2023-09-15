@@ -243,9 +243,9 @@ end
 
 ---- environment changes (uncomment what is relevant)
 setenv("CC" , "icx")
-setenv("CXX", "icpc")
-setenv("FC" , "ifort")
-setenv("F77", "ifort")
+setenv("CXX", "icpx")
+setenv("FC" , "ifx")
+setenv("F77", "ifx")
 
 setenv("INTEL_HOME",                "/n/sw/intel-oneapi-2023.2")
 setenv("INTEL_LIB",                 "/n/sw/intel-oneapi-2023.2/compiler/2023.2.0/linux/compiler/lib/intel64")
