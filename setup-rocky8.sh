@@ -10,8 +10,8 @@ test -z "$LMOD_PREFIX" && export LMOD_PREFIX=${FASRCSW_PROD}/apps/lmod
 #export FASRCSW_COMPS="gcc/9.5.0-fasrc01"
 #export FASRCSW_MPIS="openmpi/4.1.0-fasrc01"
 
-export FASRCSW_COMPS="gcc/12.2.0-fasrc01"
-export FASRCSW_MPIS="openmpi/4.1.5-fasrc01"
+export FASRCSW_COMPS="intel/23.2.0-fasrc01 gcc/13.2.0-fasrc01"
+export FASRCSW_MPIS="openmpi/4.1.5-fasrc03 mpich/4.1.2-fasrc01"
 
 #the build host
 export FASRCSW_BUILD_HOST_01=builds01

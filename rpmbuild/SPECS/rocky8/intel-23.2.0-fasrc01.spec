@@ -145,6 +145,8 @@ advisor    source advixe-vars.sh
 
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
+# To install download the OneAPI installers from Intel and install as root using:
+# sh ./l_AIKit_p_2023.2.0.48997.sh -a --install-dir=/n/sw/intel-oneapi-2023.2/ --instance=2023.2
 
 #%%configure
 #make
