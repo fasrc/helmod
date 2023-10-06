@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Full MPI-3.1 standards conformance
+%define summary_static High-Performance Portable MPI
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.4.tar.gz
+URL: https://www.mpich.org/static/downloads/4.1.2/mpich-4.1.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -54,6 +54,7 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -94,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
+MPICH is a high performance and widely portable implementation of the Message Passing Interface (MPI) standard.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -154,20 +155,13 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-        --enable-static \
-        --enable-mpi-fortran=all \
-	--enable-mpi-cxx \
-      --with-slurm \
-      --without-verbs \
-      --with-ucx   \
-      --with-pmi   \
-      --with-pmix=external \
-      --enable-mca-no-build=btl-uct \
-      --with-libevent=/usr
+        --with-slurm --with-pmix --with-hwloc --with-ucx --enable-threads=multiple --enable-cxx
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -292,6 +286,7 @@ end
 setenv("MPI_HOME",                 "%{_prefix}")
 setenv("MPI_INCLUDE",              "%{_prefix}/include")
 setenv("MPI_LIB",                  "%{_prefix}/lib64")
+
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")

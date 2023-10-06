@@ -159,7 +159,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--enable-mpi-cxx \
       --with-slurm \
       --without-verbs \
-      --with-pmix=/usr \
+      --with-pmix=external \
       --enable-mca-no-build=btl-uct \
       --with-libevent=/usr
 

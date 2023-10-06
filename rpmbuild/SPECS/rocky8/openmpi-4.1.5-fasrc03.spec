@@ -55,6 +55,7 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+%define _build_id_links none
 
 #
 # Macros for setting app data 
