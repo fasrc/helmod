@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies ucx/1.14.1-fasrc02
+%define builddependencies cuda/12.2.0-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -162,9 +162,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--enable-mpi-cxx \
       --with-slurm \
       --without-verbs \
-      --with-ucx="$UCX_HOME"   \
+      --with-ucx   \
       --with-pmi   \
-      --with-pmix \
+      --with-pmix=external \
       --enable-mca-no-build=btl-uct \
       --with-libevent=/usr \
       --with-cuda=${CUDA_HOME}
@@ -179,7 +179,6 @@ make %{?_smp_mflags}
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
 
 #
 # FIXME
