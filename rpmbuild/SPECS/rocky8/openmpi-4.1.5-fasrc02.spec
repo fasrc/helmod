@@ -76,7 +76,7 @@ Prefix: %{_prefix}
 
 %define builddependencies cuda/12.2.0-fasrc01 
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Built against cuda/12.2.0-fasrc01
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -96,8 +96,6 @@ Prefix: %{_prefix}
 #
 %description
 The Open MPI Project is an open source Message Passing Interface implementation that is developed and maintained by a consortium of academic, research, and industry partners. Open MPI is therefore able to combine the expertise, technologies, and resources from all across the High Performance Computing community in order to build the best MPI library available. Open MPI offers advantages for system and software vendors, application developers and computer science researchers.
-
-Built against cuda/12.2.0-fasrc01 and ucx/1.14.1-fasrc02
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -270,7 +268,7 @@ done
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_short}
+%{name}/%{version}-%{release_short}
 %{summary_static}
 %{buildcomments}
 ]]
