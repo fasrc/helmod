@@ -229,7 +229,7 @@ local helpstr = [[
 help(helpstr,"\n")
 
 whatis("Name: %{name}")
-whatis("Version: %{version}-%{release_short}")
+whatis("Version: %{version}/%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
