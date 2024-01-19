@@ -216,6 +216,7 @@ sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
             -mpiinc=${MPI_HOME}/include  \
             -mpilib=${MPI_HOME}/lib64    \
             -pdt=${PDT_HOME}             \
+            -pthread                     \
             -prefix=%{_prefix}
 
 # Compile and install
