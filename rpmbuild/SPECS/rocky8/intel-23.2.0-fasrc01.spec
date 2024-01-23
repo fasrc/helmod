@@ -223,7 +223,7 @@ done
 #
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_short}
+%{name}/%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
@@ -276,10 +276,13 @@ prepend_path("CPATH",               "/n/sw/intel-oneapi-2023.2/compiler/2023.2.0
 prepend_path("FPATH",               "/n/sw/intel-oneapi-2023.2/compiler/2023.2.0/linux/compiler/include")
 prepend_path("FPATH",               "/n/sw/intel-oneapi-2023.2/compiler/2023.2.0/linux/compiler/include/intel64")
 
----- Support for starting vtune, etc.  Just source the appropriate vars.sh
+---- Support for starting vtune, inspector, advisor and sourcing respective vars.sh
 prepend_path("PATH",                "/n/sw/intel-oneapi-2023.2/vtune/2023.2.0")
 prepend_path("PATH",                "/n/sw/intel-oneapi-2023.2/inspector/2023.2.0")
 prepend_path("PATH",                "/n/sw/intel-oneapi-2023.2/advisor/2023.2.0")
+source_sh("bash",                   "/n/sw/intel-oneapi-2023.2/vtune/2023.2.0/env/vars.sh")
+source_sh("bash",                   "/n/sw/intel-oneapi-2023.2/inspector/2023.2.0/env/vars.sh")
+source_sh("bash",                   "/n/sw/intel-oneapi-2023.2/advisor/2023.2.0/env/vars.sh")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
