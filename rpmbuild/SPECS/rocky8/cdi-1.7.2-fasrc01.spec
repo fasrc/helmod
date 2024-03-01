@@ -31,7 +31,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static GSL, The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers.
+%define summary_static CDI is an Interface to access Climate and forecast model Data. The interface is independent from a specific data format and has a C and Fortran API. CDI was developed for a fast and machine independent access to GRIB and NetCDF datasets with the same interface. The local MPI-MET data formats SERVICE, EXTRA and IEG are also supported. 
 Summary: %{summary_static}
 
 #
@@ -95,8 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers.
-
+CDI is an Interface to access Climate and forecast model Data. The interface is independent from a specific data format and has a C and Fortran API. CDI was developed for a fast and machine independent access to GRIB and NetCDF datasets with the same interface. The local MPI-MET data formats SERVICE, EXTRA and IEG are also supported.
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
@@ -155,7 +154,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--sharedstatedir=%{_prefix}/var/lib \
 	--mandir=%{_prefix}/share/man \
 	--infodir=%{_prefix}/share/info \
-        --with-netcdf="${NETCDF_HOME},${NETCDF_FORTRAN_HOME}"
+        --with-netcdf=$NETCDF_LIB
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
