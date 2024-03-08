@@ -222,7 +222,7 @@ export nvcommdir="$nvhome/$target/%{version}/comm_libs"
 
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_short}
+%{name}/%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
