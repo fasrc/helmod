@@ -1,54 +1,50 @@
-%define __os_install_post %{nil}
+#
+# staging some updates for next build, specifically --enable-mpi-java
+#
 
 
 
 #------------------- package info ----------------------------------------------
 
 #
-# FIXME
-#
 # enter the simple app name, e.g. myapp
 #
 Name: %{getenv:NAME}
 
 #
-# FIXME
-#
 # enter the app version, e.g. 0.0.1
 #
 Version: %{getenv:VERSION}
 
-# FIXME
 #
-# enter the base release; start with fasrc01 and increment in subsequent 
-# releases; the actual "Release" is constructed dynamically and set below
+# enter the release; start with fasrc01 (or some other convention for your 
+# organization) and increment in subsequent releases
+#
+# the actual "Release", %%{release_full}, is constructed dynamically; for Comp 
+# and MPI apps, it will include the name/version/release of the apps used to 
+# build it and will therefore be very long
 #
 %define release_short %{getenv:RELEASE}
 
-#
-# FIXME
 #
 # enter your FIRST LAST <EMAIL>
 #
 Packager: %{getenv:FASRCSW_AUTHOR}
 
 #
-# FIXME
-#
 # enter a succinct one-line summary (%%{summary} gets changed when the debuginfo 
-# rpm gets created, so this stores it separately for later re-use)
+# rpm gets created, so this stores it separately for later re-use); do not 
+# surround this string with quotes
 #
-%define summary_static Intel oneAPI 2024.0.1: Compilers, Libraries and HPC Tools
+%define summary_static MPI from Intel Cluster Studio
 Summary: %{summary_static}
 
 #
-# FIXME
+# enter the url from where you got the source; change the archive suffix if 
+# applicable
 #
-# enter the url from where you got the source, as a comment; change the archive 
-# suffix if applicable
-#
-#(not applicable)
-#Source: %{name}-%{version}.tar.bz2
+#URL: 
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -64,11 +60,17 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+%description
+MPI implementation in Intel Cluster Studio
+
 #
 # Macros for setting app data 
 # The first set can probably be left as is
-# the nil construct should be used for empty values
-#
 %define modulename %{name}-%{version}-%{release_short}
 %define appname %(test %{getenv:APPNAME} && echo "%{getenv:APPNAME}" || echo "%{name}")
 %define appversion %(test %{getenv:APPVERSION} && echo "%{getenv:APPVERSION}" || echo "%{version}")
@@ -82,34 +84,14 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
+
 %define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
-
-# apptags
-# For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
-# aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:MPI
 %define apppublication %{nil}
-
-
-
-#
-# FIXME
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-%description
-High Performance Comprehensive Cluster Development Tools for HPC.
-Scale Development Efforts with Standards Driven Compilers, Programming Models and Tools.
-Supports the Latest Multicore and Manycore Based Systems.
-To use vtune, inspector or advisor, source the appropriate *vars.sh file:
-vtune      source amplxe-vars.sh
-inspector  source inspxe-vars.sh
-advisor    source advixe-vars.sh
 
 
 
@@ -118,14 +100,11 @@ advisor    source advixe-vars.sh
 %prep
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things
 #
 
-#%%setup
-
+# %setup
 
 
 
@@ -134,23 +113,16 @@ advisor    source advixe-vars.sh
 %build
 
 #
-# FIXME
-#
 # configure and make the software here; the default below is for standard 
 # GNU-toolchain style things
 # 
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%include fasrcsw_module_loads.rpmmacros
 
 ##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
-# To install download the OneAPI installers from Intel and install as root using:
-#sh ./l_BaseKit_p_2024.0.1.46.sh -a --install-dir=/n/sw/intel-oneapi-2024.0.1/ --instance=2024.0.1
-#sh ./l_HPCKit_p_2024.0.1.38.sh -a --install-dir=/n/sw/intel-oneapi-2024.0.1/ --instance=2024.0.1
 
-#%%configure
-#make
 
 
 
@@ -159,8 +131,6 @@ advisor    source advixe-vars.sh
 %install
 
 #
-# FIXME
-#
 # make install here; the default below is for standard GNU-toolchain style 
 # things; plus we add some handy files (if applicable) and build a modulefile
 #
@@ -168,10 +138,8 @@ advisor    source advixe-vars.sh
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-#%%makeinstall
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-#rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/%{_prefix}/
+# FIXME (or maybe it's fine)
+#
 
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
@@ -197,6 +165,14 @@ done
 
 	echo
 	echo
+	echo "Some suggestions of what to use in the modulefile:"
+	echo
+	echo
+
+	generate_setup.sh --action echo --format lmod --prefix '%%{_prefix}'  '%{buildroot}/%{_prefix}'
+
+	echo
+	echo
 	echo "******************************************************************************"
 	echo
 	echo
@@ -208,8 +184,6 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
-#
 # - uncomment any applicable prepend_path things
 #
 # - do any other customizing of the module, e.g. load dependencies
@@ -222,6 +196,10 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/initial-setup-of-modules
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
+
+# FIXME (but the above is enough for a "trial" build)
+
+mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
@@ -243,57 +221,39 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+-- environment changes (uncomment what is relevant)
+setenv("MPI_HOME",                 "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11")
+setenv("MPI_INCLUDE",              "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/include")
+setenv("MPI_LIB",                  "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/lib")
+prepend_path("PATH",               "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/bin")
+prepend_path("CPATH",              "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/include")
+prepend_path("FPATH",              "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/include")
+prepend_path("LD_LIBRARY_PATH",    "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/lib")
+prepend_path("LIBRARY_PATH",       "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/lib")
+prepend_path("LD_LIBRARY_PATH",    "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/lib/release")
+prepend_path("LIBRARY_PATH",       "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/lib/release")
+prepend_path("MANPATH",            "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/man")
 
----- environment changes (uncomment what is relevant)
-setenv("CC" , "icx")
-setenv("CXX", "icpx")
-setenv("FC" , "ifx")
-setenv("F77", "ifx")
-
-setenv("INTEL_HOME",                "/n/sw/intel-oneapi-2024.0.1")
-setenv("INTEL_LIB",                 "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/lib/")
-setenv("INTEL_COMPOSER_INCLUDE",    "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/include")
-setenv("MKL_HOME",                  "/n/sw/intel-oneapi-2024.0.1/mkl/2024.0")
-setenv("TBB_HOME",                  "/n/sw/intel-oneapi-2024.0.1/tbb/2024.0")
-
----- The Intel compiler is a wrapper around GCC. This puts the latest gcc in the path
-prepend_path("PATH",                "/n/sw/helmod-rocky8/apps/Core/gcc/13.2.0-fasrc01/bin")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/helmod-rocky8/apps/Core/gcc/13.2.0-fasrc01/lib64")
-prepend_path("LIBRARY_PATH",        "/n/sw/helmod-rocky8/apps/Core/gcc/13.2.0-fasrc01/lib64")
-
-prepend_path("PATH",                "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/bin")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/lib")
-prepend_path("LD_LIBRARY_PATH",     "/n/sw/intel-oneapi-2024.0.1/mkl/2024.0/lib/intel64")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/lib")
-prepend_path("LIBRARY_PATH",        "/n/sw/intel-oneapi-2024.0.1/tbb/2024.0/lib/intel64")
-
-prepend_path("CPATH",               "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/include")
-prepend_path("FPATH",               "/n/sw/intel-oneapi-2024.0.1/compiler/2024.0/include")
-
----- Support for starting vtune, inspector, advisor and sourcing respective vars.sh
-prepend_path("PATH",                "/n/sw/intel-oneapi-2024.0.1/vtune/2024.0")
-prepend_path("PATH",                "/n/sw/intel-oneapi-2024.0.1/inspector/2024.0")
-prepend_path("PATH",                "/n/sw/intel-oneapi-2024.0.1/advisor/2024.0")
-source_sh("bash",                   "/n/sw/intel-oneapi-2024.0.1/vtune/2024.0/env/vars.sh")
-source_sh("bash",                   "/n/sw/intel-oneapi-2024.0.1/inspector/2024.0/env/vars.sh")
-source_sh("bash",                   "/n/sw/intel-oneapi-2024.0.1/advisor/2024.0/env/vars.sh")
+setenv("I_MPI_PMI_LIBRARY", "/usr/lib64/libpmi2.so")
+source_sh("bash", "/n/sw/intel-oneapi-2024.0.1/mpi/2021.11/env/vars.sh")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
-local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
+local mdir = pathJoin(mroot, "MPI/%{comp_name}/%{comp_version}-%{comp_release}/%{name}/%{version}-%{release_short}")
 prepend_path("MODULEPATH", mdir)
-setenv("FASRCSW_COMP_NAME"   , "%{name}")
-setenv("FASRCSW_COMP_VERSION", "%{version}")
-setenv("FASRCSW_COMP_RELEASE", "%{release_short}")
-family("Comp")
+setenv("FASRCSW_MPI_NAME"   , "%{name}")
+setenv("FASRCSW_MPI_VERSION", "%{version}")
+setenv("FASRCSW_MPI_RELEASE", "%{release_short}")
+family("MPI")
 EOF
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
-appname             : %{appname}
-appversion          : %{appversion}
-description         : %{appdescription}
-tags                : %{apptags}
-publication         : %{apppublication}
+appname     		: %{appname}
+appversion  		: %{appversion}
+description 		: %{appdescription}
+module      		: %{modulename}
+tags        		: %{apptags}
+publication 		: %{apppublication}
 modulename          : %{modulename}
 type                : %{type}
 compiler            : %{compiler}
