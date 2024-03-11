@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.2/src/hdf5-1.14.2.tar.gz
+URL: https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.3/src/hdf5-1.14.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -73,7 +73,7 @@ Prefix: %{_prefix}
 
 
 
-%define builddependencies zlib/1.3-fasrc01 szip/2.1.1-fasrc01
+%define builddependencies zlib/1.3.1-fasrc01 szip/2.1.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
