@@ -139,7 +139,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static "
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
-test "%{type}" == "MPI" && export CC=mpiicx CXX=mpiicpx FC=mpiifort
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
 
 ./configure --prefix=%{_prefix} \
         --enable-fortran --enable-shared --enable-static \
@@ -265,7 +265,7 @@ done
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_short}
+%{name}/%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")

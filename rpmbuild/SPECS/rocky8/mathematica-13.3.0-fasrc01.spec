@@ -194,7 +194,7 @@ Mathematica is renowned as the world's ultimate application for computations. Bu
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}-%{version}-%{release_short}
+%{name}/%{version}-%{release_short}
 %{summary_static}
 ]]
 help(helpstr,"\n")
