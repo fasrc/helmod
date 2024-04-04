@@ -139,7 +139,7 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static "
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
-test "%{type}" == "MPI" && export CC=mpiicc CXX=mpiicpc FC=mpiifort
+test "%{type}" == "MPI" && export CC="mpiicc -diag-disable=10441" CXX=mpicpc FC=mpiifort
 
 ./configure --prefix=%{_prefix} \
         --enable-fortran --enable-shared --enable-static \

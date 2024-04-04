@@ -139,7 +139,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-test "%{type}" == "MPI" && export CC=mpiicc CXX=mpiicpc FC=mpiifort F77=mpiifort
+test "%{type}" == "MPI" && export CC=mpiicx CXX=mpiicpx FC=mpiifx F77=mpiifx
 
 export CPPFLAGS=-I${HDF5_INCLUDE}
 export LDFLAGS=-L${HDF5_LIB}

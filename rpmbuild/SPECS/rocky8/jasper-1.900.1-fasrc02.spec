@@ -140,6 +140,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+export CC="icc -diag-disable=10441"
 export CFLAGS="-I$JPEG_INCLUDE"
 export LDFLAGS="-L$JPEG_LIB"
 
