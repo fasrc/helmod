@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz
+URL: https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies cuda/12.2.0-fasrc01 
+%define builddependencies cuda/12.2.0-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments Built against cuda/12.2.0-fasrc01
 %define requestor %{nil}
@@ -140,7 +140,6 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
 	--exec-prefix=%{_prefix} \
@@ -157,11 +156,9 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 	--infodir=%{_prefix}/share/info \
         --enable-static \
         --enable-mpi-fortran=all \
-	--enable-mpi-cxx \
       --with-slurm \
       --without-verbs \
       --with-ucx   \
-      --with-pmix \
       --with-pmix=external \
       --enable-mca-no-build=btl-uct \
       --with-libevent=/usr \
@@ -177,6 +174,7 @@ make %{?_smp_mflags}
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
+
 
 #
 # FIXME
@@ -298,6 +296,8 @@ prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
 prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
 prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/doc/prrte/html/_sources/man")
+prepend_path("MANPATH",            "%{_prefix}/share/doc/prrte/html/man")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
 prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 
