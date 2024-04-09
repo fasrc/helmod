@@ -1,6 +1,5 @@
 #------------------- package info ----------------------------------------------
-%define _unpackaged_files_terminate_build 0
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -31,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PROJ.5 - Cartographic Projections Library
+%define summary_static Lumerical FDTD and Device sofware for SEAS. You must be a member of SEAS to use lumerical. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.osgeo.org/proj/proj-8.0.0.tar.gz
-Source: %{name}-%{version}.tar.gz
+# URL: http://...FIXME...
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -55,15 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Program proj  is a standard Unix filter function which converts geographic longitude and latitude coordinates into cartesian coordinates, (λ, φ) → (x, y), by means of a wide variety of cartographic projection functions. For many of the projection functions the inverse conversion, (x, y) → (λ, φ), can also be performed.
 
 #
 # Macros for setting app data 
@@ -82,7 +72,8 @@ Program proj  is a standard Unix filter function which converts geographic longi
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies cmake/3.25.2-fasrc01 sqlite/3.42.0-fasrc01 libtiff/4.5.0-fasrc01
+
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -91,28 +82,24 @@ Program proj  is a standard Unix filter function which converts geographic longi
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Cartographic projections
+%define apptags %{nil} 
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Lumerical FDTD and Device software.  Usage is limited to SEAS.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
-#
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -121,36 +108,9 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 %build
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-mkdir build
-cd build
-#cmake -DSQLITE3_INCLUDE_DIR=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/include -DSQLITE3_LIBRARY=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/lib64 ..
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_PREFIX_PATH=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/ ..
-cmake --build .
-
-
-#./configure --prefix=%{_prefix}
-
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make -j 4
 
 
 
@@ -159,42 +119,9 @@ make -j 4
 %install
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
-# Get the proj dat file and copy it into lib.  See: https://stat.ethz.ch/pipermail/r-sig-geo/2015-September/023395.html
-# wget https://github.com/OSGeo/proj.4/blob/master/nad/proj_def.dat -O %{buildroot}/%{_prefix}/lib/proj_def.dat
-#cp -r %{buildroot}/%{_prefix}/share/proj/* %{buildroot}/%{_prefix}/lib/
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -257,6 +184,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -274,17 +202,13 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("PROJ_HOME",                "%{_prefix}")
-setenv("PROJ_INCLUDE",             "%{_prefix}/include")
-setenv("PROJ_LIB",                 "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("ANSYSLMD_LICENSE_FILE",     "1055@research-license-ansys.int.seas.harvard.edu")
+setenv("LUMERICAL_HOME",            "/n/sw/lumerical-2024R1")
+prepend_path("PATH",                "/n/sw/lumerical-2024R1/bin")
+prepend_path("LIBRARY_PATH",        "/n/sw/lumerical-2024R1/lib")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/lumerical-2024R1/lib")
 EOF
 
 #------------------- App data file
@@ -292,7 +216,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
