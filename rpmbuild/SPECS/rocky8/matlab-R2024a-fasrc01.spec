@@ -281,7 +281,8 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("MATLAB_HOME",                "/n/sw/matlab-R2024a")
 prepend_path("PATH",                 "/n/sw/matlab-R2024a/bin")
-setenv("ZIENA_LICENSE_NETWORK_ADDR", "10.242.113.134:8349")
+setenv("MLM_LICENSE_FILE",           "27000@rclic")
+#setenv("ZIENA_LICENSE_NETWORK_ADDR", "10.242.113.134:8349") # Mike needs to renew Knitro license, then we will re-add this. PCS 2024-04-09
 EOF
 
 #------------------- App data file
