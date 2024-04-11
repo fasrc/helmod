@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Magma is a large, well-supported software package designed for computations in algebra, number theory, algebraic geometry, and algebraic combinatorics 
+%define summary_static Magma is a large, well-supported software package designed for computations in algebra, number theory, algebraic geometry, and algebraic combinatorics. This is the Magma cuda-aware version, with cuda 11. 
 Summary: %{summary_static}
 
 #
@@ -72,9 +72,9 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
+%define builddependencies cuda/11.8.0-fasrc01
 %define rundependencies %{builddependencies}
-%define buildcomments %{nil}
+%define buildcomments Cuda-aware version.
 %define requestor %{nil}
 %define requestref %{nil}
 
@@ -228,7 +228,8 @@ whatis("Description: %{summary_static}")
 
 -- environment changes (uncomment what is relevant)
 
-prepend_path("PATH",               "/n/sw/magma-2.28.7")
+prepend_path("PATH",               "/n/sw/magma-2.28.7-cuda")
+depends_on("cuda/11.8.0-fasrc01")
 EOF
 
 #------------------- App data file
