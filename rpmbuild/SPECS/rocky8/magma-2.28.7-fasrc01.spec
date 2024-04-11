@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static a high-level language and interactive environment for numerical computation, visualization, and programming
+%define summary_static Magma is a large, well-supported software package designed for computations in algebra, number theory, algebraic geometry, and algebraic combinatorics 
 Summary: %{summary_static}
 
 #
@@ -53,7 +53,6 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
-
 
 #
 # Macros for setting app data 
@@ -86,15 +85,13 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-MATLAB is a high-level language and interactive environment for numerical computation, visualization, and programming. Using MATLAB, you can analyze data, develop algorithms, and create models and applications. The language, tools, and built-in math functions enable you to explore multiple approaches and reach a solution faster than with spreadsheets or traditional programming languages, such as C/C++ or Java.
+Magma is a large, well-supported software package designed for computations in algebra, number theory, algebraic geometry, and algebraic combinatorics.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -102,18 +99,10 @@ MATLAB is a high-level language and interactive environment for numerical comput
 
 
 #
-# FIXME
-#
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
 # style things -- hopefully it'll just work as-is.
 #
 
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-#rm -rf %{name}-%{version}
-#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-#cd %{name}-%{version}
-#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -125,38 +114,9 @@ MATLAB is a high-level language and interactive environment for numerical comput
 
 
 #
-# FIXME
-#
 # configure and make the software here.  The default below is for standard 
 # GNU-toolchain style things -- hopefully it'll just work as-is.
 # 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
-#module load NAME/VERSION-RELEASE
-
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#
-#
-#./configure --prefix=%{_prefix} \
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info
-#
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-#make
 
 
 
@@ -168,8 +128,6 @@ MATLAB is a high-level language and interactive environment for numerical comput
 %include fasrcsw_module_loads.rpmmacros
 
 
-#
-# FIXME
 #
 # make install here.  The default below is for standard GNU-toolchain style 
 # things -- hopefully it'll just work as-is.
@@ -184,12 +142,6 @@ MATLAB is a high-level language and interactive environment for numerical comput
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
-
-#umask 022
-#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-#mkdir -p %{buildroot}/%{_prefix}
-#make install DESTDIR=%{buildroot}
 
 
 #(this should not need to be changed)
@@ -260,7 +212,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -269,22 +220,16 @@ whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
 ---- prerequisite apps (uncomment and tweak if necessary)
-for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
-end
+--if mode()=="load" then
+--	if not isloaded("NAME") then
+--		load("NAME/VERSION-RELEASE")
+--	end
+--end
 
----- environment changes (uncomment what is relevant)
-setenv("MATLAB_HOME",                "/n/sw/matlab-R2024a")
-prepend_path("PATH",                 "/n/sw/matlab-R2024a/bin")
-setenv("MLM_LICENSE_FILE",           "27000@rclic")
+-- environment changes (uncomment what is relevant)
+
+prepend_path("PATH",               "/n/sw/magma-2.28.7")
 EOF
-
-#setenv("ZIENA_LICENSE_NETWORK_ADDR", "10.242.113.134:8349") # Mike needs to renew Knitro license, then we will re-add this. PCS 2024-04-09
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
@@ -307,6 +252,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
