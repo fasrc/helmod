@@ -247,12 +247,12 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("CUDNN_HOME",               "%{_prefix}")
 setenv("CUDNN_ROOT",               "%{_prefix}")
-setenv("CUDNN_LIB",                "%{_prefix}/lib64")
+setenv("CUDNN_LIB",                "%{_prefix}/lib")
 setenv("CUDNN_INCLUDE",            "%{_prefix}/include")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
 EOF
 
 #------------------- App data file
