@@ -1,6 +1,5 @@
 #------------------- package info ----------------------------------------------
-%define _unpackaged_files_terminate_build 0
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -31,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static PROJ.5 - Cartographic Projections Library
+%define summary_static Sage Math Open Source Mathematical Software System
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://download.osgeo.org/proj/proj-8.0.0.tar.gz
+URL: https://github.com/sagemath/sage/releases/download/10.3/sage-10.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -55,15 +54,7 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-Program proj  is a standard Unix filter function which converts geographic longitude and latitude coordinates into cartesian coordinates, (λ, φ) → (x, y), by means of a wide variety of cartographic projection functions. For many of the projection functions the inverse conversion, (x, y) → (λ, φ), can also be performed.
+%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -82,7 +73,8 @@ Program proj  is a standard Unix filter function which converts geographic longi
 %define compiler %( if [[ %{getenv:TYPE} == "Comp" || %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_COMPS}" ]]; then echo "%{getenv:FASRCSW_COMPS}"; fi; else echo "system"; fi)
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
-%define builddependencies cmake/3.25.2-fasrc01 sqlite/3.42.0-fasrc01 libtiff/4.5.0-fasrc01
+
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -91,8 +83,19 @@ Program proj  is a standard Unix filter function which converts geographic longi
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Cartographic projections
+%define apptags %{nil} 
 %define apppublication %{nil}
+
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+SageMath is a free open-source mathematics software system licensed under the GPL. It builds on top of many existing open-source packages: NumPy, SciPy, matplotlib, Sympy, Maxima, GAP, FLINT, R and many more. Access their combined power through a common, Python-based language or directly via interfaces or wrappers. 
 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
@@ -107,12 +110,12 @@ Program proj  is a standard Unix filter function which converts geographic longi
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+#rm -rf %{name}-%{version}
+#tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+#cd %{name}-%{version}
+#chmod -Rf a+rX,u+w,g-w,o-w .
 
 
 
@@ -123,6 +126,8 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+
+# TO BUILD SEE: https://runbooks.rc.fas.harvard.edu/hpc/cluster/software/weird.html?highlight=sagemath#sage-math
 
 #
 # FIXME
@@ -135,24 +140,37 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#umask 022
+#cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-mkdir build
-cd build
-#cmake -DSQLITE3_INCLUDE_DIR=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/include -DSQLITE3_LIBRARY=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/lib64 ..
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_PREFIX_PATH=/n/sw/helmod-rocky8/apps/Core/sqlite/3.42.0-fasrc01/ ..
-cmake --build .
+#echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+#mkdir -p %{buildroot}/%{_prefix}
+#sudo mkdir -p "$(dirname %{_prefix})"
+#sudo rm "%{_prefix}"
+#sudo ln -s "%{buildroot}/%{_prefix}" "%{_prefix}"
 
 
-#./configure --prefix=%{_prefix}
-
+#./configure --prefix=%{_prefix} \
+#	--program-prefix= \
+#	--exec-prefix=%{_prefix} \
+#	--bindir=%{_prefix}/bin \
+#	--sbindir=%{_prefix}/sbin \
+#	--sysconfdir=%{_prefix}/etc \
+#	--datadir=%{_prefix}/share \
+#	--includedir=%{_prefix}/include \
+#	--libdir=%{_prefix}/lib64 \
+#	--libexecdir=%{_prefix}/libexec \
+#	--localstatedir=%{_prefix}/var \
+#	--sharedstatedir=%{_prefix}/var/lib \
+#	--mandir=%{_prefix}/share/man \
+#	--infodir=%{_prefix}/share/info
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make -j 4
+#make %{?_smp_mflags}
 
-
+# Clean up that symlink.  The parent dir may be left over, oh well.
+#sudo rm "%{_prefix}"
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -179,15 +197,6 @@ make -j 4
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
-# Get the proj dat file and copy it into lib.  See: https://stat.ethz.ch/pipermail/r-sig-geo/2015-September/023395.html
-# wget https://github.com/OSGeo/proj.4/blob/master/nad/proj_def.dat -O %{buildroot}/%{_prefix}/lib/proj_def.dat
-#cp -r %{buildroot}/%{_prefix}/share/proj/* %{buildroot}/%{_prefix}/lib/
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -257,6 +266,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -274,17 +284,24 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("PROJ_HOME",                "%{_prefix}")
-setenv("PROJ_INCLUDE",             "%{_prefix}/include")
-setenv("PROJ_LIB",                 "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("SAGE_HOME",       "/n/sw/sage-10.3")
+setenv("SAGE_LOCAL",      "/n/sw/sage-10.3/local")
+setenv("SAGE_VENV",       "/n/sw/sage-10.3/local/var/lib/sage/venv-python3.11.1")
+setenv("SAGE_LIB",        "/n/sw/sage-10.3/local/lib")
+setenv("SAGE_INCLUDE",    "/n/sw/sage-10.3/local/include")
+
+prepend_path("PATH",               "/n/sw/sage-10.3/local/bin")
+prepend_path("CPATH",              "/n/sw/sage-10.3/local/include")
+prepend_path("FPATH",              "/n/sw/sage-10.3/local/include")
+prepend_path("INFOPATH",           "/n/sw/sage-10.3/local/share/info")
+prepend_path("LD_LIBRARY_PATH",    "/n/sw/sage-10.3/local/lib")
+prepend_path("LIBRARY_PATH",       "/n/sw/sage-10.3/local/lib")
+prepend_path("MANPATH",            "/n/sw/sage-10.3/local/share/man")
+prepend_path("PKG_CONFIG_PATH",    "/n/sw/sage-10.3/local/lib/pkgconfig")
+prepend_path("PYTHONPATH",         "/n/sw/sage-10.3/local/var/lib/sage/venv-python3.11.1/lib/python3.11/site-packages")
+
 EOF
 
 #------------------- App data file
@@ -292,7 +309,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
