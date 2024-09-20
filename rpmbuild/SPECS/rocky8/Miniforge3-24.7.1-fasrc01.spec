@@ -95,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-Mamba is a fast, robust, and cross-platform package manager.
+A conda-forge distribution of python, mamba, and conda.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
