@@ -30,7 +30,7 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static the Anaconda distribution of the Python programming language
+%define summary_static the Miniforge3 distribution of the Python programming language
 Summary: %{summary_static}
 
 #
