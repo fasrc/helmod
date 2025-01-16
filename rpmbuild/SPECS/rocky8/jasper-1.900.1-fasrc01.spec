@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Library for use in applications that read, create, and manipulate PNG (Portable Network Graphics) raster image files.
+%define summary_static The JasPer Project is an open-source initiative to provide a free software-based reference implementation of the codec specified in the JPEG-2000 Part-1 standard (i.e., ISO/IEC 15444-1). 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.25.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.ece.uvic.ca/~frodo/jasper/software/jasper-1.900.1.zip
+Source: %{name}-%{version}.zip
 
 #
 # there should be no need to change the following
@@ -54,15 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-libpng is the official PNG reference library. It supports almost all PNG features, is extensible, and has been extensively tested for over 19 years. The home site for development versions (i.e., may be buggy or subject to change or include experimental features) is http://libpng.sourceforge.net/, and the place to go for questions about the library is the png-mng-implement mailing list.
 
 #
 # Macros for setting app data 
@@ -83,7 +74,7 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 
 
 
-%define builddependencies zlib/1.3.1-fasrc01
+%define builddependencies jpeg/6b-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -95,6 +86,16 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 %define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
 %define apppublication %{nil}
 
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Build notes: %{buildcomments}
+JasPer includes a software-based implementation of the codec specified in the JPEG-2000 Part-1 standard (i.e., ISO/IEC 15444-1). The JasPer software is written in the C programming language. More details about this software can be found in the JasPer Software Reference Manual.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,7 +112,7 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.zip
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
@@ -139,13 +140,29 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+export CC="gcc"
+export CFLAGS="-I$JPEG_INCLUDE"
+export LDFLAGS="-L$JPEG_LIB"
 
-
-./configure --prefix=%{_prefix}
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-shared --enable-static
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
 
 
 
@@ -266,17 +283,17 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("LIBPNG_HOME",             "%{_prefix}")
-setenv("LIBPNG_INCLUDE",          "%{_prefix}/include")
-setenv("LIBPNG_LIB",              "%{_prefix}/lib")
+setenv("JASPER_HOME",              "%{_prefix}")
+setenv("JASPER_INCLUDE",           "%{_prefix}/include")
+setenv("JASPER_LIB",               "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
 prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
@@ -284,7 +301,6 @@ cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF
 appname             : %{appname}
 appversion          : %{appversion}
 description         : %{appdescription}
-module              : %{modulename}
 tags                : %{apptags}
 publication         : %{apppublication}
 modulename          : %{modulename}
@@ -301,6 +317,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------

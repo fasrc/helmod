@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Library for use in applications that read, create, and manipulate PNG (Portable Network Graphics) raster image files.
+%define summary_static The JPEG library
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16/libpng-1.6.25.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: http://www.ijg.org/files/jpegsr6b.zip
+Source: %{name}sr%{version}.zip
 
 #
 # there should be no need to change the following
@@ -54,15 +54,6 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-
-#
-# enter a description, often a paragraph; unless you prefix lines with spaces, 
-# rpm will format it, so no need to worry about the wrapping
-#
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
-%description
-libpng is the official PNG reference library. It supports almost all PNG features, is extensible, and has been extensively tested for over 19 years. The home site for development versions (i.e., may be buggy or subject to change or include experimental features) is http://libpng.sourceforge.net/, and the place to go for questions about the library is the png-mng-implement mailing list.
 
 #
 # Macros for setting app data 
@@ -83,7 +74,7 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 
 
 
-%define builddependencies zlib/1.3.1-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -95,6 +86,17 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 %define apptags aci-ref-app-category:Libraries; aci-ref-app-tag:Graphics
 %define apppublication %{nil}
 
+
+
+#
+# enter a description, often a paragraph; unless you prefix lines with spaces, 
+# rpm will format it, so no need to worry about the wrapping
+#
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
+%description
+Build notes: %{buildcomments}
+Linux library for the manipulation of files in the JPEG format.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -111,10 +113,10 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+unzip "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}sr%{version}.zip
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
-
+dos2unix *
 
 
 #------------------- %%build (~ configure && make) ----------------------------
@@ -139,14 +141,30 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
+# Need a fresh config.sub
+wget "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -O config.sub
 
+export CC="gcc -fPIC"
 
-./configure --prefix=%{_prefix}
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-shared --enable-static
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
-
+make
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -177,8 +195,15 @@ make %{?_smp_mflags}
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_prefix}/include 
+mkdir -p %{buildroot}/%{_prefix}/lib
+mkdir -p %{buildroot}/%{_prefix}/man/man1
+
+cp cjpeg djpeg jpegtran rdjpgcom wrjpgcom %{buildroot}/%{_prefix}/bin
+cp cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1 %{buildroot}/%{_prefix}/man/man1
+cp *.h %{buildroot}/%{_prefix}/include
+./libtool --mode=install /usr/bin/install -c libjpeg.la %{buildroot}/%{_prefix}/lib/libjpeg.la
 
 
 #(this should not need to be changed)
@@ -266,17 +291,17 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+
 ---- environment changes (uncomment what is relevant)
-setenv("LIBPNG_HOME",             "%{_prefix}")
-setenv("LIBPNG_INCLUDE",          "%{_prefix}/include")
-setenv("LIBPNG_LIB",              "%{_prefix}/lib")
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("JPEG_HOME",                   "%{_prefix}")
+setenv("JPEG_INCLUDE",                "%{_prefix}/include")
+setenv("JPEG_LIB",                    "%{_prefix}/lib")
+prepend_path("PATH",                "%{_prefix}/bin")
+prepend_path("CPATH",               "%{_prefix}/include")
+prepend_path("FPATH",               "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+prepend_path("MANPATH",             "%{_prefix}/man")
 EOF
 
 #------------------- App data file
