@@ -86,7 +86,6 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping

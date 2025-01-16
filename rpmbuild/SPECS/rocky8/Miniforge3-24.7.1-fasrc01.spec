@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static Miniforge Python Implementation
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://downloads.unidata.ucar.edu/netcdf-fortran/4.6.1/netcdf-fortran-4.6.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+URL: https://github.com/conda-forge/miniforge/releases/download/24.7.1-0/Miniforge3-24.7.1-0-Linux-x86_64.sh
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies netcdf-c/4.9.2-fasrc06
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -95,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. This is the fortran distribution.
+A conda-forge distribution of python, mamba, and conda.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -109,14 +109,7 @@ NetCDF (network Common Data Form) is a set of software libraries and machine-ind
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
-
-
+# do nothing
 
 #------------------- %%build (~ configure && make) ----------------------------
 
@@ -137,33 +130,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-
-export FC=mpiifx
-export F77=mpiifx
-export CC=mpiicx
-export CXX=mpiicpx
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --with-temp-large=/scratch
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
+# do nothing
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -191,19 +158,9 @@ make %{?_smp_mflags}
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
-
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
+# Installed this package by hand to /n/sw/Mambaforge-23.3.1-1 using:
+#bash Miniforge3-24.7.1-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-24.7.1-0
+# As root. This module simply points at that install location
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -284,19 +241,20 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+---- Fix for conda init issues. See: https://github.com/conda/conda/issues/11067
+local root = pathJoin("/n/sw/Miniforge3-24.7.1-0")
+execute{cmd="source '"..pathJoin(root, "/etc/profile.d/conda."..myShellType()).."'", modeA={"load"}}
+execute{cmd="source '"..pathJoin(root, "/etc/profile.d/mamba."..myShellType()).."'", modeA={"load"}}
 
 ---- environment changes (uncomment what is relevant)
-setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
-setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib")
-
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+setenv("PYTHON_HOME",               "/n/sw/Miniforge3-24.7.1-0/")
+setenv("PYTHON_INCLUDE",            "/n/sw/Miniforge3-24.7.1-0/include")
+setenv("PYTHON_LIB",                "/n/sw/Miniforge3-24.7.1-0/lib")
+setenv("PIP_NO_CACHE_DIR",          "off")
+setenv("MAMBA_DISABLE_LOCKFILE",    "1")
+setenv("PYTHONNOUSERSITE",          "True")
+setenv("CONDA_PKGS_DIRS",           "~/.conda/pkgs")
+prepend_path("PATH",                "/n/sw/Miniforge3-24.7.1-0/bin")
 EOF
 
 #------------------- App data file

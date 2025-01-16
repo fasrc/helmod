@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static the Miniforge3 distribution of the Python programming language
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://downloads.unidata.ucar.edu/netcdf-fortran/4.6.1/netcdf-fortran-4.6.1.tar.gz
-Source: %{name}-%{version}.tar.gz
+#URL: n/a since this is just a wrapper modules
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,8 +74,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies netcdf-c/4.9.2-fasrc06
-%define rundependencies %{builddependencies}
+%define builddependencies %{nil}
+%define rundependencies Miniforge3/24.7.1-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -83,38 +83,34 @@ Prefix: %{_prefix}
 # apptags
 # For aci-ref database use aci-ref-app-category and aci-ref-app-tag namespaces and separate tags with a semi-colon
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
-%define apptags %{nil} 
+%define apptags aci-ref-app-category:Programming Tools; aci-ref-app-tag:Scripting languages
 %define apppublication %{nil}
-
 
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. This is the fortran distribution.
+Python is an interpreted, interactive, object-oriented programming
+language often compared to Tcl, Perl, Scheme or Java. Python includes
+modules, classes, exceptions, very high level dynamic data types and
+dynamic typing. Python supports interfaces to many system calls and
+libraries, as well as to various windowing systems (X11, Motif, Tk,
+Mac and MFC).
+
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
-
-#
-# FIXME
 #
 # unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
+# style things
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
-cd %{name}-%{version}
-chmod -Rf a+rX,u+w,g-w,o-w .
+#(do nothing)
 
 
 
@@ -122,91 +118,43 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 
 %build
 
+#
+# configure and make the software here; the default below is for standard 
+# GNU-toolchain style things
+# 
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# configure and make the software here.  The default below is for standard 
-# GNU-toolchain style things -- hopefully it'll just work as-is.
-# 
-
-##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
-##make sure to add them to modulefile.lua below, too!
+##prerequisite apps (uncomment and tweak if necessary)
 #module load NAME/VERSION-RELEASE
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+#(do nothing)
 
-export FC=mpiifx
-export F77=mpiifx
-export CC=mpiicx
-export CXX=mpiicpx
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --with-temp-large=/scratch
-
-#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
-#percent sign) to build in parallel
-make %{?_smp_mflags}
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
+#
+# make install here; the default below is for standard GNU-toolchain style 
+# things; plus we add some handy files (if applicable) and build a modulefile
+#
+
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
-make install DESTDIR=%{buildroot}
 
-
-#(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
 #if there are other files not installed by make install, add them here
 for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
 	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
 done
 
-#(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
+#there should be no need to change this
 %if %{defined trial}
 	set +x
 	
@@ -242,15 +190,9 @@ done
 %endif
 
 # 
-# FIXME (but the above is enough for a "trial" build)
+# - uncomment any applicable prepend_path things
 #
-# This is the part that builds the modulefile.  However, stop now and run 
-# `make trial'.  The output from that will suggest what to add below.
-#
-# - uncomment any applicable prepend_path things (`--' is a comment in lua)
-#
-# - do any other customizing of the module, e.g. load dependencies -- make sure 
-#   any dependency loading is in sync with the %%build section above!
+# - do any other customizing of the module, e.g. load dependencies
 #
 # - in the help message, link to website docs rather than write anything 
 #   lengthy here
@@ -261,12 +203,12 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-mkdir -p %{buildroot}/%{_prefix}
+# FIXME (but the above is enough for a "trial" build)
+
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -274,30 +216,14 @@ whatis("Name: %{name}")
 whatis("Version: %{version}-%{release_short}")
 whatis("Description: %{summary_static}")
 
+
 ---- prerequisite apps (uncomment and tweak if necessary)
 for i in string.gmatch("%{rundependencies}","%%S+") do 
-    if mode()=="load" then
-        a = string.match(i,"^[^/]+")
-        if not isloaded(a) then
-            load(i)
-        end
-    end
+    load(i)
 end
 
-
----- environment changes (uncomment what is relevant)
-setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
-setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib")
-
-prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
+
 
 #------------------- App data file
 cat > $FASRCSW_DEV/appdata/%{modulename}.%{type}.dat <<EOF

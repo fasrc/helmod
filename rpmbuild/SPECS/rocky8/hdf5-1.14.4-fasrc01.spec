@@ -72,7 +72,6 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
 %define builddependencies szip/2.1.1-fasrc01 zlib/1.3.1-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}

@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-#
+
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
+%define summary_static Cross platform build tool
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://downloads.unidata.ucar.edu/netcdf-fortran/4.6.1/netcdf-fortran-4.6.1.tar.gz
+URL: https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies netcdf-c/4.9.2-fasrc06
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -87,15 +87,13 @@ Prefix: %{_prefix}
 %define apppublication %{nil}
 
 
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
-# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
-#
 %description
-NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. This is the fortran distribution.
+Cross platform build system as complicated as Autotools, but different.
+
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,30 +138,12 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpiifx
-export F77=mpiifx
-export CC=mpiicx
-export CXX=mpiicpx
-
-./configure --prefix=%{_prefix} \
-	--program-prefix= \
-	--exec-prefix=%{_prefix} \
-	--bindir=%{_prefix}/bin \
-	--sbindir=%{_prefix}/sbin \
-	--sysconfdir=%{_prefix}/etc \
-	--datadir=%{_prefix}/share \
-	--includedir=%{_prefix}/include \
-	--libdir=%{_prefix}/lib \
-	--libexecdir=%{_prefix}/libexec \
-	--localstatedir=%{_prefix}/var \
-	--sharedstatedir=%{_prefix}/var/lib \
-	--mandir=%{_prefix}/share/man \
-	--infodir=%{_prefix}/share/info \
-    --with-temp-large=/scratch
+./configure --prefix=%{_prefix}
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make %{?_smp_mflags}
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -266,7 +246,6 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
-%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -286,17 +265,12 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
-setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
-setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib")
-
+setenv("CMAKE_HOME",               "%{_prefix}")
 prepend_path("PATH",               "%{_prefix}/bin")
-prepend_path("CPATH",              "%{_prefix}/include")
-prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("MANPATH",            "%{_prefix}/share/man")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("CPATH",              "%{_prefix}/share/cmake-3.30/include")
+prepend_path("CPATH",              "%{_prefix}/share/cmake-3.30/Help/include")
+prepend_path("FPATH",              "%{_prefix}/share/cmake-3.30/include")
+prepend_path("FPATH",              "%{_prefix}/share/cmake-3.30/Help/include")
 EOF
 
 #------------------- App data file
@@ -320,6 +294,7 @@ buildcomments       : %{buildcomments}
 requestor           : %{requestor}
 requestref          : %{requestref}
 EOF
+
 
 
 #------------------- %%files (there should be no need to change this ) --------
