@@ -83,7 +83,7 @@ libpng is the official PNG reference library. It supports almost all PNG feature
 
 
 
-%define builddependencies zlib/1.2.11-fasrc02
+%define builddependencies zlib/1.3.1-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}

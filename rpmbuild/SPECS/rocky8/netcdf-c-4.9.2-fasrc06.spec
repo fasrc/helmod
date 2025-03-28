@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.9.2.tar.gz
+URL: https://downloads.unidata.ucar.edu/netcdf-c/4.9.2/netcdf-c-4.9.2.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -85,8 +85,6 @@ Prefix: %{_prefix}
 # aci-ref-app-category:Programming Tools; aci-ref-app-tag:Compiler
 %define apptags %{nil} 
 %define apppublication %{nil}
-
-
 
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
@@ -140,7 +138,7 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
+test "%{type}" == "MPI" && export CC=mpiicx CXX=mpiicpx FC=mpiifx F77=mpiifx
 
 export CPPFLAGS=-I${HDF5_INCLUDE}
 export LDFLAGS=-L${HDF5_LIB}

@@ -72,8 +72,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-
-%define builddependencies zlib/1.3.1-fasrc01 szip/2.1.1-fasrc01
+%define builddependencies szip/2.1.1-fasrc01 zlib/1.3.1-fasrc01 
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -136,30 +135,14 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-3
 
-
 export CONFIGOPTS="--enable-fortran --enable-shared --enable-static "
 test "%{type}" == "MPI" && CONFIGOPTS="${CONFIGOPTS} --enable-parallel" ||  CONFIGOPTS="${CONFIGOPTS} --enable-cxx" 
-test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90
+test "%{type}" == "MPI" && export CC="mpiicx -w" CXX="mpiicpx -w" FC="mpiifx -w" 
 
 ./configure --prefix=%{_prefix} \
         --enable-fortran --enable-shared --enable-static \
         --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
         --with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
-#	--program-prefix= \
-#	--exec-prefix=%{_prefix} \
-#	--bindir=%{_prefix}/bin \
-#	--sbindir=%{_prefix}/sbin \
-#	--sysconfdir=%{_prefix}/etc \
-#	--datadir=%{_prefix}/share \
-#	--includedir=%{_prefix}/include \
-#	--libdir=%{_prefix}/lib64 \
-#	--libexecdir=%{_prefix}/libexec \
-#	--localstatedir=%{_prefix}/var \
-#	--sharedstatedir=%{_prefix}/var/lib \
-#	--mandir=%{_prefix}/share/man \
-#	--infodir=%{_prefix}/share/info \
-#        --with-szlib="$SZIP_INCLUDE,$SZIP_LIB" \
-#	--with-zlib="$ZLIB_INCLUDE,$ZLIB_LIB" ${CONFIGOPTS}
 	
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
@@ -194,7 +177,7 @@ make %{?_smp_mflags}
 
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}-3
-echo %{buildroot} | grep -q %{name}-%{version}-3 && rm -rf %{buildroot}
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
 

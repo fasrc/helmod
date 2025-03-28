@@ -37,7 +37,7 @@ Summary: %{summary_static}
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://downloads.unidata.ucar.edu/netcdf-fortran/4.6.1/netcdf-fortran-4.6.1.tar.gz
+URL: https://www.unidata.ucar.edu/downloads/netcdf/ftp/netcdf-fortran-4.6.1.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,7 +74,7 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies netcdf-c/4.9.2-fasrc06
+%define builddependencies netcdf-c/4.9.3-fasrc01
 %define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
@@ -140,10 +140,10 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-export FC=mpiifx
-export F77=mpiifx
-export CC=mpiicx
-export CXX=mpiicpx
+export FC=mpif90
+export F77=mpif77
+export CC=mpicc
+export CXX=mpicxx
 
 ./configure --prefix=%{_prefix} \
 	--program-prefix= \
@@ -163,7 +163,8 @@ export CXX=mpiicpx
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make %{?_smp_mflags}
+make
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
