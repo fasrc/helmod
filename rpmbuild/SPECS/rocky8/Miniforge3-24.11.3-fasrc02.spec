@@ -157,10 +157,12 @@ A conda-forge distribution of python, mamba, and conda.
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
-
+# For detailed steps, see runbooks
+# https://runbooks.rc.fas.harvard.edu/hpc/cluster/software/weird.html#python-and-miniforge
+#
 # This module simply points at that install location
 # Installed this package by hand to /n/sw/Mambaforge-24.11.3-0 using:
-# As root. # as root
+# As root
 # -p for prefix; -b for non interactive
 #bash Miniforge3-24.11.3-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-24.11.3-0
 #
