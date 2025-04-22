@@ -89,6 +89,12 @@ Change to the directory of spec files:
 cd "$FASRCSW_DEV"/rpmbuild/SPECS
 ```
 
+Change to the folder corresponding to the current OS on the cluster. For example, in April 2025, the current OS is Rocky8, hence:
+
+``` bash
+cd rocky8
+```
+
 Create a spec file for the app based upon the template:
 
 ``` bash
