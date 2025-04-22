@@ -107,7 +107,7 @@ Now edit the spec file:
 $EDITOR "$NAME-$VERSION-$RELEASE".spec
 ```
 
-Add this line as the first line of your `.spec` (if it's already there, then you
+If you are copying a previous spec (not the template) file add this line to your `.spec` in the initial section of the spec if not already there. (if it's already there, then you
 don't need to do anything)
 
 ```
