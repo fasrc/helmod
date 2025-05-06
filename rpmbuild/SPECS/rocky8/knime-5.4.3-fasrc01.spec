@@ -54,7 +54,7 @@ License: see COPYING file or upstream packaging
 Release: %{release_full}
 Prefix: %{_prefix}
 
-#%define _build_id_links none
+%define _build_id_links none
 
 #
 # Macros for setting app data 
@@ -282,8 +282,6 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("KNIME_HOME",                "/n/sw/knime/knime-5.4.3")
 prepend_path("PATH",                 "/n/sw/knime/knime-5.4.3")
-#setenv("MLM_LICENSE_FILE",           "27000@rclic")
-#setenv("ZIENA_LICENSE_NETWORK_ADDR","10.242.113.134:8349")
 EOF
 
 #------------------- App data file
