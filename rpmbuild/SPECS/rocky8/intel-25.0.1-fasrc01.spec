@@ -253,7 +253,7 @@ setenv("INTEL_HOME",                "/n/sw/intel-oneapi-2025.0.1")
 setenv("INTEL_LIB",                 "/n/sw/intel-oneapi-2025.0.1/compiler/2025.0/lib/")
 setenv("INTEL_COMPOSER_INCLUDE",    "/n/sw/intel-oneapi-2025.0.1/compiler/2025.0/include")
 setenv("MKL_HOME",                  "/n/sw/intel-oneapi-2025.0.1/mkl/2025.0")
-setenv("TBB_HOME",                  "/n/sw/intel-oneapi-2025.0.1/tbb/2025.0")
+setenv("TBB_HOME",                  "/n/sw/intel-oneapi-2025.0.1/tbb/2022.0")
 
 ---- The Intel compiler is a wrapper around GCC. This puts the latest gcc in the path
 prepend_path("PATH",                "/n/sw/helmod-rocky8/apps/Core/gcc/14.2.0-fasrc01/bin")
