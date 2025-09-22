@@ -73,12 +73,7 @@ These repo clones are know as `$FASRCSW_DEV` (one for each contributor).
 
 # Install lmod
 
-The HeLmod system uses [lmod](http://www.tacc.utexas.edu/tacc-projects/lmod).
-<!--
-FASRC uses the [github version](https://github.com/TACC/Lmod) of the source code (we encountered trouble building the version on sourceforge).
-In particular, these instructions are matched to lmod 5.2, commit c00912cda9.
--->
-FASRC uses [the version posted on sourceforge](http://sourceforge.net/projects/lmod/); in particular, these instructions are matched to lmod 5.4.1.
+The HeLmod system uses [lmod](https://lmod.readthedocs.io/en/latest/).
 
 Lmod installation will write files outside of the given `--prefix`, specifically to the root-owned location `/usr/share/zsh/site-functions`.
 Rather than running `make install` as root, the following temporarily changes file attributes to allow your regular account's group to write there.
