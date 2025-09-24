@@ -279,8 +279,8 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-# MLM_LICENSE_FILE: matlab license ( see https://www.mathworks.com/matlabcentral/answers/93105-what-are-the-lm_license_file-and-mlm_license_file-environment-variables-and-how-do-i-set-or-check-fo)
-# ZIENA_LICENSE_NETWORK_ADDR: Knitro license
+-- MLM_LICENSE_FILE: matlab license ( see https://www.mathworks.com/matlabcentral/answers/93105-what-are-the-lm_license_file-and-mlm_license_file-environment-variables-and-how-do-i-set-or-check-fo)
+-- ZIENA_LICENSE_NETWORK_ADDR: Knitro license
 setenv("MATLAB_HOME",                "/n/sw/matlab-R2024b")
 prepend_path("PATH",                 "/n/sw/matlab-R2024b/bin")
 setenv("MLM_LICENSE_FILE",           "27000@rclic")
