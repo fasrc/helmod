@@ -159,7 +159,7 @@ A conda-forge distribution of python, mamba, and conda.
 #
 
 # Installed this package by hand to /n/sw/Mambaforge-25.3.1-0 using:
-#bash Miniforge3-25.3.1-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-25.3.1-0
+#bash Miniforge3-25.3.1-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-25.3.1-0.el9
 # As root. This module simply points at that install location
 
 #(this should not need to be changed)
@@ -242,16 +242,16 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
 end
 
 ---- environment changes (uncomment what is relevant)
-setenv("PYTHON_HOME",               "/n/sw/Miniforge3-25.3.1-0/")
-setenv("PYTHON_INCLUDE",            "/n/sw/Miniforge3-25.3.1-0/include")
-setenv("PYTHON_LIB",                "/n/sw/Miniforge3-25.3.1-0/lib")
-setenv("MAMBA_ROOT_PREFIX",         "/n/sw/Miniforge3-25.3.1-0/")
+setenv("PYTHON_HOME",               "/n/sw/Miniforge3-25.3.1-0.el9/")
+setenv("PYTHON_INCLUDE",            "/n/sw/Miniforge3-25.3.1-0.el9/include")
+setenv("PYTHON_LIB",                "/n/sw/Miniforge3-25.3.1-0.el9/lib")
+setenv("MAMBA_ROOT_PREFIX",         "/n/sw/Miniforge3-25.3.1-0.el9/")
 setenv("PIP_NO_CACHE_DIR",          "off")
 setenv("MAMBA_DISABLE_LOCKFILE",    "1")
 setenv("PYTHONNOUSERSITE",          "True")
 setenv("CONDA_PKGS_DIRS",           "~/.conda/pkgs")
 setenv("CONDA_ENVS_PATH",           "~/.conda/envs")
-prepend_path("PATH",                "/n/sw/Miniforge3-25.3.1-0/bin")
+prepend_path("PATH",                "/n/sw/Miniforge3-25.3.1-0.el9/bin")
 EOF
 
 #------------------- App data file
