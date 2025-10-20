@@ -38,7 +38,7 @@ Summary: %{summary_static}
 # applicable
 #
 URL: https://www.amd.com/en/developer/aocc/eula/aocc-5-0-eula.html?filename=aocc-compiler-5.0.0.tar
-Source: %{name}-%{version}.tar
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -113,7 +113,7 @@ The AOCC compiler is designed for high-performance x86 CPU compilation of C, C++
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD 
 rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
 cd %{name}-%{version}
 chmod -Rf a+rX,u+w,g-w,o-w .
 
