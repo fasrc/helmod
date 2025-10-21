@@ -246,9 +246,9 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CC" , "clang")
+setenv("CC", "clang")
 setenv("CXX", "clang++")
-setenv("FC" , "flang")
+setenv("FC", "flang")
 setenv("F77", "flang")
 
 setenv("AOCC_HOME",       "%{_prefix}")
@@ -264,8 +264,8 @@ prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
 prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/ompd")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib32")
 prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
-prepend path("C_INCLUDE_PATH",      "%{_prefix}/include")
-prepend path("CPLUS_INCLUDE_PATH",  "%{_prefix}/include")
+prepend_path("C_INCLUDE_PATH",      "%{_prefix}/include")
+prepend_path("CPLUS_INCLUDE_PATH",  "%{_prefix}/include")
 
 local mroot = os.getenv("MODULEPATH_ROOT")
 local mdir = pathJoin(mroot, "Comp/%{name}/%{version}-%{release_short}")
