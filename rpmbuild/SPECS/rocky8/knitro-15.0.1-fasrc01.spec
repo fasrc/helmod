@@ -283,12 +283,14 @@ end
 ---- environment changes (uncomment what is relevant)
 setenv("ARTELYS_LICENSE_NETWORK_ADDR", "10.242.113.139:8349")
 setenv("KNDIR",                      "/n/sw/knitro/knitro-15.0.1-Linux64")
+setenv("KNITRODIR",                  "/n/sw/knitro/knitro-15.0.1-Linux64")
 prepend_path("CPATH",                "/n/sw/knitro/knitro-15.0.1-Linux64/include")
 prepend_path("FPATH",                "/n/sw/knitro/knitro-15.0.1-Linux64/include")
 prepend_path("LIBRARY_PATH",         "/n/sw/knitro/knitro-15.0.1-Linux64/lib")
 prepend_path("LD_LIBRARY_PATH",      "/n/sw/knitro/knitro-15.0.1-Linux64/lib")
 prepend_path("PATH",                 "/n/sw/knitro/knitro-15.0.1-Linux64/knitroampl")
-prepend_path("MATLABPATH",           "/n/sw/knitro/knitro-15.0.0-Linux64/knitromatlab")
+prepend_path("MATLABPATH",           "/n/sw/knitro/knitro-15.0.1-Linux64/knitromatlab")
+prepend_path("MATLAB",               "/n/sw/knitro/knitro-15.0.1-Linux64/knitromatlab")
 EOF
 
 #------------------- App data file
