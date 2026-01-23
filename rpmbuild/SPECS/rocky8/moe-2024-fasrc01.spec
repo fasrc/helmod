@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Cyana v2.1
+%define summary_static MOE is a drug discovery software which integrates visualization, modeling and simulations
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
-URL: http://www.cyana.org/wiki/index.php/Tutorials
-Source: %{name}-%{version}-exp2025.tar.gz
+#
+#URL: http://...FIXME...
+#Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -52,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -71,10 +73,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpfr/4.2.0-fasrc01 intel/23.0.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added a patch needed to support /tmp and output on different file systems
-%define requestor Victoria D'Souza <dsouza@mcb.harvard.edu>
+%define buildcomments %{nil}
+%define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
@@ -89,11 +91,10 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-CYANA (© by Peter Güntert) is a program for automated structure calculation of biological macromolecules on the basis of conformational constraints from NMR. The combination of automated NOESY cross peak assignment, structure calculation with a fast torsion angle dynamics algorithm, and the ease-of-use of CYANA provide for unprecedented efficiency in NMR protein structure determination.
 
-# This build is completely by hand and specific to the version of Intel compilers and OpenMPI.
-# The source used is in the directory that is built. The base Makefile has been hacked to not ask questions in the "install" and assumes that BINDIR LIBDIR are defined
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -107,13 +108,7 @@ CYANA (© by Peter Güntert) is a program for automated structure calculation of
 # style things -- hopefully it'll just work as-is.
 #
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
-cd ./cyana-2.1/src/inclan
-sed -i 's/julday(12,31,2025)/julday(12,31,2037)/g' unix.for
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
+
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
@@ -121,9 +116,22 @@ cd "$FASRCSW_DEV"/rpmbuild/BUILD
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-make config
-make 
+
+#
+# FIXME
+#
+# configure and make the software here.  The default below is for standard 
+# GNU-toolchain style things -- hopefully it'll just work as-is.
+# 
+
+##prerequisite apps (uncomment and tweak if necessary).  If you add any here, 
+##make sure to add them to modulefile.lua below, too!
+#module load NAME/VERSION-RELEASE
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -131,7 +139,6 @@ make
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
 
 
 #
@@ -150,18 +157,6 @@ make
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-export BINDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin
-export LIBDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
-make install
-sudo chgrp -R dsouza_lab "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
-
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
-chmod -Rf u+rwX,g+rX,o-rwx %{buildroot}/%{_prefix}
 
 #(this should not need to be changed)
 #these files are nice to have; %%doc is not as prefix-friendly as I would like
@@ -229,8 +224,9 @@ done
 mkdir -p %{buildroot}/%{_prefix}
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
-%{name}/%{version}-%{release_short}
+%{name}-%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -250,11 +246,12 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CYANA_HOME",                "%{_prefix}")
-setenv("CYANA_LIBS",                "%{_prefix}/lib")
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+setenv("MOE_HOME",       "/n/sw/moe/moe-2024-0601")
+setenv("MOEFILES",       "~/moefiles")
+prepend_path("PATH",     "/n/sw/moe/moe-2024-0601/bin")
+-- relying on set_alias is a bad idea -- aliases are not exported to 
+-- sub-shells; should wrap it in a separate script like we used to do
+set_alias("moe", "moe -home ~")
 EOF
 
 #------------------- App data file
@@ -280,13 +277,11 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
 
-# This software is licensed only to dsouza_lab
-%defattr(-,root,dsouza_lab,-)
+%defattr(-,root,root,-)
 
 %{_prefix}/*
 

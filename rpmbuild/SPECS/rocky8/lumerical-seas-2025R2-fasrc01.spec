@@ -1,5 +1,5 @@
 #------------------- package info ----------------------------------------------
-
+#
 #
 # enter the simple app name, e.g. myapp
 #
@@ -30,14 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Cyana v2.1
+%define summary_static Lumerical FDTD and Device sofware for SEAS. You must be a member of SEAS to use lumerical. 
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
-URL: http://www.cyana.org/wiki/index.php/Tutorials
-Source: %{name}-%{version}-exp2025.tar.gz
+#
+# URL: http://...FIXME...
+# Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -52,6 +53,7 @@ License: see COPYING file or upstream packaging
 
 Release: %{release_full}
 Prefix: %{_prefix}
+
 
 #
 # Macros for setting app data 
@@ -71,10 +73,10 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies mpfr/4.2.0-fasrc01 intel/23.0.0-fasrc01
+%define builddependencies %{nil}
 %define rundependencies %{builddependencies}
-%define buildcomments Added a patch needed to support /tmp and output on different file systems
-%define requestor Victoria D'Souza <dsouza@mcb.harvard.edu>
+%define buildcomments %{nil}
+%define requestor %{nil}
 %define requestref %{nil}
 
 # apptags
@@ -89,86 +91,37 @@ Prefix: %{_prefix}
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
 #
+# NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
+#
 %description
-CYANA (© by Peter Güntert) is a program for automated structure calculation of biological macromolecules on the basis of conformational constraints from NMR. The combination of automated NOESY cross peak assignment, structure calculation with a fast torsion angle dynamics algorithm, and the ease-of-use of CYANA provide for unprecedented efficiency in NMR protein structure determination.
-
-# This build is completely by hand and specific to the version of Intel compilers and OpenMPI.
-# The source used is in the directory that is built. The base Makefile has been hacked to not ask questions in the "install" and assumes that BINDIR LIBDIR are defined
+Lumerical FDTD and Device software.  Usage is limited to SEAS.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
 %prep
 
 
-#
-# FIXME
-#
-# unpack the sources here.  The default below is for standard, GNU-toolchain 
-# style things -- hopefully it'll just work as-is.
-#
 
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD 
-rm -rf %{name}-%{version}
-tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}-exp2025.tar.gz
-cd ./cyana-2.1/src/inclan
-sed -i 's/julday(12,31,2025)/julday(12,31,2037)/g' unix.for
-cd "$FASRCSW_DEV"/rpmbuild/BUILD
+
 #------------------- %%build (~ configure && make) ----------------------------
 
 %build
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%include fasrcsw_module_loads.rpmmacros
 
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-make config
-make 
+
+
+
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
 %install
 
 #(leave this here)
-%include fasrcsw_module_loads.rpmmacros
+#%include fasrcsw_module_loads.rpmmacros
 
 
-
-#
-# FIXME
-#
-# make install here.  The default below is for standard GNU-toolchain style 
-# things -- hopefully it'll just work as-is.
-#
-# Note that DESTDIR != %{prefix} -- this is not the final installation.  
-# Rpmbuild does a temporary installation in the %{buildroot} and then 
-# constructs an rpm out of those files.  See the following hack if your app 
-# does not support this:
-#
-# https://github.com/fasrc/fasrcsw/blob/master/doc/FAQ.md#how-do-i-handle-apps-that-insist-on-writing-directly-to-the-production-location
-#
-# %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
-# (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
-#
-
-umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
-export BINDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/bin
-export LIBDIR="$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
-make install
-sudo chgrp -R dsouza_lab "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}
-
-echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{_prefix}
-cp -a "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/%{name}-%{version}/*  %{buildroot}/%{_prefix}
-chmod -Rf u+rwX,g+rX,o-rwx %{buildroot}/%{_prefix}
-
-#(this should not need to be changed)
-#these files are nice to have; %%doc is not as prefix-friendly as I would like
-#if there are other files not installed by make install, add them here
-for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
-	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
-done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -231,6 +184,7 @@ cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
 %{summary_static}
+%{buildcomments}
 ]]
 help(helpstr,"\n")
 
@@ -250,11 +204,11 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("CYANA_HOME",                "%{_prefix}")
-setenv("CYANA_LIBS",                "%{_prefix}/lib")
-prepend_path("PATH",                "%{_prefix}")
-prepend_path("LD_LIBRARY_PATH",     "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",        "%{_prefix}/lib")
+setenv("ANSYSLMD_LICENSE_FILE",     "1055@research-license-ansys.int.seas.harvard.edu")
+setenv("LUMERICAL_HOME",            "/n/sw/lumerical-2025R2/opt/lumerical/v252")
+prepend_path("PATH",                "/n/sw/lumerical-2025R2/opt/lumerical/v252/bin")
+prepend_path("LIBRARY_PATH",        "/n/sw/lumerical-2025R2/opt/lumerical/v252/lib")
+prepend_path("LD_LIBRARY_PATH",     "/n/sw/lumerical-2025R2/opt/lumerical/v252/lib")
 EOF
 
 #------------------- App data file
@@ -280,13 +234,11 @@ requestref          : %{requestref}
 EOF
 
 
-
 #------------------- %%files (there should be no need to change this ) --------
 
 %files
 
-# This software is licensed only to dsouza_lab
-%defattr(-,root,dsouza_lab,-)
+%defattr(-,root,root,-)
 
 %{_prefix}/*
 
