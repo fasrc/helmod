@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hierarchical Data Format 5
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/HDFGroup/hdf5/releases/download/2.1.0/hdf5-2.1.0.tar.gz
+URL: https://downloads.unidata.ucar.edu/netcdf-c/4.10.0/netcdf-c-4.10.0.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,8 +74,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01 cmake/4.2.3-fasrc01
-%define rundependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01
+%define builddependencies hdf5/2.1.0-fasrc01
+%define rundependencies %{builddependencies}
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -95,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. 
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -140,21 +140,31 @@ chmod -Rf a+rX,u+w,g-w,o-w .
 umask 022
 cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 
-mkdir build
-cd build
+test "%{type}" == "MPI" && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77
 
-export CMAKE_C_COMPILER=mpicc
-export CMAKE_CXX_COMPILER=mpicxx
-export CMAKE_Fortran_COMPILER=mpif90
-export ZLIB_ROOT=${ZLIB_HOME}
-export SZIP_ROOT=${SZIP_HOME}
+export CPPFLAGS=-I${HDF5_INCLUDE}
+export LDFLAGS=-L${HDF5_LIB}
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DHDF5_BUILD_FORTRAN:BOOL=ON -DHDF5_ENABLE_PARALLEL:BOOL=ON -DHDF5_ENABLE_ZLIB_SUPPORT:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON ..
-cmake --build .
+./configure --prefix=%{_prefix} \
+	--program-prefix= \
+	--exec-prefix=%{_prefix} \
+	--bindir=%{_prefix}/bin \
+	--sbindir=%{_prefix}/sbin \
+	--sysconfdir=%{_prefix}/etc \
+	--datadir=%{_prefix}/share \
+	--includedir=%{_prefix}/include \
+	--libdir=%{_prefix}/lib64 \
+	--libexecdir=%{_prefix}/libexec \
+	--localstatedir=%{_prefix}/var \
+	--sharedstatedir=%{_prefix}/var/lib \
+	--mandir=%{_prefix}/share/man \
+	--infodir=%{_prefix}/share/info \
+    --enable-netcdf-4 \
+    --with-temp-large=/scratch
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
-make -j %{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 
@@ -184,7 +194,7 @@ make -j %{?_smp_mflags}
 #
 
 umask 022
-cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
 echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
 mkdir -p %{buildroot}/%{_prefix}
 make install DESTDIR=%{buildroot}
@@ -278,16 +288,16 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib")
-
+setenv("NETCDF_HOME",              "%{_prefix}")
+setenv("NETCDF_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_LIB",               "%{_prefix}/lib64")
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
 EOF
 
 #------------------- App data file
