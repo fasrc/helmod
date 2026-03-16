@@ -30,15 +30,15 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Miniforge Python Implementation
+%define summary_static Hierarchical Data Format 5
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/conda-forge/miniforge/releases/download/26.1.0-0/Miniforge3-26.1.0-0-Linux-x86_64.sh
-#Source: %{name}-%{version}.tar.gz
+URL: https://github.com/HDFGroup/hdf5/releases/download/2.1.0/hdf5-2.1.0.tar.gz
+Source: %{name}-%{version}.tar.gz
 
 #
 # there should be no need to change the following
@@ -74,8 +74,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies %{nil}
-%define rundependencies %{builddependencies}
+%define builddependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01 cmake/4.2.3-fasrc01
+%define rundependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -95,7 +95,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-A conda-forge distribution of python, mamba, and conda.
+HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -109,7 +109,14 @@ A conda-forge distribution of python, mamba, and conda.
 # style things -- hopefully it'll just work as-is.
 #
 
-# do nothing
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD 
+rm -rf %{name}-%{version}
+tar xvf "$FASRCSW_DEV"/rpmbuild/SOURCES/%{name}-%{version}.tar.*
+cd %{name}-%{version}
+chmod -Rf a+rX,u+w,g-w,o-w .
+
+
 
 #------------------- %%build (~ configure && make) ----------------------------
 
@@ -130,7 +137,23 @@ A conda-forge distribution of python, mamba, and conda.
 ##make sure to add them to modulefile.lua below, too!
 #module load NAME/VERSION-RELEASE
 
-# do nothing
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}
+
+mkdir build
+cd build
+
+export CMAKE_C_COMPILER=mpicc
+export CMAKE_CXX_COMPILER=mpicxx
+export CMAKE_Fortran_COMPILER=mpif90
+
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DHDF5_BUILD_FORTRAN:BOOL=ON -DHDF5_ENABLE_PARALLEL:BOOL=ON ..
+cmake --build .
+
+#if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
+#percent sign) to build in parallel
+make -j %{?_smp_mflags}
+
 
 
 #------------------- %%install (~ make install + create modulefile) -----------
@@ -139,20 +162,6 @@ A conda-forge distribution of python, mamba, and conda.
 
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
-
-##################IMPORTANT INSTALLATION INSTRUCTIONS#######################
-# Installed this package by hand to /n/sw/Mambaforge-26.1.0-0 using:
-#bash Miniforge3-26.1.0-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-26.1.0-0
-# As root.
-# In addition you will want to update /n/sw/Miniforge3-26.1.0-0/.condarc
-# with the following lines (not commented out):
-#envs_dirs:
-#  - $HOME/.conda/envs
-#pkgs_dirs:
-#  - $HOME/.conda/envs
-# This is done by hand as putting it into the spec here would be too much of a hassle.
-#This module simply points at that install location
-
 
 
 #
@@ -171,6 +180,20 @@ A conda-forge distribution of python, mamba, and conda.
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
+
+umask 022
+cd "$FASRCSW_DEV"/rpmbuild/BUILD/%{name}-%{version}/build
+echo %{buildroot} | grep -q %{name}-%{version} && rm -rf %{buildroot}
+mkdir -p %{buildroot}/%{_prefix}
+make install DESTDIR=%{buildroot}
+
+
+#(this should not need to be changed)
+#these files are nice to have; %%doc is not as prefix-friendly as I would like
+#if there are other files not installed by make install, add them here
+for f in COPYING AUTHORS README INSTALL ChangeLog NEWS THANKS TODO BUGS; do
+	test -e "$f" && ! test -e '%{buildroot}/%{_prefix}/'"$f" && cp -a "$f" '%{buildroot}/%{_prefix}/'
+done
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -251,26 +274,18 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
-local root = "/n/sw/Miniforge3-26.1.0-0/"
 
 ---- environment changes (uncomment what is relevant)
-setenv("PYTHON_HOME",               root)
-setenv("PYTHON_INCLUDE",            pathJoin(root, "include"))
-setenv("PYTHON_LIB",                pathJoin(root, "lib"))
-setenv("MAMBA_ROOT_PREFIX",         root)
-setenv("PIP_NO_CACHE_DIR",          "off")
-setenv("MAMBA_DISABLE_LOCKFILE",    "1")
-setenv("PYTHONNOUSERSITE",          "True")
-prepend_path("PATH",                pathJoin(root, "bin"))
+setenv("HDF5_HOME",                 "%{_prefix}")
+setenv("HDF5_INCLUDE",              "%{_prefix}/include")
+setenv("HDF5_LIB",                  "%{_prefix}/lib")
 
----- Fix for conda init issues.
-local sh = myShellName()
-if sh == "tcsh" or sh == "csh" then
-  source_sh(sh, pathJoin(root, "etc/profile.d/conda.csh"))
-else
-  source_sh(sh, pathJoin(root, "etc/profile.d/conda.sh"))
-  source_sh(sh, pathJoin(root, "etc/profile.d/mamba.sh"))
-end
+prepend_path("PATH",               "%{_prefix}/bin")
+prepend_path("CPATH",              "%{_prefix}/include")
+prepend_path("FPATH",              "%{_prefix}/include")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
