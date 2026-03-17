@@ -146,10 +146,21 @@ A conda-forge distribution of python, mamba, and conda.
 # As root.
 # In addition you will want to update /n/sw/Miniforge3-26.1.0-0/.condarc
 # with the following lines (not commented out):
+#### FASRC customizations
+#default_channels:
+#  - https://conda.anaconda.org/conda-forge
+#  - https://prefix.dev/conda-forge
+## mamba currently does not support denylist_channels
+#denylist_channels:
+#  - https://repo.anaconda.com/pkgs/main
+#  - https://repo.anaconda.com/pkgs/msys2
+#  - https://repo.anaconda.com/pkgs/r
 #envs_dirs:
 #  - $HOME/.conda/envs
 #pkgs_dirs:
-#  - $HOME/.conda/envs
+#  - $HOME/.conda/pkgs
+## mamba only
+#disable_lockfile: true
 # This is done by hand as putting it into the spec here would be too much of a hassle.
 #This module simply points at that install location
 
@@ -259,7 +270,6 @@ setenv("PYTHON_INCLUDE",            pathJoin(root, "include"))
 setenv("PYTHON_LIB",                pathJoin(root, "lib"))
 setenv("MAMBA_ROOT_PREFIX",         root)
 setenv("PIP_NO_CACHE_DIR",          "off")
-setenv("MAMBA_DISABLE_LOCKFILE",    "1")
 setenv("PYTHONNOUSERSITE",          "True")
 prepend_path("PATH",                pathJoin(root, "bin"))
 
