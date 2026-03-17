@@ -140,6 +140,29 @@ A conda-forge distribution of python, mamba, and conda.
 #(leave this here)
 %include fasrcsw_module_loads.rpmmacros
 
+##################IMPORTANT INSTALLATION INSTRUCTIONS#######################
+# Installed this package by hand to /n/sw/Mambaforge-26.1.0-0 using:
+#bash Miniforge3-25.3.1-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-25.3.1-0.el9
+# As root.
+# In addition you will want to update /n/sw/Miniforge3-25.3.1-0.el9/.condarc
+# with the following lines (not commented out):
+#### FASRC customizations
+#default_channels:
+#  - https://conda.anaconda.org/conda-forge
+#  - https://prefix.dev/conda-forge
+## mamba currently does not support denylist_channels
+#denylist_channels:
+#  - https://repo.anaconda.com/pkgs/main
+#  - https://repo.anaconda.com/pkgs/msys2
+#  - https://repo.anaconda.com/pkgs/r
+#envs_dirs:
+#  - $HOME/.conda/envs
+#pkgs_dirs:
+#  - $HOME/.conda/pkgs
+## mamba only
+#disable_lockfile: true
+# This is done by hand as putting it into the spec here would be too much of a hassle.
+#This module simply points at that install location
 
 #
 # FIXME
@@ -157,10 +180,6 @@ A conda-forge distribution of python, mamba, and conda.
 # %%{buildroot} is usually ~/rpmbuild/BUILDROOT/%{name}-%{version}-%{release}.%{arch}.
 # (A spec file cannot change it, thus it is not inside $FASRCSW_DEV.)
 #
-
-# Installed this package by hand to /n/sw/Mambaforge-25.3.1-0 using:
-#bash Miniforge3-25.3.1-0-Linux-x86_64.sh -b -p /n/sw/Miniforge3-25.3.1-0.el9
-# As root. This module simply points at that install location
 
 #(this should not need to be changed)
 #this is the part that allows for inspecting the build output without fully creating the rpm
@@ -241,17 +260,25 @@ for i in string.gmatch("%{rundependencies}","%%S+") do
     end
 end
 
+local root = "/n/sw/Miniforge3-25.3.1-0.el9/"
+
 ---- environment changes (uncomment what is relevant)
-setenv("PYTHON_HOME",               "/n/sw/Miniforge3-25.3.1-0.el9/")
-setenv("PYTHON_INCLUDE",            "/n/sw/Miniforge3-25.3.1-0.el9/include")
-setenv("PYTHON_LIB",                "/n/sw/Miniforge3-25.3.1-0.el9/lib")
-setenv("MAMBA_ROOT_PREFIX",         "/n/sw/Miniforge3-25.3.1-0.el9/")
+setenv("PYTHON_HOME",               root)
+setenv("PYTHON_INCLUDE",            pathJoin(root, "include"))
+setenv("PYTHON_LIB",                pathJoin(root, "lib"))
+setenv("MAMBA_ROOT_PREFIX",         root)
 setenv("PIP_NO_CACHE_DIR",          "off")
-setenv("MAMBA_DISABLE_LOCKFILE",    "1")
 setenv("PYTHONNOUSERSITE",          "True")
-setenv("CONDA_PKGS_DIRS",           "~/.conda/pkgs")
-setenv("CONDA_ENVS_PATH",           "~/.conda/envs")
-prepend_path("PATH",                "/n/sw/Miniforge3-25.3.1-0.el9/bin")
+prepend_path("PATH",                pathJoin(root, "bin"))
+
+---- Fix for conda init issues.
+local sh = myShellName()
+if sh == "tcsh" or sh == "csh" then
+  source_sh(sh, pathJoin(root, "etc/profile.d/conda.csh"))
+else
+  source_sh(sh, pathJoin(root, "etc/profile.d/conda.sh"))
+  source_sh(sh, pathJoin(root, "etc/profile.d/mamba.sh"))
+end
 EOF
 
 #------------------- App data file
