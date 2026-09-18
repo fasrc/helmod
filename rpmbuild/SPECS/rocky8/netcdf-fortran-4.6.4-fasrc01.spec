@@ -30,14 +30,14 @@ Packager: %{getenv:FASRCSW_AUTHOR}
 # rpm gets created, so this stores it separately for later re-use); do not 
 # surround this string with quotes
 #
-%define summary_static Hierarchical Data Format 5
+%define summary_static NetCDF is a set of software libraries and self-describing, machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.
 Summary: %{summary_static}
 
 #
 # enter the url from where you got the source; change the archive suffix if 
 # applicable
 #
-URL: https://github.com/HDFGroup/hdf5/releases/download/2.2.0/hdf5-2.2.0.tar.gz
+URL: https://downloads.unidata.ucar.edu/netcdf-fortran/4.6.4/netcdf-fortran-4.6.4.tar.gz
 Source: %{name}-%{version}.tar.gz
 
 #
@@ -74,8 +74,8 @@ Prefix: %{_prefix}
 %define mpi %(if [[ %{getenv:TYPE} == "MPI" ]]; then if [[ -n "%{getenv:FASRCSW_MPIS}" ]]; then echo "%{getenv:FASRCSW_MPIS}"; fi; else echo ""; fi)
 
 
-%define builddependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01 cmake/4.2.3-fasrc01
-%define rundependencies zlib/1.3.2-fasrc01 szip/2.1.1-fasrc01
+%define builddependencies netcdf-c/4.10.1-fasrc01 cmake/4.2.3-fasrc01
+%define rundependencies netcdf-c/4.10.1-fasrc01
 %define buildcomments %{nil}
 %define requestor %{nil}
 %define requestref %{nil}
@@ -86,8 +86,6 @@ Prefix: %{_prefix}
 %define apptags %{nil} 
 %define apppublication %{nil}
 
-
-
 #
 # enter a description, often a paragraph; unless you prefix lines with spaces, 
 # rpm will format it, so no need to worry about the wrapping
@@ -95,7 +93,7 @@ Prefix: %{_prefix}
 # NOTE! INDICATE IF THERE ARE CHANGES FROM THE NORM TO THE BUILD!
 #
 %description
-HDF5 is a data model, library, and file format for storing and managing data. It supports an unlimited variety of datatypes, and is designed for flexible and efficient I/O and for high volume and complex data. HDF5 is portable and is extensible, allowing applications to evolve in their use of HDF5. The HDF5 Technology suite includes tools and applications for managing, manipulating, viewing, and analyzing data in the HDF5 format.
+NetCDF (network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data. This is the fortran distribution.
 
 #------------------- %%prep (~ tar xvf) ---------------------------------------
 
@@ -146,17 +144,13 @@ cd build
 export CMAKE_C_COMPILER=mpicc
 export CMAKE_CXX_COMPILER=mpicxx
 export CMAKE_Fortran_COMPILER=mpif90
-export ZLIB_ROOT=${ZLIB_HOME}
-export SZIP_ROOT=${SZIP_HOME}
 
-cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DHDF5_BUILD_FORTRAN:BOOL=ON -DHDF5_ENABLE_PARALLEL:BOOL=ON -DHDF5_ENABLE_ZLIB_SUPPORT:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON ..
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} ..
 cmake --build .
 
 #if you are okay with disordered output, add %%{?_smp_mflags} (with only one 
 #percent sign) to build in parallel
 make -j %{?_smp_mflags}
-
-
 
 #------------------- %%install (~ make install + create modulefile) -----------
 
@@ -253,7 +247,7 @@ done
 #   http://www.tacc.utexas.edu/tacc-projects/lmod/system-administrator-guide/module-commands-tutorial
 #
 
-mkdir -p %{buildroot}/%{_prefix}
+mkdir -p %{buildroot}/%{_prefix}/build
 cat > %{buildroot}/%{_prefix}/modulefile.lua <<EOF
 local helpstr = [[
 %{name}/%{version}-%{release_short}
@@ -278,16 +272,17 @@ end
 
 
 ---- environment changes (uncomment what is relevant)
-setenv("HDF5_HOME",                 "%{_prefix}")
-setenv("HDF5_INCLUDE",              "%{_prefix}/include")
-setenv("HDF5_LIB",                  "%{_prefix}/lib64")
+setenv("NETCDF_FORTRAN_HOME",              "%{_prefix}")
+setenv("NETCDF_FORTRAN_INCLUDE",           "%{_prefix}/include")
+setenv("NETCDF_FORTRAN_LIB",               "%{_prefix}/lib")
 
 prepend_path("PATH",               "%{_prefix}/bin")
 prepend_path("CPATH",              "%{_prefix}/include")
 prepend_path("FPATH",              "%{_prefix}/include")
-prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib64")
-prepend_path("LIBRARY_PATH",       "%{_prefix}/lib64")
-prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib64/pkgconfig")
+prepend_path("LD_LIBRARY_PATH",    "%{_prefix}/lib")
+prepend_path("LIBRARY_PATH",       "%{_prefix}/lib")
+prepend_path("MANPATH",            "%{_prefix}/share/man")
+prepend_path("PKG_CONFIG_PATH",    "%{_prefix}/lib/pkgconfig")
 EOF
 
 #------------------- App data file
